@@ -1,0 +1,179 @@
+{
+	lang: "CAT",
+	lexic: {
+		{
+			name: "KW_TYPE_INT",
+			regex: "/enter/i"
+		},
+		{
+			name: "KW_TYPE_CHAR",
+			regex: "/caracter/i"
+		},
+		{
+			name: "KW_TYPE_BOOL",
+			regex: "/boolea/i"
+		},
+		{
+			name: "KW_BOOL_TRUE",
+			regex: "/cert/i"
+		},
+		{
+			name: "KW_BOOL_FALSE",
+			regex: "/fals/i"
+		},
+		{
+			name: "KW_STRUCT_VAR",
+			regex: "/var/i"
+		},
+		{
+			name: "KW_STRUCT_ENDVAR",
+			regex: "/fivar/i"
+		},
+		{
+			name: "KW_STRUCT_IF",
+			regex: "/si/i"
+		},
+		{
+			name: "KW_STRUCT_ENDIF",
+			regex: "/fisi/i"
+		},
+		{
+			name: "KW_STRUCT_THEN",
+			regex: "/llavors/i"
+		},
+		{
+			name: "KW_STRUCT_ELSE",
+			regex: "/sino/i"
+		},
+		{
+			name: "KW_STRUCT_WHILE",
+			regex: "/mentre/i"
+		},
+		{
+			name: "KW_STRUCT_ENDWHILE",
+			regex: "/fimentre/i"
+		},
+		{
+			name: "KW_STRUCT_DO",
+			regex: "/fer/i"
+		},
+		{
+			name: "KW_STRUCT_FUNC",
+			regex: "/func/i"
+		},
+		{
+			name: "KW_STRUCT_ENDFUNC",
+			regex: "/fifunc/i"
+		},
+		{
+			name: "KW_STRUCT_RETURN",
+			regex: "/retorna/i"
+		},
+		{
+			name: "KW_ID",
+			regex: "/[_|a-z][_a-z0-9]*/i"
+		},
+		{
+			name: "CONST_INT",
+			regex: "/[0-9]+/"
+		},
+		{
+			name: "CONST_HEX",
+			regex: "/0x[0-9a-f]/i"
+		},
+		{
+			name: "CONST_CHAR",
+			regex: "/\'[a-z0-9]\'/i"
+		},
+		{
+			name: "SP_EXP_OPEN",
+			regex: "/\{/"
+		},
+		{
+			name: "SP_EXP_CLOSE",
+			regex: "/\}/"
+		},
+		{
+			name: "SP_COMMENT_LINE",
+			regex: "/\/\//"
+		},
+		{
+			name: "SP_COMMENT_OPEN",
+			regex: "/\/\*/"
+		},
+		{
+			name: "SP_COMMENT_CLOSE",
+			regex: "/\*\//"
+		},
+		{
+			name: "OP_ARIT_MULT",
+			regex: "/\*/"
+		},
+		{
+			name: "OP_ARIT_DIV",
+			regex: "/\//"
+		},
+		{
+			name: "OP_ARIT_MOD",
+			regex: "/%/"
+		},
+		{
+			name: "OP_ARIT_PLUS",
+			regex: "/\+/"
+		},
+		{
+			name: "OP_ARIT_MINUS",
+			regex: "/\-/"
+		},
+		{
+			name: "OP_REL_LT",
+			regex: "/</"
+		},
+		{
+			name: "OP_REL_LT_EQ",
+			regex: "/<=/"
+		},
+		{
+			name: "OP_REL_GT",
+			regex: "/>/"
+		},
+		{
+			name: "OP_REL_GT_EQ",
+			regex: "/>=/"
+		},
+		{
+			name: "OP_REL_EQ",
+			regex: "/==/"
+		},
+		{
+			name: "OP_REL_NOT_EQ",
+			regex: "/<>/"
+		},
+		{
+			name: "OP_LOG_NOT",
+			regex: "/¬/"
+		},
+		{
+			name: "OP_LOG_AND",
+			regex: "/\^/"
+		},
+		{
+			name: "OP_LOG_OR",
+			regex: "/\|/"
+		},
+		{
+			name: "OP_ASSIGN",
+			regex: "/:=/"
+		},
+		{
+			name: "OP_ASSIGN_TYPE",
+			regex: "/:/"
+		},
+		{
+			name: "OP_SEPARATOR",
+			regex: "/,/"
+		}
+	},
+	grammar: {
+	}
+}
