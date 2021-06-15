@@ -1,179 +1,179 @@
 {
-	lang: "CAT",
-	lexic: {
+	"lang": "CAT",
+	"lexic": [
 		{
-			name: "KW_TYPE_INT",
-			regex: "/enter/i"
+			"id": "KW_TYPE_INT",
+			"regex": "enter"
 		},
 		{
-			name: "KW_TYPE_CHAR",
-			regex: "/caracter/i"
+			"id": "KW_TYPE_CHAR",
+			"regex": "caracter"
 		},
 		{
-			name: "KW_TYPE_BOOL",
-			regex: "/boolea/i"
+			"id": "KW_TYPE_BOOL",
+			"regex": "boolea"
 		},
 		{
-			name: "KW_BOOL_TRUE",
-			regex: "/cert/i"
+			"id": "KW_BOOL_TRUE",
+			"regex": "cert"
 		},
 		{
-			name: "KW_BOOL_FALSE",
-			regex: "/fals/i"
+			"id": "KW_BOOL_FALSE",
+			"regex": "fals"
 		},
 		{
-			name: "KW_STRUCT_VAR",
-			regex: "/var/i"
+			"id": "KW_STRUCT_VAR",
+			"regex": "var"
 		},
 		{
-			name: "KW_STRUCT_ENDVAR",
-			regex: "/fivar/i"
+			"id": "KW_STRUCT_ENDVAR",
+			"regex": "fivar"
 		},
 		{
-			name: "KW_STRUCT_IF",
-			regex: "/si/i"
+			"id": "KW_STRUCT_IF",
+			"regex": "si"
 		},
 		{
-			name: "KW_STRUCT_ENDIF",
-			regex: "/fisi/i"
+			"id": "KW_STRUCT_ENDIF",
+			"regex": "fisi"
 		},
 		{
-			name: "KW_STRUCT_THEN",
-			regex: "/llavors/i"
+			"id": "KW_STRUCT_THEN",
+			"regex": "llavors"
 		},
 		{
-			name: "KW_STRUCT_ELSE",
-			regex: "/sino/i"
+			"id": "KW_STRUCT_ELSE",
+			"regex": "sino"
 		},
 		{
-			name: "KW_STRUCT_WHILE",
-			regex: "/mentre/i"
+			"id": "KW_STRUCT_WHILE",
+			"regex": "mentre"
 		},
 		{
-			name: "KW_STRUCT_ENDWHILE",
-			regex: "/fimentre/i"
+			"id": "KW_STRUCT_ENDWHILE",
+			"regex": "fimentre"
 		},
 		{
-			name: "KW_STRUCT_DO",
-			regex: "/fer/i"
+			"id": "KW_STRUCT_DO",
+			"regex": "fer"
 		},
 		{
-			name: "KW_STRUCT_FUNC",
-			regex: "/func/i"
+			"id": "KW_STRUCT_FUNC",
+			"regex": "func"
 		},
 		{
-			name: "KW_STRUCT_ENDFUNC",
-			regex: "/fifunc/i"
+			"id": "KW_STRUCT_ENDFUNC",
+			"regex": "fifunc"
 		},
 		{
-			name: "KW_STRUCT_RETURN",
-			regex: "/retorna/i"
+			"id": "KW_STRUCT_RETURN",
+			"regex": "retorna"
 		},
 		{
-			name: "KW_ID",
-			regex: "/[_|a-z][_a-z0-9]*/i"
+			"id": "KW_ID",
+			"regex": "[_|a-z][_a-z0-9]*"
 		},
 		{
-			name: "CONST_INT",
-			regex: "/[0-9]+/"
+			"id": "CONST_INT",
+			"regex": "[0-9]+"
 		},
 		{
-			name: "CONST_HEX",
-			regex: "/0x[0-9a-f]/i"
+			"id": "CONST_HEX",
+			"regex": "0x[0-9a-f]"
 		},
 		{
-			name: "CONST_CHAR",
-			regex: "/\'[a-z0-9]\'/i"
+			"id": "CONST_CHAR",
+			"regex": "\\'[a-z0-9]\\'"
 		},
 		{
-			name: "SP_EXP_OPEN",
-			regex: "/\{/"
+			"id": "SP_EXP_OPEN",
+			"regex": "\\{"
 		},
 		{
-			name: "SP_EXP_CLOSE",
-			regex: "/\}/"
+			"id": "SP_EXP_CLOSE",
+			"regex": "\\}"
 		},
 		{
-			name: "SP_COMMENT_LINE",
-			regex: "/\/\//"
+			"id": "SP_COMMENT_LINE",
+			"regex": "\\/\\/"
 		},
 		{
-			name: "SP_COMMENT_OPEN",
-			regex: "/\/\*/"
+			"id": "SP_COMMENT_OPEN",
+			"regex": "\\/\\*"
 		},
 		{
-			name: "SP_COMMENT_CLOSE",
-			regex: "/\*\//"
+			"id": "SP_COMMENT_CLOSE",
+			"regex": "\\*\\/"
 		},
 		{
-			name: "OP_ARIT_MULT",
-			regex: "/\*/"
+			"id": "OP_ARIT_MULT",
+			"regex": "\\*"
 		},
 		{
-			name: "OP_ARIT_DIV",
-			regex: "/\//"
+			"id": "OP_ARIT_DIV",
+			"regex": "\\/"
 		},
 		{
-			name: "OP_ARIT_MOD",
-			regex: "/%/"
+			"id": "OP_ARIT_MOD",
+			"regex": "%"
 		},
 		{
-			name: "OP_ARIT_PLUS",
-			regex: "/\+/"
+			"id": "OP_ARIT_PLUS",
+			"regex": "\\+"
 		},
 		{
-			name: "OP_ARIT_MINUS",
-			regex: "/\-/"
+			"id": "OP_ARIT_MINUS",
+			"regex": "\\-"
 		},
 		{
-			name: "OP_REL_LT",
-			regex: "/</"
+			"id": "OP_REL_LT",
+			"regex": "<"
 		},
 		{
-			name: "OP_REL_LT_EQ",
-			regex: "/<=/"
+			"id": "OP_REL_LT_EQ",
+			"regex": "<="
 		},
 		{
-			name: "OP_REL_GT",
-			regex: "/>/"
+			"id": "OP_REL_GT",
+			"regex": ">"
 		},
 		{
-			name: "OP_REL_GT_EQ",
-			regex: "/>=/"
+			"id": "OP_REL_GT_EQ",
+			"regex": ">="
 		},
 		{
-			name: "OP_REL_EQ",
-			regex: "/==/"
+			"id": "OP_REL_EQ",
+			"regex": "=="
 		},
 		{
-			name: "OP_REL_NOT_EQ",
-			regex: "/<>/"
+			"id": "OP_REL_NOT_EQ",
+			"regex": "<>"
 		},
 		{
-			name: "OP_LOG_NOT",
-			regex: "/¬/"
+			"id": "OP_LOG_NOT",
+			"regex": "¬"
 		},
 		{
-			name: "OP_LOG_AND",
-			regex: "/\^/"
+			"id": "OP_LOG_AND",
+			"regex": "\\^"
 		},
 		{
-			name: "OP_LOG_OR",
-			regex: "/\|/"
+			"id": "OP_LOG_OR",
+			"regex": "\\|"
 		},
 		{
-			name: "OP_ASSIGN",
-			regex: "/:=/"
+			"id": "OP_ASSIGN",
+			"regex": ":="
 		},
 		{
-			name: "OP_ASSIGN_TYPE",
-			regex: "/:/"
+			"id": "OP_ASSIGN_TYPE",
+			"regex": ":"
 		},
 		{
-			name: "OP_SEPARATOR",
-			regex: "/,/"
+			"id": "OP_SEPARATOR",
+			"regex": ","
 		}
-	},
-	grammar: {
-	}
+	],
+	"grammar": [
+	]
 }
