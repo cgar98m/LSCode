@@ -2,178 +2,534 @@
 	"lang": "CAT",
 	"lexic": [
 		{
-			"id": "KW_TYPE_INT",
+			"token_id": "KW_TYPE_INT",
 			"regex": "enter"
 		},
 		{
-			"id": "KW_TYPE_CHAR",
+			"token_id": "KW_TYPE_CHAR",
 			"regex": "caracter"
 		},
 		{
-			"id": "KW_TYPE_BOOL",
+			"token_id": "KW_TYPE_BOOL",
 			"regex": "boolea"
 		},
 		{
-			"id": "KW_BOOL_TRUE",
+			"token_id": "KW_BOOL_TRUE",
 			"regex": "cert"
 		},
 		{
-			"id": "KW_BOOL_FALSE",
+			"token_id": "KW_BOOL_FALSE",
 			"regex": "fals"
 		},
 		{
-			"id": "KW_STRUCT_VAR",
+			"token_id": "KW_STRUCT_VAR",
 			"regex": "var"
 		},
 		{
-			"id": "KW_STRUCT_ENDVAR",
+			"token_id": "KW_STRUCT_ENDVAR",
 			"regex": "fivar"
 		},
 		{
-			"id": "KW_STRUCT_IF",
+			"token_id": "KW_STRUCT_IF",
 			"regex": "si"
 		},
 		{
-			"id": "KW_STRUCT_ENDIF",
+			"token_id": "KW_STRUCT_ENDIF",
 			"regex": "fisi"
 		},
 		{
-			"id": "KW_STRUCT_THEN",
+			"token_id": "KW_STRUCT_THEN",
 			"regex": "llavors"
 		},
 		{
-			"id": "KW_STRUCT_ELSE",
+			"token_id": "KW_STRUCT_ELSE",
 			"regex": "sino"
 		},
 		{
-			"id": "KW_STRUCT_WHILE",
+			"token_id": "KW_STRUCT_WHILE",
 			"regex": "mentre"
 		},
 		{
-			"id": "KW_STRUCT_ENDWHILE",
+			"token_id": "KW_STRUCT_ENDWHILE",
 			"regex": "fimentre"
 		},
 		{
-			"id": "KW_STRUCT_DO",
+			"token_id": "KW_STRUCT_DO",
 			"regex": "fer"
 		},
 		{
-			"id": "KW_STRUCT_FUNC",
+			"token_id": "KW_STRUCT_FUNC",
 			"regex": "func"
 		},
 		{
-			"id": "KW_STRUCT_ENDFUNC",
+			"token_id": "KW_STRUCT_ENDFUNC",
 			"regex": "fifunc"
 		},
 		{
-			"id": "KW_STRUCT_RETURN",
+			"token_id": "KW_STRUCT_RETURN",
 			"regex": "retorna"
 		},
 		{
-			"id": "KW_ID",
-			"regex": "[_|a-z][_a-z0-9]*"
+			"token_id": "KW_ID",
+			"regex": "[_|a-zäÄëËïÏöÖüÜáéíóúáéíóúÁÉÍÓÚÂÊÎÔÛâêîôûàèìòùÀÈÌÒÙñÑ][_a-z0-9äÄëËïÏöÖüÜáéíóúáéíóúÁÉÍÓÚÂÊÎÔÛâêîôûàèìòùÀÈÌÒÙñÑ]*"
 		},
 		{
-			"id": "CONST_INT",
+			"token_id": "CONST_INT",
 			"regex": "[0-9]+"
 		},
 		{
-			"id": "CONST_HEX",
+			"token_id": "CONST_HEX",
 			"regex": "0x[0-9a-f]"
 		},
 		{
-			"id": "CONST_CHAR",
-			"regex": "\\'[a-z0-9]\\'"
+			"token_id": "CONST_CHAR",
+			"regex": "\\'[\\\\]?[a-z0-9äÄëËïÏöÖüÜáéíóúáéíóúÁÉÍÓÚÂÊÎÔÛâêîôûàèìòùÀÈÌÒÙñÑ]\\'"
 		},
 		{
-			"id": "SP_EXP_OPEN",
+			"token_id": "SP_EXP_OPEN",
 			"regex": "\\{"
 		},
 		{
-			"id": "SP_EXP_CLOSE",
+			"token_id": "SP_EXP_CLOSE",
 			"regex": "\\}"
 		},
 		{
-			"id": "SP_COMMENT_LINE",
+			"token_id": "SP_COMMENT_LINE",
 			"regex": "\\/\\/"
 		},
 		{
-			"id": "SP_COMMENT_OPEN",
+			"token_id": "SP_COMMENT_OPEN",
 			"regex": "\\/\\*"
 		},
 		{
-			"id": "SP_COMMENT_CLOSE",
+			"token_id": "SP_COMMENT_CLOSE",
 			"regex": "\\*\\/"
 		},
 		{
-			"id": "OP_ARIT_MULT",
+			"token_id": "OP_ARIT_MULT",
 			"regex": "\\*"
 		},
 		{
-			"id": "OP_ARIT_DIV",
+			"token_id": "OP_ARIT_DIV",
 			"regex": "\\/"
 		},
 		{
-			"id": "OP_ARIT_MOD",
+			"token_id": "OP_ARIT_MOD",
 			"regex": "%"
 		},
 		{
-			"id": "OP_ARIT_PLUS",
+			"token_id": "OP_ARIT_PLUS",
 			"regex": "\\+"
 		},
 		{
-			"id": "OP_ARIT_MINUS",
+			"token_id": "OP_ARIT_MINUS",
 			"regex": "\\-"
 		},
 		{
-			"id": "OP_REL_LT",
+			"token_id": "OP_REL_LT",
 			"regex": "<"
 		},
 		{
-			"id": "OP_REL_LT_EQ",
+			"token_id": "OP_REL_LT_EQ",
 			"regex": "<="
 		},
 		{
-			"id": "OP_REL_GT",
+			"token_id": "OP_REL_GT",
 			"regex": ">"
 		},
 		{
-			"id": "OP_REL_GT_EQ",
+			"token_id": "OP_REL_GT_EQ",
 			"regex": ">="
 		},
 		{
-			"id": "OP_REL_EQ",
+			"token_id": "OP_REL_EQ",
 			"regex": "=="
 		},
 		{
-			"id": "OP_REL_NOT_EQ",
+			"token_id": "OP_REL_NOT_EQ",
 			"regex": "<>"
 		},
 		{
-			"id": "OP_LOG_NOT",
+			"token_id": "OP_LOG_NOT",
 			"regex": "¬"
 		},
 		{
-			"id": "OP_LOG_AND",
+			"token_id": "OP_LOG_AND",
 			"regex": "\\^"
 		},
 		{
-			"id": "OP_LOG_OR",
+			"token_id": "OP_LOG_OR",
 			"regex": "\\|"
 		},
 		{
-			"id": "OP_ASSIGN",
-			"regex": ":="
+			"token_id": "OP_ASSIGN",
+			"regex": ":?="
 		},
 		{
-			"id": "OP_ASSIGN_TYPE",
+			"token_id": "OP_ASSIGN_TYPE",
 			"regex": ":"
 		},
 		{
-			"id": "OP_SEPARATOR",
+			"token_id": "OP_SEPARATOR",
 			"regex": ","
 		}
 	],
 	"grammar": [
+		{
+			"production_id": "CODE",
+			"rules": [
+				"BLOCK CODE_S"
+			]
+		},
+		{
+			"production_id": "CODE_S",
+			"rules": [
+				"CODE",
+				""
+			]
+		},
+		{
+			"production_id": "BLOCK",
+			"rules": [
+				"VAR_DEC_BLOCK",
+				"VAR_ASSIGN_BLOCK",
+				"IF_BLOCK",
+				"LOOP_BLOCK",
+				"CALL_BLOCK",
+				"FUNC_BLOCK"
+			]
+		},
+		{
+			"production_id": "EXP_BLOCK",
+			"rules": [
+				"EXP_SUM",
+				"EXP_OR"
+			]
+		},
+		{
+			"production_id": "EXP_SUM",
+			"rules": [
+				"EXP_MULT EXP_SUM_S"
+			]
+		},
+		{
+			"production_id": "EXP_SUM_S",
+			"rules": [
+				"OP_SUM EXP_SUM",
+				""
+			]
+		},
+		{
+			"production_id": "OP_SUM",
+			"rules": [
+				"OP_ARIT_PLUS",
+				"OP_ARIT_MINUS"
+			]
+		},
+		{
+			"production_id": "EXP_MULT",
+			"rules": [
+				"EXP_SEP EXP_MULT_S"
+			]
+		},
+		{
+			"production_id": "EXP_MULT_S",
+			"rules": [
+				"OP_MULT EXP_MULT",
+				""
+			]
+		},
+		{
+			"production_id": "OP_MULT",
+			"rules": [
+				"OP_ARIT_MULT",
+				"OP_ARIT_DIV",
+				"OP_ARIT_MOD"
+			]
+		},
+		{
+			"production_id": "EXP_SEP",
+			"rules": [
+				"VALUE_NUM",
+				"SP_EXP_OPEN EXP_SUM SP_EXP_CLOSE"
+			]
+		},
+		{
+			"production_id": "VALUE_NUM",
+			"rules": [
+				"VALUE_NUM_OP VALUE_NUM_S"
+			]
+		},
+		{
+			"production_id": "VALUE_NUM_S",
+			"rules": [
+				"KW_ID",
+				"CONST_NUM",
+				"CALL_BLOCK"
+			]
+		},
+		{
+			"production_id": "CONST_NUM",
+			"rules": [
+				"CONST_INT",
+				"CONST_HEX",
+				"CONST_CHAR"
+			]
+		},
+		{
+			"production_id": "EXP_OR",
+			"rules": [
+				"EXP_AND EXP_OR_S"
+			]
+		},
+		{
+			"production_id": "EXP_OR_S",
+			"rules": [
+				"OP_LOG_OR EXP_OR",
+				""
+			]
+		},
+		{
+			"production_id": "EXP_AND",
+			"rules": [
+				"EXP_NOT EXP_AND_S"
+			]
+		},
+		{
+			"production_id": "EXP_AND_S",
+			"rules": [
+				"OP_LOG_AND EXP_AND",
+				""
+			]
+		},
+		{
+			"production_id": "EXP_NOT",
+			"rules": [
+				"OP_LOG_NOT EXP_BOOL_SEP",
+				"EXP_BOOL_SEP"
+			]
+		},
+		{
+			"production_id": "EXP_BOOL_SEP",
+			"rules": [
+				"VALUE_BOOL",
+				"SP_EXP_OPEN EXP_BOOL SP_EXP_CLOSE"
+			]
+		},
+		{
+			"production_id": "VALUE_BOOL",
+			"rules": [
+				"KW_ID",
+				"CONST_BOOL",
+				"EXP_REL",
+				"CALL_BLOCK"
+			]
+		},
+		{
+			"production_id": "CONST_BOOL",
+			"rules": [
+				"KW_BOOL_TRUE",
+				"KW_BOOL_FALSE"
+			]
+		},
+		{
+			"production_id": "EXP_REL",
+			"rules": [
+				"EXP_SUM OP_REL EXP_SUM"
+			]
+		},
+		{
+			"production_id": "OP_REL",
+			"rules": [
+				"OP_REL_GT",
+				"OP_REL_GT_EQ",
+				"OP_REL_LT",
+				"OP_REL_LT_EQ",
+				"OP_REL_EQ",
+				"OP_REL_NOT_EQ"
+			]
+		},
+		{
+			"production_id": "VAR_DEC_BLOCK",
+			"rules": [
+				"VAR_DEC_LIST",
+				"KW_STRUCT_VAR VAR_DEC_LIST KW_STRUCT_ENDVAR"
+			]
+		},
+		{
+			"production_id": "VAR_DEC_LIST",
+			"rules": [
+				"VAR_DEC_GROUP VAR_DEC_LIST_S"
+			]
+		},
+		{
+			"production_id": "VAR_DEC_LIST_S",
+			"rules": [
+				"VAR_DEC_LIST",
+				""
+			]
+		},
+		{
+			"production_id": "VAR_DEC_GROUP",
+			"rules": [
+				"VAR_CONCAT OP_ASSIGN_TYPE TYPE"
+			]
+		},
+		{
+			"production_id": "VAR_CONCAT",
+			"rules": [
+				"KW_ID VAR_CONCAT_S"
+			]
+		},
+		{
+			"production_id": "VAR_CONCAT_S",
+			"rules": [
+				"OP_SEPARATOR VAR_CONCAT",
+				""
+			]
+		},
+		{
+			"production_id": "TYPE",
+			"rules": [
+				"KW_TYPE_INT",
+				"KW_TYPE_CHAR",
+				"KW_TYPE_BOOL"
+			]
+		},
+		{
+			"production_id": "VAR_ASSIGN_BLOCK",
+			"rules": [
+				"VAR_ASSIGN_CONCAT OP_ASSIGN EXP_BLOCK"
+			]
+		},
+		{
+			"production_id": "VAR_ASSIGN_CONCAT",
+			"rules": [
+				"KW_ID VAR_ASSIGN_CONCAT_S"
+			]
+		},
+		{
+			"production_id": "VAR_ASSIGN_CONCAT_S",
+			"rules": [
+				"OP_ASSIGN VAR_ASSIGN_CONCAT",
+				""
+			]
+		},
+		{
+			"production_id": "IF_BLOCK",
+			"rules": [
+				"IF_BLOCK_START BLOCK IF_BLOCK_ELSE KW_STRUCT_ENDIF"
+			]
+		},
+		{
+			"production_id": "IF_BLOCK_START",
+			"rules": [
+				"KW_STRUCT_IF EXP_BLOCK IF_BLOCK_START_S"
+			]
+		},
+		{
+			"production_id": "IF_BLOCK_START_S",
+			"rules": [
+				"KW_STRUCT_THEN",
+				""
+			]
+		},
+		{
+			"production_id": "IF_BLOCK_ELSE",
+			"rules": [
+				"KW_STRUCT_ELSE BLOCK",
+				""
+			]
+		},
+		{
+			"production_id": "LOOP_BLOCK",
+			"rules": [
+				"KW_STRUCT_WHILE EXP_BLOCK LOOP_BLOCK_DO BLOCK KW_STRUCT_ENDWHILE"
+			]
+		},
+		{
+			"production_id": "LOOP_BLOCK_DO",
+			"rules": [
+				"KW_STRUCT_DO",
+				""
+			]
+		},
+		{
+			"production_id": "FUNC_BLOCK",
+			"rules": [
+				"FUNC_BLOCK_S FUNC_EXP FUNC_TYPE BLOCK FUNC_RETURN KW_STRUCT_ENDFUNC"
+			]
+		},
+		{
+			"production_id": "FUNC_BLOCK_S",
+			"rules": [
+				"KW_STRUCT_FUNC KW_ID"
+			]
+		},
+		{
+			"production_id": "FUNC_EXP",
+			"rules": [
+				"SP_EXP_OPEN FUNC_EXP_S SP_EXP_CLOSE"
+			]
+		},
+		{
+			"production_id": "FUNC_EXP_S",
+			"rules": [
+				"FUNC_VARS",
+				""
+			]
+		},
+		{
+			"production_id": "FUNC_VARS",
+			"rules": [
+				"FUNC_SINGLE_VAR FUNC_VARS_S"
+			]
+		},
+		{
+			"production_id": "FUNC_SINGLE_VAR",
+			"rules": [
+				"KW_ID OP_ASSIGN_TYPE TYPE"
+			]
+		},
+		{
+			"production_id": "FUNC_VARS_S",
+			"rules": [
+				"OP_SEPARATOR FUNC_VARS",
+				""
+			]
+		},
+		{
+			"production_id": "FUNC_TYPE",
+			"rules": [
+				"OP_ASSIGN_TYPE TYPE",
+				""
+			]
+		},
+		{
+			"production_id": "FUNC_RETURN",
+			"rules": [
+				"KW_STRUCT_RETURN FUNC_RETURN_DATA",
+				""
+			]
+		},
+		{
+			"production_id": "FUNC_RETURN_DATA",
+			"rules": [
+				"EXP_BLOCK FUNC_RETURN_DATA_S"
+			]
+		},
+		{
+			"production_id": "FUNC_RETURN_DATA_S",
+			"rules": [
+				"OP_SEPARATOR FUNC_RETURN_DATA",
+				""
+			]
+		},
+		{
+			"production_id": "CALL_BLOCK",
+			"rules": [
+				"KW_ID SP_EXP_OPEN VAR_CONCAT SP_EXP_CLOSE"
+			]
+		}
 	]
 }

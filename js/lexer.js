@@ -1,14 +1,21 @@
-const TOKEN_ID = "KW_ID";
+const TOKEN_KW_ID = "KW_ID";
 const TOKEN_COMMENT_LINE = "SP_COMMENT_LINE";
 const TOKEN_COMMENT_OPEN = "SP_COMMENT_OPEN";
 const TOKEN_COMMENT_CLOSE = "SP_COMMENT_CLOSE";
 
 class Lexer {
 
-	constructor(errorHandler, lexic) {
-		this.errorHandler = errorHandler;
+	constructor(lexic) {
+		
+		//Pre-build regex
+		for(let i = 0; i < lexic.length; i++) {
+			lexic[i].builtRegex = new RegExp(lexic[i].regex, 'i');
+		}
 		this.lexic = lexic;
+		
+		//Empty token list
 		this.tokens = [];
+		
 	}
 	
 	scan(naturalText) {
@@ -47,7 +54,7 @@ class Lexer {
 						
 						//Prepare token
 						let token = {
-							id: this.lexic[j].id.slice(),
+							token_id: this.lexic[j].token_id.slice(),
 							line: i,
 							offset: charOffset + match.index,
 							content: match[0].slice()
@@ -75,7 +82,7 @@ class Lexer {
 								bestMatch = j;
 							} else if(matches[j].content.length == matches[bestMatch].content.length) {
 								//Check reserved token
-								if(matches[j].id != TOKEN_ID) {
+								if(matches[j].token_id != TOKEN_KW_ID) {
 									bestMatch = j;
 								}
 							}
@@ -83,15 +90,15 @@ class Lexer {
 					}
 					
 					//Check line comment
-					if(matches[bestMatch].id == TOKEN_COMMENT_LINE) {
+					if(matches[bestMatch].token_id == TOKEN_COMMENT_LINE) {
 						break;	//Trailing tokens ignored
 					}
 					
 					//Check comment open
-					if(matches[bestMatch].id == TOKEN_COMMENT_OPEN) {
+					if(matches[bestMatch].token_id == TOKEN_COMMENT_OPEN) {
 						//Ignore tokens until comment closing
 						ignoreTokens = true;
-					} else if(matches[bestMatch].id == TOKEN_COMMENT_CLOSE) {
+					} else if(matches[bestMatch].token_id == TOKEN_COMMENT_CLOSE) {
 						//Enable token storing
 						ignoreTokens = false;
 					} else {

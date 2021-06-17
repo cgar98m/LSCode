@@ -5,13 +5,13 @@ const INTERPRETE_BUTTON_ID = "interpreteButton";
 const LANG_PATH = "src/";
 const JSON_TRAIL = ".json";
 
-const LEXIC_ID = "lexic";
-
 var inputTextArea;
 var outputTextArea;
 var interpreteButton;
 
 var lang;
+
+var frontEnd;
 var lexer;
 
 //Main
@@ -26,14 +26,22 @@ window.onload = function() {
 	interpreteButton.disabled = true;
 	interpreteButton.onclick = function() {
 
+		//Disable button
+		interpreteButton.disabled = true;
+
 		//Scan input
-		lexer.scan(inputTextArea.value);
+		frontEnd.process(inputTextArea.value);
 		
+		//TODO: Replace outputTextArea.value for interprete results
 		//Display parsed tokens
 		outputTextArea.value = "";
-		for(let i = 0; i < lexer.tokens.length; i++) {
-			outputTextArea.value += (lexer.tokens[i].id + ": " + lexer.tokens[i].content + "\n");
+		for(let i = 0; i < frontEnd.lexer.tokens.length; i++) {
+			outputTextArea.value += (frontEnd.lexer.tokens[i].token_id + ": " + frontEnd.lexer.tokens[i].content + "\n");
 		}
+		//ENDTODO
+		
+		//Enable button
+		interpreteButton.disabled = false;
 		
 	};
 	
@@ -49,13 +57,10 @@ window.onload = function() {
 				//Get file data
 				let data = JSON.parse(xhr.responseText.replace("/\\/g", "\\\\"));
 				
-				//Pre-build regex
-				for(let i = 0; i < data[LEXIC_ID].length; i++) {
-					data[LEXIC_ID][i].builtRegex = new RegExp(data[LEXIC_ID][i].regex, 'i');
-				}
+				//Create front end
+				frontEnd = new FrontEnd(data);
 				
-				//Create lexer
-				lexer = new Lexer(null, data[LEXIC_ID]);
+				//TODO: Create back end
 				
 				//Enable button
 				interpreteButton.disabled = false;
