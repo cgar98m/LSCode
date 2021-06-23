@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="h-100">
 	<head>
 		<meta charset="utf-8"/>
 		<title>LSCode v0.1</title>
@@ -12,17 +12,33 @@
 		<script src="js/parser.js"></script>
 		<script src="js/test.js"></script>
 	</head>
-	<body>
-		<h1>
-			LSCode v0.2
-		</h1>
-		<h2>
-			Work in progress
-		</h2>
-		<div class="container">
+	<body class="h-100">
+		<div class="container h-100 pb-3 d-flex flex-column">
 			<div class="row">
-				<textarea id="inputTextArea" class="userText col-6" placeholder="Code here" rows="12"></textarea>
-				<textarea readonly id="outputTextArea" class="userText col-6" rows="12"></textarea>
+				<h1>
+					LSCode v0.2.1
+				</h1>
+				<h2>
+					Work in progress
+				</h2>
+			</div>
+			<div class="row">
+				<div class="nav nav-tabs">
+					<div class="nav-item">
+						<a id="navTokens" class="nav-link disabled">Tokens</a>
+					</div>
+					<div class="nav-item">
+						<a id="navParseTree" class="nav-link disabled">Parse tree</a>
+					</div>
+				</div>
+			</div>
+			<div class="row vh-100 flex-grow-1">
+				<div class="col px-0">
+					<textarea id="inputTextArea" class="userText" placeholder="Code here"></textarea>
+				</div>
+				<div id="contentDiv" class="col px-0">
+					<textarea readonly id="outputTokensArea" class="userText"></textarea>
+				</div>
 			</div>
 			<div class="row">
 				<input id="interpreteButton" type="button" value="Start"/>

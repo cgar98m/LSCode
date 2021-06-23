@@ -1,6 +1,11 @@
 const INPUT_TEXTAREA_ID = "inputTextArea";
-const OUTPUT_TEXTAREA_ID = "outputTextArea";
+const OUTPUT_TEXTAREA_ID = "outputTokensArea";
 const INTERPRETE_BUTTON_ID = "interpreteButton";
+const NAV_TOKENS_ID = "navTokens";
+const NAV_PARSE_TREE_ID = "navParseTree";
+
+const ACTIVE_CLASS = "active";
+const DISABLED_CLASS = "disabled";
 
 const LANG_PATH = "src/";
 const JSON_TRAIL = ".json";
@@ -8,6 +13,9 @@ const JSON_TRAIL = ".json";
 var inputTextArea;
 var outputTextArea;
 var interpreteButton;
+
+var navTokens;
+var navParseTree;
 
 var lang;
 
@@ -44,6 +52,34 @@ window.onload = function() {
 		interpreteButton.disabled = false;
 		
 	};
+	
+	//Get navbar (tabbar)
+	navTokens = document.getElementById(NAV_TOKENS_ID);
+	navParseTree = document.getElementById(NAV_PARSE_TREE_ID);
+	
+	//Link click actions
+	navTokens.onclick = function() {
+		
+		//Update navbar (tabbar)
+		navTokens.classList.add(DISABLED_CLASS);
+		navTokens.classList.add(ACTIVE_CLASS);
+		navParseTree.classList.remove(ACTIVE_CLASS);
+		navParseTree.classList.remove(DISABLED_CLASS);
+		
+	}
+	navParseTree.onclick = function() {
+		
+		//Update navbar (tabbar)
+		navParseTree.classList.add(DISABLED_CLASS);
+		navParseTree.classList.add(ACTIVE_CLASS);
+		navTokens.classList.remove(ACTIVE_CLASS);
+		navTokens.classList.remove(DISABLED_CLASS);
+		
+	}
+	
+	//Set default view
+	navTokens.classList.add(ACTIVE_CLASS);
+	navParseTree.classList.remove(DISABLED_CLASS);
 	
 	//TODO: Prepare interprete depending on language
 	lang = "cat";
