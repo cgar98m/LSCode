@@ -3,3 +3,38 @@
 	width: 100%;
 	resize: none;
 }
+
+.treeList {
+	list-style-type: none;
+}
+
+.treeListRoot {
+	margin: 0;
+	padding: 0;
+}
+
+.treeListArrow {
+	cursor: pointer;
+	user-select: none;
+}
+
+.treeListArrow::before {
+	content: "\25B6";
+	color: black;
+	margin-right: 6px;
+	display: inline-block;
+}
+
+.treeListArrowDown::before {
+	transform: rotate(90deg);
+}
+
+.nestedTreeList {
+	display: none;
+}
+
+.activeTreeList {
+	display: block;
+	white-space: nowrap;
+	overflow-x: auto;
+}

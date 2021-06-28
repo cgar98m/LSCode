@@ -5,7 +5,6 @@ const END_MARKER = "$"
 const PRODUCTION_NODE = 0;
 const FORK_NODE = 1;
 const LEAF_NODE = 2;
-const EPSILON_NODE = 3;
 
 class Parser {
 	
@@ -24,20 +23,9 @@ class Parser {
 	
 	parse(tokens) {
 		
-		//Empty parse tree
-		this.error = false;
-		this.parseTree = {
-			type: PRODUCTION_NODE,
-			production_id: BASE_PRODUCTION,
-			parentNode: null,
-			children: []
-		};
-		
-		//Empty predicted nodes
-		this.predictedNodes = [];
-		
-		//Predict first tokens
-		this.#predict(this.parseTree, this.predictedNodes);
+		//Prepare predict tree
+		this.#preparePrediction();
+		this.finalGroup = this.#predict(this.rootNode, this.predictedNodes);
 		
 		//Process input tokens
 		for(let i = 0; i < tokens.length; i++) {
@@ -48,28 +36,10 @@ class Parser {
 			//Check if token is contained on prediction
 			let matches = this.#match(token, this.predictedNodes);
 			if(matches.ok.length > 0) {
-								
+				
 				//Get invalid prediction and prune predict tree
 				for(let j = 0; j < matches.ko.length; j++) {
-					
-					//Prune node
 					this.#prune(matches.ko[j]);
-					
-					//Check linked node
-					if(matches.ko[j].linkNode != null) {
-						
-						//Remove linked node
-						let linkedNode = matches.ko[j].linkNode;
-						linkedNode.linkedChildren.splice(linkedNode.linkedChildren.indexOf(matches.ko[j]), 1);
-						
-						//Check total nodes
-						if(linkedNode.linkedChildren.length == 0) {
-							//Prune linked node
-							this.#prune(matches.ko[j].linkNode);
-						}
-						
-					}
-					
 				}
 				
 				//Predict next token
@@ -77,20 +47,12 @@ class Parser {
 				for(let j = 0; j < matches.ok.length; j++) {
 					
 					//Update node data
-					matches.ok[j].info = token;
+					matches.ok[j].data.info = token;
 					
 					//Predict next token
-					let tmpPredict = [];
+					/*let tmpPredict = [];
 					this.#predictNext(matches.ok[j].parentNode, tmpPredict);
-					
-					//Link predicted nodes to match
-					for(let k = 0; k < tmpPredict.length; k++) {
-						tmpPredict[k].linkNode = matches.ok[j];
-						matches.ok[j].linkedChildren.push(tmpPredict[k]);
-					}
-					
-					//Update predicted nodes
-					this.predictedNodes.push(...tmpPredict);
+					this.predictedNodes.push(...tmpPredict);*/
 					
 				}
 				
@@ -101,6 +63,9 @@ class Parser {
 			}
 			
 		}
+		
+		//TODO
+		this.parseTree = this.rootNode;
 		
 	}
 	
@@ -349,97 +314,139 @@ class Parser {
 		}
 	}
 	
+	#preparePrediction() {
+	
+		//Empty parse tree
+		this.error = false;
+		this.parseTree = null;
+	
+		//Prepare root node
+		this.rootNode = {
+			type: PRODUCTION_NODE,
+			group: 0,
+			data: {
+				production_id: BASE_PRODUCTION
+			},
+			parentNode: null,
+			children: []
+		};
+		
+		//Prepare relation tree
+		this.relationTree = {
+			group: 0,
+			parentNode: null,
+			children: []
+		};
+		
+		//Empty predicted nodes
+		this.predictedNodes = [];
+	
+	}
+	
 	#predict(node, prediction) {
 		
-		//Get production
-		let production = this.#getProduction(node.production_id);
-		
-		//Process every production rule
-		for(let i = 0; i < production.rules.length; i++) {
+		//Check if is terminal
+		if(!this.#isTerminal(node.data.production_id)) {
 			
-			//Check production and iterate if predict contains null
-			let rule = production.rules[i];
-			for(let j = 0; j < rule.length; j++) {
+			//Get production
+			let production = this.#getProduction(node.data.production_id);
+			
+			//Process every production rule
+			for(let i = 0; i < production.rules.length; i++) {
 				
-				//Get production from rule
-				let prod = rule[j];
-				
-				//Create fork node and append to parent
-				let forkNode = {
-					type: FORK_NODE,
-					production_id: production.production_id,
-					production_idx: i,
-					parentNode: node,
-					children: []
-				};
-				node.children.push(forkNode);
-				
-				//Check terminal production
-				if(this.#isTerminal(prod)) {
+				//Check production and iterate if predict contains null
+				let rule = production.rules[i];
+				for(let j = 0; j < rule.length; j++) {
 					
-					//Add leaf node
-					let leafNode = {
-						type: LEAF_NODE,
-						production_id: prod,
-						production_idx: j,
-						parentNode: forkNode,
-						linkNode: null,
-						linkedChildren: []
-					};
-					forkNode.children.push(leafNode);
+					//Get production from rule
+					let prod = rule[j];
 					
-					//Add predicted node
-					prediction.push(leafNode);
-					
-					//Complete predict
-					break;
-					
-				} else if(prod == EPSILON) {
-					
-					//Add EPSILON node
-					let epsilonNode = {
-						type: EPSILON_NODE,
-						production_id: prod,
-						production_idx: j,
-						parentNode: forkNode,
-						linkNode: null,
-						linkedChildren: []
-					};
-					forkNode.children.push(epsilonNode);
-					
-					//Add predicted node
-					prediction.push(epsilonNode);
-					
-					//Incomplete predict
-					break;
-					
-				} else {
-					
-					//Add production node
-					let productionNode = {
-						type: PRODUCTION_NODE,
-						production_id: prod,
-						production_idx: j,
-						parentNode: forkNode,
-						children: []
-					};
-					forkNode.children.push(productionNode);
-					
-					//Get null node count
-					let epsilonCount = prediction.filter(x => x.type == EPSILON_NODE).length;
-					
-					//Expand production
-					this.#predict(productionNode, prediction);
-					
-					//Check if EPSILON wasn't added
-					if(epsilonCount == prediction.filter(x => x.type == EPSILON_NODE).length) {
-						//Complete predict
+					//Check epsilon
+					if(prod == EPSILON) {
+						//Incomplete predict
+						prediction.push(null);
 						break;
+					} else {
+						
+						//Create fork node
+						let forkNode = {
+							type: FORK_NODE,
+							group: tmpGroup,
+							data: {
+								production_id: production.production_id,
+								production_idx: i
+							},
+							parentNode: node,
+							children: []
+						};
+						
+						//Append fork node to parent
+						node.children.push(forkNode);
+						
+						//Update relationTree
+						let locatedGroupNode = this.#locateNode(this.relationTree, nextGroup);
+						locatedGroupNode.children.push({
+							group: tmpGroup,
+							parentNode: locatedGroupNode, 
+							children: []
+						});
+						
+						//Check if is terminal
+						if(this.#isTerminal(prod)) {
+							
+							//Add leaf node
+							let leafNode = {
+								type: LEAF_NODE,
+								group: tmpGroup,
+								data: {
+									production_id: prod
+								},
+								parentNode: forkNode
+							};
+							forkNode.children.push(leafNode);
+							
+							//Add predicted node
+							prediction.push(leafNode);
+							
+							//Complete predict
+							break;
+							
+						} else {
+							
+							//Add production node
+							let productionNode = {
+								type: PRODUCTION_NODE,
+								group: tmpGroup,
+								data: {
+									production_id: prod
+								},
+								parentNode: forkNode,
+								children: []
+							};
+							forkNode.children.push(productionNode);
+							
+							//Get null node count
+							let tmpNull = prediction.filter(x => x == null).length;
+							
+							//Expand production
+							tmpGroup = this.#predict(productionNode, prediction);
+							
+							//Check if null wasn't added
+							if(tmpNull == prediction.filter(x => x == null).length) {
+								//Complete predict
+								break;
+							}
+							
+						}
+						
 					}
 					
 				}
 				
 			}
+			
+			//Update group
+			this.finalGroup = tmpGroup;
 			
 		}
 		
@@ -453,7 +460,7 @@ class Parser {
 			ko: []
 		};
 		for(let i = 0; i < prediction.length; i++) {
-			if(token.token_id == prediction[i].production_id) {
+			if(token.token_id == prediction[i].data.production_id) {
 				matches.ok.push(prediction[i]);
 			} else {
 				matches.ko.push(prediction[i]);
@@ -474,7 +481,6 @@ class Parser {
 			
 			//Remove child
 			parentNode.children.splice(parentNode.children.indexOf(node), 1);
-			node.parentNode = null;
 			
 			//Check if has no remaining child
 			if(parentNode.children.length == 0) {
@@ -511,33 +517,29 @@ class Parser {
 	
 	#predictNext(node, prediction) {
 		
-		//Check valid node
-		if(node != null) {
-		
+		//Check null node
+		if(node == null) {
+			
 			//Check node type
-			let visitParent = false;
 			if(node.type == FORK_NODE) {
 			
 				//Get grammar rule
-				let rule = this.#getProduction(node.production_id).rules[node.production_idx];
-			
-				//Visit parent if all productions where visited
-				visitParent = node.children.length == rule.length ? true : false;
+				let rule = this.#getProduction(node.data.production_id)[node.data.production_idx];
 			
 				//Loop on next productions predict
 				for(let i = node.children.length; i < rule.length; i++) {
 					
-					//Check production type
+					//Check if is terminal
 					if(this.#isTerminal(rule[i])) {
 						
 						//Add leaf node
 						let leafNode = {
 							type: LEAF_NODE,
-							production_id: rule[i],
-							production_idx: i,
-							parentNode: node,
-							linkNode: null,
-							linkedChildren: []
+							group: ++this.finalGroup,
+							data: {
+								production_id: rule[i]
+							},
+							parentNode: node
 						};
 						node.children.push(leafNode);
 						
@@ -545,174 +547,53 @@ class Parser {
 						prediction.push(leafNode);
 						
 						//Complete predict
-						break;
+						return;
 						
 					} else if(rule[i] == EPSILON) {
-						
-						//Add EPSILON node
-						let epsilonNode = {
-							type: EPSILON_NODE,
-							production_id: rule[i],
-							production_idx: i,
-							parentNode: node,
-							linkNode: null,
-							linkedChildren: []
-						};
-						node.children.push(epsilonNode);
-						
-						//Add predicted node
-						prediction.push(epsilonNode);
-						
 						//Incomplete prediction: visit parent
-						visitParent = true;
-						break;
-						
+						this.#predictNext(node.parentNode, prediction);
+						return;
 					} else {
 						
 						//Add production node
 						let productionNode = {
 							type: PRODUCTION_NODE,
-							production_id: rule[i],
-							production_idx: i,
+							group: ++this.finalGroup,
+							data: {
+								production_id: rule[i]
+							},
 							parentNode: node,
 							children: []
 						};
 						node.children.push(productionNode);
 						
 						//Get null node count
-						let epsilonCount = prediction.filter(x => x.type == EPSILON_NODE).length;
+						let tmpNull = prediction.filter(x => x == null).length;
 						
 						//Expand production
-						this.#predict(productionNode, prediction);
+						tmpGroup = this.#predict(productionNode, prediction);
 						
-						//Check if EPSILON wasn't added
-						if(epsilonCount == prediction.filter(x => x.type == EPSILON_NODE).length) {
+						//Check if null wasn't added
+						if(tmpNull == prediction.filter(x => x == null).length) {
 							//Complete predict
-							break;
-						} else {
-							//Check last production
-							if(i == rule.length - 1) {
-								visitParent = true;
-							}
+							return;
 						}
 						
 					}
 					
 				}
 				
-				//Check if parent visit is required
-				if(visitParent) {
-					//Incomplete prediction: visit parent
-					this.#predictNext(node.parentNode, prediction);
-				}
+				//Incomplete prediction: visit parent
+				this.#predictNext(node.parentNode, prediction);
 			
 			} else {
 				
-				//Get grammar production
-				let production = this.#getProduction(node.production_id);
+				//Get grammar rule
+				let rule = this.#getProduction(node.data.production_id);
 				
-				//Visit parent if all rules where visited
-				visitParent = node.children.length == production.rules.length ? true : false;
-				
-				//Loop on next rules
-				for(let i = node.children.length; i < production.rules.length; i++) {
+				//Loop on next productions predict
+				for(let i = node.children.length; i < rule.length; i++) {
 					
-					//Check production and iterate if predict contains null
-					let rule = production.rules[i];
-					for(let j = 0; j < rule.length; j++) {
-						
-						//Get production from rule
-						let prod = rule[j];
-						
-						//Create fork node and append to parent
-						let forkNode = {
-							type: FORK_NODE,
-							production_id: production.production_id,
-							production_idx: i,
-							parentNode: node,
-							children: []
-						};
-						node.children.push(forkNode);
-						
-						//Check terminal production
-						if(this.#isTerminal(prod)) {
-							
-							//Add leaf node
-							let leafNode = {
-								type: LEAF_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								linkNode: null,
-								linkedChildren: []
-							};
-							forkNode.children.push(leafNode);
-							
-							//Add predicted node
-							prediction.push(leafNode);
-							
-							//Complete predict
-							break;
-							
-						} else if(prod == EPSILON) {
-							
-							//Add EPSILON node
-							let epsilonNode = {
-								type: EPSILON_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								linkNode: null,
-								linkedChildren: []
-							};
-							forkNode.children.push(epsilonNode);
-							
-							//Add predicted node
-							prediction.push(epsilonNode);
-							
-							//Incomplete predict
-							visitParent = true;
-							break;
-							
-						} else {
-							
-							//Add production node
-							let productionNode = {
-								type: PRODUCTION_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								children: []
-							};
-							forkNode.children.push(productionNode);
-							
-							//Get null node count
-							let epsilonCount = prediction.filter(x => x.type == EPSILON_NODE).length;
-							
-							//Expand production
-							this.#predict(productionNode, prediction);
-							
-							//Check if EPSILON wasn't added
-							if(epsilonCount == prediction.filter(x => x.type == EPSILON_NODE).length) {
-								//Complete predict
-								break;
-							} else {
-								//Check last production
-								if(j == rule.length - 1) {
-									visitParent = true;
-								}
-							}
-							
-						}
-						
-					}
-					
-				}
-				
-				//Check if parent visit is required
-				if(visitParent) {
-					//Incomplete prediction: visit parent
-					this.#predictNext(node.parentNode, prediction);
 				}
 				
 			}
