@@ -2,9 +2,12 @@ const INPUT_TEXTAREA_ID = "inputTextArea";
 const TOKENS_TEXTAREA_ID = "tokensTextArea";
 const INTERPRETE_BUTTON_ID = "interpreteButton";
 const TAB_TOKENS_ID = "tabTokens";
+const TAB_PRED_PARSE_TREE_ID = "tabPredParseTree";
 const TAB_PARSE_TREE_ID = "tabParseTree";
 const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
+const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
+const PRED_PARSE_TREE_LIST_ID = "predParseTreeList";
 
 const ACTIVE_CLASS = "active";
 const DISABLED_CLASS = "disabled";
@@ -28,12 +31,15 @@ var inputTextArea;
 
 var tokensTextArea;
 
+var predParseTreeContainer;
+var predParseTreeList;
 var parseTreeContainer;
 var parseTreeList;
 
 var interpreteButton;
 
 var tabTokens;
+var tabPredParseTree;
 var tabParseTree;
 
 var lang;
@@ -47,6 +53,10 @@ window.onload = function() {
 	//Get text areas
 	inputTextArea = document.getElementById(INPUT_TEXTAREA_ID);
 	tokensTextArea = document.getElementById(TOKENS_TEXTAREA_ID);
+	
+	//Get predict parse tree list items
+	predParseTreeContainer = document.getElementById(PRED_PARSE_TREE_CONTAINER_ID);
+	predParseTreeList = document.getElementById(PRED_PARSE_TREE_LIST_ID);
 	
 	//Get parse tree list items
 	parseTreeContainer = document.getElementById(PARSE_TREE_CONTAINER_ID);
@@ -69,12 +79,17 @@ window.onload = function() {
 			tokensTextArea.value += (frontEnd.lexer.tokens[i].token_id + ": " + frontEnd.lexer.tokens[i].content + "\n");
 		}
 		
-		//Remove previous parser list
+		//Remove previous prediction parse tree
+		while(predParseTreeList.lastElementChild) {
+			predParseTreeList.removeChild(predParseTreeList.lastElementChild);
+		}
+		//Remove previous parse tree
 		while(parseTreeList.lastElementChild) {
 			parseTreeList.removeChild(parseTreeList.lastElementChild);
 		}
 		
-		//Create new parser list
+		//Create new prediction and parse tree
+		createTree(predParseTreeList, frontEnd.parser.predTree);
 		createTree(parseTreeList, frontEnd.parser.parseTree);
 		
 		//TODO: Display more info and execution
@@ -84,14 +99,17 @@ window.onload = function() {
 		
 	};
 	
-	//Get tab bar
+	//Get tab bar items
 	tabTokens = document.getElementById(TAB_TOKENS_ID);
+	tabPredParseTree = document.getElementById(TAB_PRED_PARSE_TREE_ID);
 	tabParseTree = document.getElementById(TAB_PARSE_TREE_ID);
 	
 	//Link click actions
 	tabTokens.onclick = function() {
 		
 		//Display tokens and hide others
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		parseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_NONE_CLASS);
@@ -100,13 +118,36 @@ window.onload = function() {
 		//Update tab bar
 		tabTokens.classList.add(DISABLED_CLASS);
 		tabTokens.classList.add(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(DISABLED_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.remove(DISABLED_CLASS);
+		
+	}
+	tabPredParseTree.onclick = function() {
+		
+		//Display parse tree and hide others
+		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
+		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.remove(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.add(DISP_FLEX_CLASS);
+		
+		//Update tab bar
+		tabPredParseTree.classList.add(DISABLED_CLASS);
+		tabPredParseTree.classList.add(ACTIVE_CLASS);
+		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(DISABLED_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabTokens.classList.remove(DISABLED_CLASS);
 		
 	}
 	tabParseTree.onclick = function() {
 		
 		//Display parse tree and hide others
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_NONE_CLASS);
@@ -115,13 +156,17 @@ window.onload = function() {
 		//Update tab bar
 		tabParseTree.classList.add(DISABLED_CLASS);
 		tabParseTree.classList.add(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(DISABLED_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabTokens.classList.remove(DISABLED_CLASS);
 		
 	}
 	
 	//Set default view
+	tabTokens.classList.add(ACTIVE_CLASS);
 	tabParseTree.classList.remove(DISABLED_CLASS);
+	tabPredParseTree.classList.remove(DISABLED_CLASS);
 	
 	//TODO: Prepare interprete depending on language
 	lang = "cat";
@@ -156,6 +201,11 @@ window.onload = function() {
 }
 
 function createTree(domElement, node) {
+	
+	//Check null node
+	if(node == null) {
+		return;
+	}
 	
 	//Create list content and append to parent
 	let listItem = document.createElement(LIST_ITEM);

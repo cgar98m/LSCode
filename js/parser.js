@@ -17,7 +17,8 @@ class Parser {
 		this.#firstCalc();
 		this.#followCalc();
 		
-		//Empty parse tree
+		//Empty prediction and parse tree
+		this.predTree = null;
 		this.parseTree = null;
 		
 	}
@@ -26,18 +27,20 @@ class Parser {
 		
 		//Empty parse tree
 		this.error = false;
-		this.parseTree = {
+		this.predTree = {
 			type: PRODUCTION_NODE,
 			production_id: BASE_PRODUCTION,
+			production_idx: 0,
 			parentNode: null,
 			children: []
 		};
+		this.parseTree = null;
 		
 		//Empty predicted nodes
 		this.predictedNodes = [];
 		
 		//Predict first tokens
-		this.#predict(this.parseTree, this.predictedNodes);
+		this.#predict(this.predTree, this.predictedNodes);
 		
 		//Process input tokens
 		for(let i = 0; i < tokens.length; i++) {
@@ -101,6 +104,11 @@ class Parser {
 			}
 			
 		}
+		
+		//TODO: Dump predict tree to parse tree and prune predictions
+		let predTreeCopy = this.#treeDeepCopy(this.predTree, null);
+		this.#prunePredictions(predTreeCopy);
+		this.parseTree = predTreeCopy;
 		
 	}
 	
@@ -607,119 +615,86 @@ class Parser {
 				}
 			
 			} else {
-				
-				//Get grammar production
-				let production = this.#getProduction(node.production_id);
-				
-				//Visit parent if all rules where visited
-				visitParent = node.children.length == production.rules.length ? true : false;
-				
-				//Loop on next rules
-				for(let i = node.children.length; i < production.rules.length; i++) {
-					
-					//Check production and iterate if predict contains null
-					let rule = production.rules[i];
-					for(let j = 0; j < rule.length; j++) {
-						
-						//Get production from rule
-						let prod = rule[j];
-						
-						//Create fork node and append to parent
-						let forkNode = {
-							type: FORK_NODE,
-							production_id: production.production_id,
-							production_idx: i,
-							parentNode: node,
-							children: []
-						};
-						node.children.push(forkNode);
-						
-						//Check terminal production
-						if(this.#isTerminal(prod)) {
-							
-							//Add leaf node
-							let leafNode = {
-								type: LEAF_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								linkNode: null,
-								linkedChildren: []
-							};
-							forkNode.children.push(leafNode);
-							
-							//Add predicted node
-							prediction.push(leafNode);
-							
-							//Complete predict
-							break;
-							
-						} else if(prod == EPSILON) {
-							
-							//Add EPSILON node
-							let epsilonNode = {
-								type: EPSILON_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								linkNode: null,
-								linkedChildren: []
-							};
-							forkNode.children.push(epsilonNode);
-							
-							//Add predicted node
-							prediction.push(epsilonNode);
-							
-							//Incomplete predict
-							visitParent = true;
-							break;
-							
-						} else {
-							
-							//Add production node
-							let productionNode = {
-								type: PRODUCTION_NODE,
-								production_id: prod,
-								production_idx: j,
-								parentNode: forkNode,
-								children: []
-							};
-							forkNode.children.push(productionNode);
-							
-							//Get null node count
-							let epsilonCount = prediction.filter(x => x.type == EPSILON_NODE).length;
-							
-							//Expand production
-							this.#predict(productionNode, prediction);
-							
-							//Check if EPSILON wasn't added
-							if(epsilonCount == prediction.filter(x => x.type == EPSILON_NODE).length) {
-								//Complete predict
-								break;
-							} else {
-								//Check last production
-								if(j == rule.length - 1) {
-									visitParent = true;
-								}
-							}
-							
-						}
-						
-					}
-					
-				}
-				
-				//Check if parent visit is required
-				if(visitParent) {
-					//Incomplete prediction: visit parent
-					this.#predictNext(node.parentNode, prediction);
-				}
-				
+				//Visit parent
+				this.#predictNext(node.parentNode, prediction);
 			}
 		
 		}
 		
 	}
+	
+	#treeDeepCopy(nodeSource, parentNode) {
+	
+		let treeCopy = null;
+	
+		//Check null node
+		if(nodeSource != null) {
+		
+			//Copy all values
+			treeCopy = {
+				type: nodeSource.type,
+				production_id: nodeSource.production_id,
+				production_idx: nodeSource.production_idx,
+				parentNode: parentNode,
+			};
+			
+			//Check if info exists
+			if(typeof nodeSource.info !== "undefined") {
+				treeCopy.info = nodeSource.info;
+			}
+			
+			//Check PRODUCTION and FORK node types
+			if(nodeSource.type == PRODUCTION_NODE || nodeSource.type == FORK_NODE) {
+				//Get children copies
+				treeCopy.children = [];
+				for(let i = 0; i < nodeSource.children.length; i++) {
+					treeCopy.children.push(this.#treeDeepCopy(nodeSource.children[i], treeCopy));
+				}
+			}
+		
+		}
+	
+		return treeCopy;
+	
+	}
+	
+	#prunePredictions(rootNode) {
+		
+		//Get LEAF and EPSILON nodes
+		let leaves = this.#leafLocate(rootNode);
+		
+		//Prune leaves that has no info at all
+		for(let i = 0; i < leaves.length; i++) {
+			//Check if .info doesn't exist to prune them
+			if(typeof leaves[i].info === "undefined") {
+				this.#prune(leaves[i]);
+			}
+		}
+		
+		//TODO: Do something with incomplete productions
+		
+	}
+	
+	#leafLocate(node) {
+		
+		//Check node type
+		let leafNodes = [];
+		if(node.type == LEAF_NODE || node.type == EPSILON_NODE) {
+			leafNodes.push(node);
+		} else {
+			//Visit children
+			for(let i = 0; i < node.children.length; i++) {
+				leafNodes.push(...this.#leafLocate(node.children[i]));
+			}
+		}
+		
+		return leafNodes;
+		
+	}
+	
+	/**************
+	*** UTILITY ***
+	**************/
 	
 	firstFinder(prodId) {
 		for(let i = 0; i < this.firstFollow.length; i++) {

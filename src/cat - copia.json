@@ -257,6 +257,19 @@
 		{
 			"production_id": "VALUE_NUM",
 			"rules": [
+				["VALUE_NUM_OP", "VALUE_NUM_S"]
+			]
+		},
+		{
+			"production_id": "VALUE_NUM_OP",
+			"rules": [
+				["OP_SUM"],
+				["NULL"]
+			]
+		},
+		{
+			"production_id": "VALUE_NUM_S",
+			"rules": [
 				["KW_ID"],
 				["CONST_NUM"],
 				["CALL_BLOCK"]
