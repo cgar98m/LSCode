@@ -206,6 +206,13 @@
 			]
 		},
 		{
+			"production_id": "EXP_BLOCK",
+			"rules": [
+				["EXP_SUM"],
+				["EXP_OR"]
+			]
+		},
+		{
 			"production_id": "EXP_SUM",
 			"rules": [
 				["EXP_MULT", "EXP_SUM_S"]
@@ -298,28 +305,24 @@
 		{
 			"production_id": "EXP_NOT",
 			"rules": [
-				["EXP_NOT_S", "EXP_BOOL_SEP"]
-			]
-		},
-		{
-			"production_id": "EXP_NOT_S",
-			"rules": [
-				["OP_LOG_NOT"],
-				["NULL"]
+				["OP_LOG_NOT", "EXP_BOOL_SEP"],
+				["EXP_BOOL_SEP"]
 			]
 		},
 		{
 			"production_id": "EXP_BOOL_SEP",
 			"rules": [
 				["VALUE_BOOL"],
-				["SP_EXP_OPEN", "EXP_OR", "SP_EXP_CLOSE"]
+				["SP_EXP_OPEN", "EXP_BOOL", "SP_EXP_CLOSE"]
 			]
 		},
 		{
 			"production_id": "VALUE_BOOL",
 			"rules": [
+				["KW_ID"],
 				["CONST_BOOL"],
-				["EXP_REL"]
+				["EXP_REL"],
+				["CALL_BLOCK"]
 			]
 		},
 		{
@@ -332,14 +335,7 @@
 		{
 			"production_id": "EXP_REL",
 			"rules": [
-				["EXP_SUM", "EXP_REL_S"]
-			]
-		},
-		{
-			"production_id": "EXP_REL_S",
-			"rules": [
-				["OP_REL", "EXP_SUM"],
-				["NULL"]
+				["EXP_SUM", "OP_REL", "EXP_SUM"]
 			]
 		},
 		{
@@ -403,7 +399,7 @@
 		{
 			"production_id": "VAR_ASSIGN_BLOCK",
 			"rules": [
-				["VAR_ASSIGN_CONCAT", "EXP_OR"]
+				["VAR_ASSIGN_CONCAT", "EXP_BLOCK"]
 			]
 		},
 		{
@@ -428,7 +424,7 @@
 		{
 			"production_id": "IF_BLOCK_START",
 			"rules": [
-				["KW_STRUCT_IF", "EXP_OR", "IF_BLOCK_START_S"]
+				["KW_STRUCT_IF", "EXP_BLOCK", "IF_BLOCK_START_S"]
 			]
 		},
 		{
@@ -448,7 +444,7 @@
 		{
 			"production_id": "LOOP_BLOCK",
 			"rules": [
-				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "BLOCK", "KW_STRUCT_ENDWHILE"]
+				["KW_STRUCT_WHILE", "EXP_BLOCK", "LOOP_BLOCK_DO", "BLOCK", "KW_STRUCT_ENDWHILE"]
 			]
 		},
 		{
@@ -519,7 +515,7 @@
 		{
 			"production_id": "FUNC_RETURN_DATA",
 			"rules": [
-				["EXP_OR", "FUNC_RETURN_DATA_S"]
+				["EXP_BLOCK", "FUNC_RETURN_DATA_S"]
 			]
 		},
 		{

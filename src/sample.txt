@@ -1,0 +1,30 @@
+a: enter
+b: enter
+a := 0
+mentre a > 0 fer
+   a := a - 1
+   b := b + 1
+fimentre
+
+var
+a: enter
+b: caracter
+fivar
+a:=2
+
+//Declaración de variables
+var
+   a: enter
+fivar
+var
+   b: caracter
+   c,d: boolea
+fivar
+e: enter
+f: boolea
+
+//Asignación simple a variables
+a = b = 2
+c := 3
+
+//Condicionales simples

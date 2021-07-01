@@ -433,7 +433,7 @@ class Parser {
 					};
 					forkNode.children.push(productionNode);
 					
-					//Get null node count
+					/*//Get null node count
 					let epsilonCount = prediction.filter(x => x.type == EPSILON_NODE).length;
 					
 					//Expand production
@@ -441,6 +441,15 @@ class Parser {
 					
 					//Check if EPSILON wasn't added
 					if(epsilonCount == prediction.filter(x => x.type == EPSILON_NODE).length) {
+						//Complete predict
+						break;
+					}*/
+					
+					//Expand production
+					this.#predict(productionNode, prediction);
+					
+					//Check if EPSILON was resolved
+					if(prediction[prediction.length - 1].type != EPSILON_NODE) {
 						//Complete predict
 						break;
 					}

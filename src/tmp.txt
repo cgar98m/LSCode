@@ -1,0 +1,17 @@
+VAR_ASSIGN_CONCAT_S --> VAR_ASSIGN_CONCAT --> KW_ID
+					--> NULL
+|_
+VAR_ASSIGN_CONCAT
+|
+EXP_OR --> EXP_AND --> EXP_NOT --> EXP_NOT_S --> OP_LOG_NOT
+												 NULL
+								   |
+								   EXP_BOOL_SEP --> VALUE_BOOL --> CONST_BOOL --> KW_BOOL_TRUE
+																				  KW_BOOL_FALSE
+																   EXP_REL --> EXP_SUM --> EXP_MULT --> EXP_SEP --> VALUE_NUM --> KW_ID
+																																  CONST_NUM --> CONST_INT
+																																				CONST_HEX
+																																				CONST_CHAR
+																																  CALL_BLOCK --> KW_ID
+																													SP_EXP_OPEN
+												    SP_EXP_OPEN
