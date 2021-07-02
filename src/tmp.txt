@@ -15,3 +15,28 @@ EXP_OR --> EXP_AND --> EXP_NOT --> EXP_NOT_S --> OP_LOG_NOT
 																																  CALL_BLOCK --> KW_ID
 																													SP_EXP_OPEN
 												    SP_EXP_OPEN
+=======================================================================================================================================================================================================
+VAR_ASSIGN_CONCAT --> KW_ID
+                      "OP_ASSIGN"
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CODE --> BIG_BLOCK --> BLOCK --> VAR_ASSIGN_BLOCK --> EXP_OR --> EXP_AND --> EXP_NOT --> EXP_BOOL_SEP --> VALUE_BOOL --> EXP_REL --> EXP_SUM --> EXP_MULT --> EXP_SEP --> VALUE_NUM --> KW_ID
+         |                                                       |           |                                                       |           |            EXP_MULT_S --> OP_MULT --> "OP_ARIT_MULT"
+		 |                                                       |           |                                                       |           |                       |           --> "OP_ARIT_DIV"
+		 |                                                       |           |                                                       |           |                       |           --> "OP_ARIT_MOD"
+         |                                                       | 		     |                                                       |           |                       --> "NULL"
+         |                                                       | 		     |                                                       |           EXP_SUM_S --> OP_SUM --> "OP_ARIT_PLUS"
+         |                                                       | 		     |                                                       |                     |          --> "OP_ARIT_MINUS"
+         |                                                       | 		     |                                                       |                     --> "NULL"
+         |                                                       |           |                                                       EXP_REL_S --> OP_REL --> "OP_REL_GT"
+         |                                                       | 		     |                                                                 |          --> "OP_REL_GT_EQ"
+         |                                              	     |           | 					                                               |          --> "OP_REL_LT"
+         |                                              	     |  	     |             		                                               |          --> "OP_REL_LT_EQ"
+         |                                              	     |  	     |  		                                                       |          --> "OP_REL_EQ"
+         |                                                       | 		     |  				                                               |          --> "OP_REL_NOT_EQ"
+         |                                                       | 		     |                                                                 --> "NULL"
+         |                                                       |           EXP_AND_S --> "OP_LOG_AND"
+	     |                                                       |                     --> "NULL"
+         |                                                       EXP_OR_S --> "OP_LOG_OR"
+	     |                                                                --> "NULL"
+         CODE_S --> CODE --> ...
+		        --> "NULL"

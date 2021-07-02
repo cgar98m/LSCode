@@ -89,8 +89,8 @@ window.onload = function() {
 		}
 		
 		//Create new prediction and parse tree
-		createTree(predParseTreeList, frontEnd.parser.predTree);
-		createTree(parseTreeList, frontEnd.parser.parseTree);
+		createPaths(predParseTreeList, frontEnd.parser.predTree);
+		createPaths(parseTreeList, frontEnd.parser.parseTree);
 		
 		//TODO: Display more info and execution
 		
@@ -197,6 +197,38 @@ window.onload = function() {
 		console.log(xhr.statusText);
 	}
 	xhr.send();
+	
+}
+
+function createPaths(domElement, trees) {
+	
+	//Create all possible paths
+	for(let i = 0; i < trees.length; i++) {
+		
+		//Create list content and append to parent
+		let listItem = document.createElement(LIST_ITEM);
+		domElement.appendChild(listItem);
+		
+		//Create arrow and append to list item
+		let arrow = document.createElement(SPAN_ITEM);
+		arrow.classList.add(TREE_LIST_ARROW_CLASS);
+		arrow.addEventListener("click", function() {
+			this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
+			this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
+		});
+		arrow.textContent = "PATH " + i;
+		listItem.appendChild(arrow);
+		
+		//Create sublist item
+		let subListItem = document.createElement(SUBLIST_ITEM);
+		subListItem.classList.add(NESTED_TREE_LIST_CLASS);
+		subListItem.classList.add(TREE_LIST);
+		listItem.appendChild(subListItem);
+		
+		//Create subtree
+		createTree(subListItem, trees[i]);
+		
+	}
 	
 }
 
