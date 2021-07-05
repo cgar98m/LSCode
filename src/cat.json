@@ -79,7 +79,7 @@
 		},
 		{
 			"token_id": "CONST_HEX",
-			"regex": "0x[0-9a-f]"
+			"regex": "0x[0-9a-f]+"
 		},
 		{
 			"token_id": "CONST_CHAR",
@@ -87,11 +87,11 @@
 		},
 		{
 			"token_id": "SP_EXP_OPEN",
-			"regex": "\\{"
+			"regex": "\\("
 		},
 		{
 			"token_id": "SP_EXP_CLOSE",
-			"regex": "\\}"
+			"regex": "\\)"
 		},
 		{
 			"token_id": "SP_COMMENT_LINE",
@@ -203,6 +203,19 @@
 				["IF_BLOCK"],
 				["LOOP_BLOCK"],
 				["CALL_BLOCK"]
+			]
+		},
+		{
+			"production_id": "BLOCK_GROUP",
+			"rules": [
+				["BLOCK", "BLOCK_GROUP_S"]
+			]
+		},
+		{
+			"production_id": "BLOCK_GROUP_S",
+			"rules": [
+				["BLOCK_GROUP"],
+				["NULL"]
 			]
 		},
 		{
@@ -422,7 +435,7 @@
 		{
 			"production_id": "IF_BLOCK",
 			"rules": [
-				["IF_BLOCK_START", "BLOCK", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
+				["IF_BLOCK_START", "BLOCK_GROUP", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
 			]
 		},
 		{
@@ -441,14 +454,14 @@
 		{
 			"production_id": "IF_BLOCK_ELSE",
 			"rules": [
-				["KW_STRUCT_ELSE", "BLOCK"],
+				["KW_STRUCT_ELSE", "BLOCK_GROUP"],
 				["NULL"]
 			]
 		},
 		{
 			"production_id": "LOOP_BLOCK",
 			"rules": [
-				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "BLOCK", "KW_STRUCT_ENDWHILE"]
+				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "BLOCK_GROUP", "KW_STRUCT_ENDWHILE"]
 			]
 		},
 		{
@@ -461,23 +474,11 @@
 		{
 			"production_id": "FUNC_BLOCK",
 			"rules": [
-				["FUNC_BLOCK_S", "FUNC_EXP", "FUNC_TYPE", "BLOCK", "FUNC_RETURN", "KW_STRUCT_ENDFUNC"]
-			]
-		},
-		{
-			"production_id": "FUNC_BLOCK_S",
-			"rules": [
-				["KW_STRUCT_FUNC", "KW_ID"]
+				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_CONTENT", "KW_STRUCT_ENDFUNC"]
 			]
 		},
 		{
 			"production_id": "FUNC_EXP",
-			"rules": [
-				["SP_EXP_OPEN", "FUNC_EXP_S", "SP_EXP_CLOSE"]
-			]
-		},
-		{
-			"production_id": "FUNC_EXP_S",
 			"rules": [
 				["FUNC_VARS"],
 				["NULL"]
@@ -503,17 +504,29 @@
 			]
 		},
 		{
+			"production_id": "FUNC_CONTENT",
+			"rules": [
+				["FUNC_TYPE", "FUNC_BLOCK_CONTENT", "FUNC_RETURN"],
+				["BLOCK_GROUP"]
+			]
+		},
+		{
 			"production_id": "FUNC_TYPE",
 			"rules": [
-				["OP_ASSIGN_TYPE", "TYPE"],
+				["OP_ASSIGN_TYPE", "TYPE"]
+			]
+		},
+		{
+			"production_id": "FUNC_BLOCK_CONTENT",
+			"rules": [
+				["BLOCK_GROUP"],
 				["NULL"]
 			]
 		},
 		{
 			"production_id": "FUNC_RETURN",
 			"rules": [
-				["KW_STRUCT_RETURN", "FUNC_RETURN_DATA"],
-				["NULL"]
+				["KW_STRUCT_RETURN", "FUNC_RETURN_DATA"]
 			]
 		},
 		{
@@ -532,7 +545,14 @@
 		{
 			"production_id": "CALL_BLOCK",
 			"rules": [
-				["KW_ID", "SP_EXP_OPEN", "VAR_CONCAT", "SP_EXP_CLOSE"]
+				["KW_ID", "SP_EXP_OPEN", "CALL_VAR_CONCAT", "SP_EXP_CLOSE"]
+			]
+		},
+		{
+			"production_id": "CALL_VAR_CONCAT",
+			"rules": [
+				["VAR_CONCAT"],
+				["NULL"]
 			]
 		}
 	]

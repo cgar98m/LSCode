@@ -12,7 +12,7 @@ b: caracter
 fivar
 a:=2
 
-//Declaración de variables
+//Declaració de variables simples
 var
    a: enter
 fivar
@@ -28,3 +28,35 @@ a = b = 2
 c := 3
 
 //Condicionales simples
+si cert llavors
+   a := 2
+fisi
+si fals
+   b := cert
+   a: boolea
+sino
+   c: enter
+fisi
+
+//Bucles simples
+mentre a > b fer
+   si 1
+      c = c + 1
+   fisi
+fimentre
+mentre cert
+   a := 1
+fimentre
+
+//Definició de funcions simples
+func suma(a: enter, b: enter): enter
+   retorna a + b
+fifunc
+func hola()
+   msg = 'h'
+fifunc
+
+//Crida de funcions simples
+hola()
+c = suma(a, b)
+d = suma(a,b) % 2
