@@ -8,6 +8,8 @@ const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
 const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
 const PRED_PARSE_TREE_LIST_ID = "predParseTreeList";
+const COLLAPSE_BUTTON_ID = "expandButton";
+const HIDE_BUTTON_ID = "collapseButton";
 
 const ACTIVE_CLASS = "active";
 const DISABLED_CLASS = "disabled";
@@ -42,6 +44,9 @@ var tabTokens;
 var tabPredParseTree;
 var tabParseTree;
 
+var collapseButton;
+var hideButton;
+
 var lang;
 
 var frontEnd;
@@ -62,9 +67,8 @@ window.onload = function() {
 	parseTreeContainer = document.getElementById(PARSE_TREE_CONTAINER_ID);
 	parseTreeList = document.getElementById(PARSE_TREE_LIST_ID);
 	
-	//Get interprete button, disable and link action
+	//Get interprete button and link action
 	interpreteButton = document.getElementById(INTERPRETE_BUTTON_ID);
-	interpreteButton.disabled = true;
 	interpreteButton.onclick = function() {
 
 		//Disable button
@@ -104,6 +108,48 @@ window.onload = function() {
 	tabPredParseTree = document.getElementById(TAB_PRED_PARSE_TREE_ID);
 	tabParseTree = document.getElementById(TAB_PARSE_TREE_ID);
 	
+	//Get collapse button and link action
+	collapseButton = document.getElementById(COLLAPSE_BUTTON_ID);
+	collapseButton.onclick = function() {
+		
+		//Get selected tree list
+		let tree;
+		if(tabPredParseTree.classList.contains(ACTIVE_CLASS)) {
+			tree = predParseTreeContainer;
+		} else {
+			tree = parseTreeContainer;
+		}
+		
+		//Select all nested arrow items
+		let arrowItems = tree.getElementsByClassName(TREE_LIST_ARROW_CLASS);
+		for(let i = 0; i < arrowItems.length; i++) {
+			arrowItems[i].parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.add(ACTIVE_TREE_LIST_CLASS);
+			arrowItems[i].classList.add(TREE_LIST_ARROW_DOWN_CLASS);
+		}
+		
+	}
+	
+	//Get hide button and link action
+	hideButton = document.getElementById(HIDE_BUTTON_ID);
+	hideButton.onclick = function() {
+		
+		//Get selected tree list
+		let tree;
+		if(tabPredParseTree.classList.contains(ACTIVE_CLASS)) {
+			tree = predParseTreeContainer;
+		} else {
+			tree = parseTreeContainer;
+		}
+		
+		//Select all nested arrow items
+		let arrowItems = tree.getElementsByClassName(TREE_LIST_ARROW_CLASS);
+		for(let i = 0; i < arrowItems.length; i++) {
+			arrowItems[i].parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.remove(ACTIVE_TREE_LIST_CLASS);
+			arrowItems[i].classList.remove(TREE_LIST_ARROW_DOWN_CLASS);
+		}
+		
+	}
+	
 	//Link click actions
 	tabTokens.onclick = function() {
 		
@@ -122,6 +168,10 @@ window.onload = function() {
 		tabPredParseTree.classList.remove(DISABLED_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.remove(DISABLED_CLASS);
+		
+		//Hide buttons
+		collapseButton.classList.add(DISP_NONE_CLASS);
+		hideButton.classList.add(DISP_NONE_CLASS);
 		
 	}
 	tabPredParseTree.onclick = function() {
@@ -142,6 +192,10 @@ window.onload = function() {
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabTokens.classList.remove(DISABLED_CLASS);
 		
+		//Show buttons
+		collapseButton.classList.remove(DISP_NONE_CLASS);
+		hideButton.classList.remove(DISP_NONE_CLASS);
+		
 	}
 	tabParseTree.onclick = function() {
 		
@@ -160,6 +214,10 @@ window.onload = function() {
 		tabPredParseTree.classList.remove(DISABLED_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabTokens.classList.remove(DISABLED_CLASS);
+		
+		//Show buttons
+		collapseButton.classList.remove(DISP_NONE_CLASS);
+		hideButton.classList.remove(DISP_NONE_CLASS);
 		
 	}
 	
