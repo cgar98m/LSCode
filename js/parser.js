@@ -751,6 +751,11 @@ class Parser {
 				this.#predictNext(node.parentNode, prediction, linkNode);
 			}
 		
+		} else {
+			/*//Add linkNode node to prediction (EPSILON node)
+			prediction.push(linkNode);*/
+			//Prune link node (it's an EPSILON node)
+			this.#prune(linkNode);
 		}
 		
 	}
