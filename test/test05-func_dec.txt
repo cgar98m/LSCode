@@ -1,0 +1,7 @@
+//Definició de funcions simples
+func suma(a: enter, b: enter): enter
+   retorna a + b
+fifunc
+func hola()
+   msg = 'h'
+fifunc

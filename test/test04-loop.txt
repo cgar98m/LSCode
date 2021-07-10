@@ -1,0 +1,9 @@
+//Bucles simples
+mentre a > b fer
+   si 1
+      c = c + 1
+   fisi
+fimentre
+mentre cert
+   a := 1
+fimentre

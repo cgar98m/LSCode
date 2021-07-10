@@ -1,0 +1,10 @@
+//Declaració de variables simples
+var
+   a: enter
+fivar
+var
+   b: caracter
+   c,d: boolea
+fivar
+e: enter
+f: boolea

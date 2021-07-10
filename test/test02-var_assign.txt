@@ -1,0 +1,4 @@
+//Asignación simple a variables
+a = b = 2
+c := 3
+a, b = 3

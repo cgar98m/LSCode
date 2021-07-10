@@ -1,0 +1,4 @@
+//Crida de funcions simples
+hola()
+c = suma(a, b)
+d = suma(a,b) % 2

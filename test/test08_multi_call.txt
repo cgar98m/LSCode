@@ -1,0 +1,2 @@
+//Funció amb múltiples variables de retorn
+a, b = divisioAmbResidu(c, d)

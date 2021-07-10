@@ -26,7 +26,7 @@ const LIST_ITEM = "li";
 const SUBLIST_ITEM = "ul";
 const SPAN_ITEM = "span";
 
-const LANG_PATH = "src/";
+const LANG_PATH = "lang/";
 const JSON_TRAIL = ".json";
 
 var inputTextArea;

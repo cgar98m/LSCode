@@ -9,7 +9,7 @@ class FrontEnd {
 		
 		//Create lexer
 		this.lexer = new Lexer(guidelines[LEXIC_ID]);
-		this.parser = new Parser(guidelines[GRAMMAR_ID]);
+		this.parser = new Parser(guidelines[LEXIC_ID], guidelines[GRAMMAR_ID]);
 		//TODO: Create semantic analyzer
 		//TODO: Create code generator
 		

@@ -1,0 +1,10 @@
+//Condicionales simples
+si cert llavors
+   a := 2
+fisi
+si fals
+   b := cert
+   a: boolea
+sino
+   c: enter
+fisi
