@@ -1,0 +1,4 @@
+//Funció multi-retorn
+func exemple(): enter, boolea
+   retorna 1, 2
+fifunc

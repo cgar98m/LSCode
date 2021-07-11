@@ -301,8 +301,8 @@ function createTree(domElement, node) {
 	let listItem = document.createElement(LIST_ITEM);
 	domElement.appendChild(listItem);
 	
-	//Check if is LEAF node
-	if(node.type == LEAF_NODE || node.type == EPSILON_NODE) {
+	//Check if is a leaf node
+	if(typeof node.children === "undefined") {
 		listItem.textContent = node.production_id;
 	} else {
 		
@@ -318,8 +318,8 @@ function createTree(domElement, node) {
 			});
 			listItem.appendChild(arrow);
 			
-			//Check if is FORK node
-			if(node.type == FORK_NODE) {
+			//Check if is a FORK node
+			if(node.type == NODE_TYPE.FORK) {
 				arrow.textContent = node.production_idx;
 			} else {
 				arrow.textContent = node.production_id;
@@ -337,8 +337,8 @@ function createTree(domElement, node) {
 			}
 			
 		} else {
-			//Check if is FORK node
-			if(node.type == FORK_NODE) {
+			//Check if is a FORK node
+			if(node.type == NODE_TYPE.FORK) {
 				listItem.textContent = node.production_idx;
 			} else {
 				listItem.textContent = node.production_id;

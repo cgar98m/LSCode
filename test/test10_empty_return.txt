@@ -1,0 +1,4 @@
+//Funció simple amb retorn
+func adeu()
+   retorna
+fifunc
