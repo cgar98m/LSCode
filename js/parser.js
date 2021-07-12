@@ -60,6 +60,7 @@ class Parser {
 		this.#predict(this.predTree[0], this.predNodes[0], null);
 		
 		//Process input tokens
+		let newParseTreeList = [];
 		for(let i = 0; i < tokens.length; i++) {
 			
 			//Get token
@@ -68,6 +69,7 @@ class Parser {
 			//Check if token is contained on any prediction tree
 			let newPredNodes = [];
 			let newPredTrees = [];
+			newParseTreeList = [];
 			for(let j = 0; j < this.predNodes.length; j++) {
 				//Match token to predicted nodes
 				let match = this.#matchToken(token, this.predNodes[j]);
@@ -100,6 +102,11 @@ class Parser {
 							}
 						}
 						
+						//Store provisional parse tree
+						let tmpParseTree = treeCopy(predTreeCopy, null);
+						linkCopy(tmpParseTree, predTreeCopy);
+						newParseTreeList.push(tmpParseTree);
+						
 						//Predict new tokens
 						let tmpPredict = [];
 						this.#predictNext(matchOkCopy[k].parentNode, tmpPredict, matchOkCopy[k]);
@@ -125,10 +132,13 @@ class Parser {
 		}
 		
 		//Dump predict tree to parse tree and prune predictions
-		for(let i = 0; i < this.predTree.length; i++) {
+		for(let i = 0; i < newParseTreeList.length; i++) {
 			
 			//Copy prediction tree
-			let predTreeCopy = treeCopy(this.predTree[i], null);
+			let predTreeCopy = treeCopy(newParseTreeList[i], null);
+			
+			//Prune incomplete predictions
+			this.#pruneIncompleteProductions(predTreeCopy);
 			
 			//Prune predictions
 			this.#prunePredictions(predTreeCopy);
@@ -411,7 +421,7 @@ class Parser {
 		
 	}
 	
-	#pruneIncompleteProcutions(node) {
+	#pruneIncompleteProductions(node) {
 		//TODO: Post-order prune
 	}
 	
