@@ -7,4 +7,4 @@ var
    c,d: boolea
 fivar
 e: enter
-f: boolea
+f: cadena

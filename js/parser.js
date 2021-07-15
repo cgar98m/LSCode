@@ -151,6 +151,8 @@ class Parser {
 			
 		}
 		
+		//TODO: Choose final parse tree
+		
 	}
 	
 	#matchToken(token, list) {
@@ -448,37 +450,22 @@ class Parser {
 					
 					//Check rule item type
 					if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.TERMINAL) {
-						//TERMINAL: Create ghost node
-						node.children.push({
-							type: NODE_TYPE.TERMINAL,
-							production_id: ruleItem,
-							production_idx: node.children.length,
-							parentNode: node,
-							linkNode: null,
-							linkedChildren: [],
-							info: GHOST_INFO
-						});
-					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
-						
-						/*//PRODUCTION: Check if exist an EPSILON rule
-						let subRules = this.grammarMap[ruleItem].rules;
-						let epsilonIdx = -1;
-						for(let i = 0; i < subRules.length; i++) {
-							if(subRules[i].find(item => item == EPSILON)) {
-								epsilonIdx = i;
-								break;
-							}
-						}
-						
-						//Create ghost node if EPSILON was found
-						if(epsilonIdx > 0) {
-							//Create ghost production
-							this.#ghostProduction(ruleItem, node.children.length, epsilonIdx, node);
+						//TERMINAL: Create ghost node if isn't a KW_ID token
+						if(ruleItem != TOKEN_KW_ID) {
+							node.children.push({
+								type: NODE_TYPE.TERMINAL,
+								production_id: ruleItem,
+								production_idx: node.children.length,
+								parentNode: node,
+								linkNode: null,
+								linkedChildren: [],
+								info: GHOST_INFO
+							});
 						} else {
 							//Cannot fill missing rule items
 							break;
-						}*/
-						
+						}
+					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
 						//PRODUCTION: Check if first contains an EPSILON
 						let ruleItemFirst = this.firstFollow.productions[ruleItem].first;
 						if(ruleItemFirst.find(item => item == EPSILON)) {
@@ -495,7 +482,6 @@ class Parser {
 							//Cannot fill missing rule items
 							break;
 						}
-						
 					} else {
 						//EPSILON: Create ghost node
 						node.children.push({
@@ -525,41 +511,6 @@ class Parser {
 			}
 			
 		}
-		
-	}
-	
-	#ghostProduction(productionId, productionIdx, epsilonIdx, parentNode) {
-		
-		//Create PRODUCTION node
-		let productionNode = {
-			type: NODE_TYPE.PRODUCTION,
-			production_id: productionId,
-			production_idx: productionIdx,
-			parentNode: parentNode,
-			children: []
-		};
-		parentNode.children.push(productionNode);
-		
-		//Create FORK node
-		let forkNode = {
-			type: NODE_TYPE.FORK,
-			production_id: productionId,
-			production_idx: epsilonIdx,
-			parentNode: productionNode,
-			children: []
-		};
-		productionNode.children.push(forkNode);
-		
-		//Create EPSILON node (ghost)
-		let epsilonNode = {
-			type: NODE_TYPE.EPSILON,
-			production_id: EPSILON,
-			production_idx: epsilonIdx,
-			parentNode: forkNode,
-			linkNode: null,
-			linkedChildren: []
-		};
-		forkNode.children.push(epsilonNode);
 		
 	}
 	

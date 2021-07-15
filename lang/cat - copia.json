@@ -227,13 +227,6 @@
 			]
 		},
 		{
-			"production_id": "CONTENT_BLOCK",
-			"rules": [
-				["BASIC_BLOCK_GROUP"],
-				["EPSILON"]
-			]
-		},
-		{
 			"production_id": "VAR_DEC_BLOCK",
 			"rules": [
 				["VAR_DEC_ROW"],
@@ -356,7 +349,7 @@
 		{
 			"production_id": "FUNC_BLOCK",
 			"rules": [
-				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_RETURN_TYPE", "CONTENT_BLOCK", "FUNC_RETURN", "KW_STRUCT_ENDFUNC"]
+				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_CONTENT", "KW_STRUCT_ENDFUNC"]
 			]
 		},
 		{
@@ -386,10 +379,10 @@
 			]
 		},
 		{
-			"production_id": "FUNC_RETURN_TYPE",
+			"production_id": "FUNC_CONTENT",
 			"rules": [
-				["OP_ASSIGN_TYPE", "TYPE_CONCAT"],
-				["EPSILON"]
+				["OP_ASSIGN_TYPE", "TYPE_CONCAT", "CONTENT_BLOCK", "KW_STRUCT_RETURN", "EXP_CONCAT"],
+				["CONTENT_BLOCK", "FUNC_RETURN"]
 			]
 		},
 		{
@@ -406,16 +399,16 @@
 			]
 		},
 		{
-			"production_id": "FUNC_RETURN",
+			"production_id": "CONTENT_BLOCK",
 			"rules": [
-				["KW_STRUCT_RETURN", "EXP_CONTENT"],
+				["BASIC_BLOCK_GROUP"],
 				["EPSILON"]
 			]
 		},
 		{
-			"production_id": "EXP_CONTENT",
+			"production_id": "FUNC_RETURN",
 			"rules": [
-				["EXP_CONCAT"],
+				["KW_STRUCT_RETURN"],
 				["EPSILON"]
 			]
 		},

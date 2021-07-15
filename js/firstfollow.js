@@ -2,6 +2,8 @@ const END_MARKER = "$"
 
 const BASE_PRODUCTION = "CODE";
 
+const TOKEN_KW_ID = "KW_ID";
+
 class FirstFollow {
 
 	/* Available variables:
