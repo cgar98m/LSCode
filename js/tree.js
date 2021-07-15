@@ -157,15 +157,19 @@ function prune(node) {
 		let parentNode = node.parentNode;
 		if(parentNode != null) {
 			
-			//Remove child
-			parentNode.children.splice(parentNode.children.indexOf(node), 1);
-			node.parentNode = null;
+			//Remove node
+			pruneNode(node);
 			
-			//Prune parent node if has no more children
+			//Prune parent node if has no children
 			if(parentNode.children.length == 0) {
 				prune(parentNode);
 			}
 			
 		}
 	}
+}
+
+function pruneNode(node) {
+	node.parentNode.children.splice(node.parentNode.children.indexOf(node), 1);
+	node.parentNode = null;
 }

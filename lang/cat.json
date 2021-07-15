@@ -179,9 +179,6 @@
 			"production_id": "CODE",
 			"rules": [
 				["CODE_BLOCK", "CODE_S"]
-			],
-			"minContent": [
-				["CODE_BLOCK"]
 			]
 		},
 		{
@@ -189,19 +186,11 @@
 			"rules": [
 				["CODE"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["CODE"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "CODE_BLOCK",
 			"rules": [
-				["BASIC_BLOCK"],
-				["FUNC_BLOCK"]
-			],
-			"minContent": [
 				["BASIC_BLOCK"],
 				["FUNC_BLOCK"]
 			]
@@ -214,31 +203,17 @@
 				["IF_BLOCK"],
 				["WHILE_BLOCK"],
 				["CALL_BLOCK"]
-			],
-			"minContent": [
-				["VAR_DEC_BLOCK"],
-				["VAR_ASSIGN_BLOCK"],
-				["IF_BLOCK"],
-				["WHILE_BLOCK"],
-				["CALL_BLOCK"]
 			]
 		},
 		{
 			"production_id": "BASIC_BLOCK_GROUP",
 			"rules": [
 				["BASIC_BLOCK", "BASIC_BLOCK_GROUP_S"]
-			],
-			"minContent": [
-				["BASIC_BLOCK"]
 			]
 		},
 		{
 			"production_id": "BASIC_BLOCK_GROUP_S",
 			"rules": [
-				["BASIC_BLOCK_GROUP"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["BASIC_BLOCK_GROUP"],
 				["EPSILON"]
 			]
@@ -247,29 +222,25 @@
 			"production_id": "VAR_DEC_BLOCK",
 			"rules": [
 				["VAR_DEC_ROW"],
-				["KW_STRUCT_VAR", "VAR_DEC_LIST", "KW_STRUCT_ENDVAR"]
-			],
-			"minContent": [
-				["VAR_DEC_ROW"],
-				["KW_STRUCT_VAR", "VAR_DEC_LIST"]
+				["KW_STRUCT_VAR", "VAR_DEC_CONTENT", "KW_STRUCT_ENDVAR"]
+			]
+		},
+		{
+			"production_id": "VAR_DEC_CONTENT",
+			"rules": [
+				["VAR_DEC_LIST"],
+				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "VAR_DEC_LIST",
 			"rules": [
 				["VAR_DEC_ROW", "VAR_DEC_LIST_S"]
-			],
-			"minContent": [
-				["VAR_DEC_ROW"]
 			]
 		},
 		{
 			"production_id": "VAR_DEC_LIST_S",
 			"rules": [
-				["VAR_DEC_LIST"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["VAR_DEC_LIST"],
 				["EPSILON"]
 			]
@@ -278,27 +249,17 @@
 			"production_id": "VAR_DEC_ROW",
 			"rules": [
 				["VAR_DEC_CONCAT", "OP_ASSIGN_TYPE", "TYPE"]
-			],
-			"minContent": [
-				["VAR_DEC_CONCAT", "OP_ASSIGN_TYPE", "TYPE"]
 			]
 		},
 		{
 			"production_id": "VAR_DEC_CONCAT",
 			"rules": [
 				["KW_ID", "VAR_DEC_CONCAT_S"]
-			],
-			"minContent": [
-				["KW_ID"]
 			]
 		},
 		{
 			"production_id": "VAR_DEC_CONCAT_S",
 			"rules": [
-				["OP_SEPARATOR", "VAR_DEC_CONCAT"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_SEPARATOR", "VAR_DEC_CONCAT"],
 				["EPSILON"]
 			]
@@ -309,19 +270,11 @@
 				["KW_TYPE_INT"],
 				["KW_TYPE_CHAR"],
 				["KW_TYPE_BOOL"]
-			],
-			"minContent": [
-				["KW_TYPE_INT"],
-				["KW_TYPE_CHAR"],
-				["KW_TYPE_BOOL"]
 			]
 		},
 		{
 			"production_id": "VAR_ASSIGN_BLOCK",
 			"rules": [
-				["VAR_ASSIGN_EQ", "EXP_OR"]
-			],
-			"minContent": [
 				["VAR_ASSIGN_EQ", "EXP_OR"]
 			]
 		},
@@ -329,18 +282,11 @@
 			"production_id": "VAR_ASSIGN_EQ",
 			"rules": [
 				["VAR_ASSIGN_CONCAT", "OP_ASSIGN", "VAR_ASSIGN_EQ_S"]
-			],
-			"minContent": [
-				["VAR_ASSIGN_CONCAT", "OP_ASSIGN"]
 			]
 		},
 		{
 			"production_id": "VAR_ASSIGN_EQ_S",
 			"rules": [
-				["VAR_ASSIGN_EQ"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["VAR_ASSIGN_EQ"],
 				["EPSILON"]
 			]
@@ -349,9 +295,6 @@
 			"production_id": "VAR_ASSIGN_CONCAT",
 			"rules": [
 				["KW_ID", "VAR_ASSIGN_CONCAT_S"]
-			],
-			"minContent": [
-				["KW_ID"]
 			]
 		},
 		{
@@ -359,19 +302,12 @@
 			"rules": [
 				["OP_SEPARATOR", "VAR_ASSIGN_CONCAT"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["OP_SEPARATOR", "VAR_ASSIGN_CONCAT"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "IF_BLOCK",
 			"rules": [
-				["KW_STRUCT_IF", "EXP_OR", "IF_BLOCK_THEN", "BASIC_BLOCK_GROUP", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
-			],
-			"minContent": [
-				["KW_STRUCT_IF", "EXP_OR", "BASIC_BLOCK_GROUP"]
+				["KW_STRUCT_IF", "EXP_OR", "IF_BLOCK_THEN", "CONTENT_BLOCK", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
 			]
 		},
 		{
@@ -379,39 +315,24 @@
 			"rules": [
 				["KW_STRUCT_THEN"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["KW_STRUCT_THEN"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "IF_BLOCK_ELSE",
 			"rules": [
-				["KW_STRUCT_ELSE", "BASIC_BLOCK_GROUP"],
-				["EPSILON"]
-			],
-			"minContent": [
-				["KW_STRUCT_ELSE", "BASIC_BLOCK_GROUP"],
+				["KW_STRUCT_ELSE", "CONTENT_BLOCK"],
 				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "WHILE_BLOCK",
 			"rules": [
-				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "BASIC_BLOCK_GROUP", "KW_STRUCT_ENDWHILE"]
-			],
-			"minContent": [
-				["KW_STRUCT_WHILE", "EXP_OR", "BASIC_BLOCK_GROUP"]
+				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "CONTENT_BLOCK", "KW_STRUCT_ENDWHILE"]
 			]
 		},
 		{
 			"production_id": "LOOP_BLOCK_DO",
 			"rules": [
-				["KW_STRUCT_DO"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["KW_STRUCT_DO"],
 				["EPSILON"]
 			]
@@ -420,18 +341,11 @@
 			"production_id": "FUNC_BLOCK",
 			"rules": [
 				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_CONTENT", "KW_STRUCT_ENDFUNC"]
-			],
-			"minContent": [
-				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "SP_EXP_CLOSE", "FUNC_CONTENT"]
 			]
 		},
 		{
 			"production_id": "FUNC_EXP",
 			"rules": [
-				["FUNC_VARS"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["FUNC_VARS"],
 				["EPSILON"]
 			]
@@ -440,17 +354,11 @@
 			"production_id": "FUNC_VARS",
 			"rules": [
 				["FUNC_SINGLE_VAR", "FUNC_VARS_S"]
-			],
-			"minContent": [
-				["FUNC_SINGLE_VAR"]
 			]
 		},
 		{
 			"production_id": "FUNC_SINGLE_VAR",
 			"rules": [
-				["KW_ID", "OP_ASSIGN_TYPE", "TYPE"]
-			],
-			"minContent": [
 				["KW_ID", "OP_ASSIGN_TYPE", "TYPE"]
 			]
 		},
@@ -459,30 +367,19 @@
 			"rules": [
 				["OP_SEPARATOR", "FUNC_VARS"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["OP_SEPARATOR", "FUNC_VARS"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "FUNC_CONTENT",
 			"rules": [
-				["OP_ASSIGN_TYPE", "TYPE_CONCAT", "FUNC_CONTENT_BLOCK", "KW_STRUCT_RETURN", "EXP_CONCAT"],
-				["FUNC_CONTENT_BLOCK", "FUNC_RETURN"]
-			],
-			"minContent": [
-				["OP_ASSIGN_TYPE", "TYPE_CONCAT", "FUNC_CONTENT_BLOCK", "KW_STRUCT_RETURN", "EXP_CONCAT"],
-				["FUNC_CONTENT_BLOCK"]
+				["OP_ASSIGN_TYPE", "TYPE_CONCAT", "CONTENT_BLOCK", "KW_STRUCT_RETURN", "EXP_CONCAT"],
+				["CONTENT_BLOCK", "FUNC_RETURN"]
 			]
 		},
 		{
 			"production_id": "TYPE_CONCAT",
 			"rules": [
 				["TYPE", "TYPE_CONCAT_S"]
-			],
-			"minContent": [
-				["TYPE"]
 			]
 		},
 		{
@@ -490,19 +387,11 @@
 			"rules": [
 				["OP_SEPARATOR", "TYPE_CONCAT"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["OP_SEPARATOR", "TYPE_CONCAT"],
-				["EPSILON"]
 			]
 		},
 		{
-			"production_id": "FUNC_CONTENT_BLOCK",
+			"production_id": "CONTENT_BLOCK",
 			"rules": [
-				["BASIC_BLOCK_GROUP"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["BASIC_BLOCK_GROUP"],
 				["EPSILON"]
 			]
@@ -512,28 +401,17 @@
 			"rules": [
 				["KW_STRUCT_RETURN"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["KW_STRUCT_RETURN"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "EXP_CONCAT",
 			"rules": [
 				["EXP_OR", "EXP_CONCAT_S"]
-			],
-			"minContent": [
-				["EXP_OR"]
 			]
 		},
 		{
 			"production_id": "EXP_CONCAT_S",
 			"rules": [
-				["OP_SEPARATOR", "EXP_CONCAT"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_SEPARATOR", "EXP_CONCAT"],
 				["EPSILON"]
 			]
@@ -542,18 +420,11 @@
 			"production_id": "CALL_BLOCK",
 			"rules": [
 				["KW_ID", "SP_EXP_OPEN", "CALL_PARAMS", "SP_EXP_CLOSE"]
-			],
-			"minContent": [
-				["KW_ID", "SP_EXP_OPEN", "CALL_PARAMS"]
 			]
 		},
 		{
 			"production_id": "CALL_PARAMS",
 			"rules": [
-				["EXP_CONCAT"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["EXP_CONCAT"],
 				["EPSILON"]
 			]
@@ -562,18 +433,11 @@
 			"production_id": "EXP_OR",
 			"rules": [
 				["EXP_AND", "EXP_OR_S"]
-			],
-			"minContent": [
-				["EXP_AND"]
 			]
 		},
 		{
 			"production_id": "EXP_OR_S",
 			"rules": [
-				["OP_LOG_OR", "EXP_OR"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_LOG_OR", "EXP_OR"],
 				["EPSILON"]
 			]
@@ -582,18 +446,11 @@
 			"production_id": "EXP_AND",
 			"rules": [
 				["EXP_EQ", "EXP_AND_S"]
-			],
-			"minContent": [
-				["EXP_EQ"]
 			]
 		},
 		{
 			"production_id": "EXP_AND_S",
 			"rules": [
-				["OP_LOG_AND", "EXP_AND"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_LOG_AND", "EXP_AND"],
 				["EPSILON"]
 			]
@@ -602,18 +459,11 @@
 			"production_id": "EXP_EQ",
 			"rules": [
 				["EXP_COMP", "EXP_EQ_S"]
-			],
-			"minContent": [
-				["EXP_COMP"]
 			]
 		},
 		{
 			"production_id": "EXP_EQ_S",
 			"rules": [
-				["OP_EQ", "EXP_EQ"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_EQ", "EXP_EQ"],
 				["EPSILON"]
 			]
@@ -623,28 +473,17 @@
 			"rules": [
 				["OP_REL_EQ"],
 				["OP_REL_NOT_EQ"]
-			],
-			"minContent": [
-				["OP_REL_EQ"],
-				["OP_REL_NOT_EQ"]
 			]
 		},
 		{
 			"production_id": "EXP_COMP",
 			"rules": [
 				["EXP_SUM", "EXP_COMP_S"]
-			],
-			"minContent": [
-				["EXP_SUM"]
 			]
 		},
 		{
 			"production_id": "EXP_COMP_S",
 			"rules": [
-				["OP_COMP", "EXP_SUM"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_COMP", "EXP_SUM"],
 				["EPSILON"]
 			]
@@ -656,30 +495,17 @@
 				["OP_REL_LT_EQ"],
 				["OP_REL_GT"],
 				["OP_REL_GT_EQ"]
-			],
-			"minContent": [
-				["OP_REL_LT"],
-				["OP_REL_LT_EQ"],
-				["OP_REL_GT"],
-				["OP_REL_GT_EQ"]
 			]
 		},
 		{
 			"production_id": "EXP_SUM",
 			"rules": [
 				["EXP_MULT", "EXP_SUM_S"]
-			],
-			"minContent": [
-				["EXP_MULT"]
 			]
 		},
 		{
 			"production_id": "EXP_SUM_S",
 			"rules": [
-				["OP_SUM", "EXP_SUM"],
-				["EPSILON"]
-			],
-			"minContent": [
 				["OP_SUM", "EXP_SUM"],
 				["EPSILON"]
 			]
@@ -689,19 +515,12 @@
 			"rules": [
 				["OP_ARIT_PLUS"],
 				["OP_ARIT_MINUS"]
-			],
-			"minContent": [
-				["OP_ARIT_PLUS"],
-				["OP_ARIT_MINUS"]
 			]
 		},
 		{
 			"production_id": "EXP_MULT",
 			"rules": [
 				["VALUE", "EXP_MULT_S"]
-			],
-			"minContent": [
-				["VALUE"]
 			]
 		},
 		{
@@ -709,20 +528,11 @@
 			"rules": [
 				["OP_MULT", "EXP_MULT"],
 				["EPSILON"]
-			],
-			"minContent": [
-				["OP_MULT", "EXP_MULT"],
-				["EPSILON"]
 			]
 		},
 		{
 			"production_id": "OP_MULT",
 			"rules": [
-				["OP_ARIT_MULT"],
-				["OP_ARIT_DIV"],
-				["OP_ARIT_MOD"]
-			],
-			"minContent": [
 				["OP_ARIT_MULT"],
 				["OP_ARIT_DIV"],
 				["OP_ARIT_MOD"]
@@ -736,13 +546,6 @@
 				["CONST_BOOL"],
 				["CONST_NUM"],
 				["SP_EXP_OPEN", "EXP_OR", "SP_EXP_CLOSE"]
-			],
-			"minContent": [
-				["KW_ID"],
-				["CALL_BLOCK"],
-				["CONST_BOOL"],
-				["CONST_NUM"],
-				["SP_EXP_OPEN", "EXP_OR"]
 			]
 		},
 		{
@@ -750,20 +553,11 @@
 			"rules": [
 				["KW_BOOL_TRUE"],
 				["KW_BOOL_FALSE"]
-			],
-			"minContent": [
-				["KW_BOOL_TRUE"],
-				["KW_BOOL_FALSE"]
 			]
 		},
 		{
 			"production_id": "CONST_NUM",
 			"rules": [
-				["CONST_CHAR"],
-				["CONST_HEX"],
-				["CONST_INT"]
-			],
-			"minContent": [
 				["CONST_CHAR"],
 				["CONST_HEX"],
 				["CONST_INT"]

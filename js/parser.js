@@ -9,6 +9,7 @@ const NODE_TYPE = {
 	EPSILON: 'E'
 }
 const EPSILON = "EPSILON";
+const GHOST_INFO = "GHOST TOKEN";
 
 class Parser {
 	
@@ -131,7 +132,7 @@ class Parser {
 			
 		}
 		
-		//Dump predict tree to parse tree and prune predictions
+		//Clean parse tree
 		for(let i = 0; i < newParseTreeList.length; i++) {
 			
 			//Copy prediction tree
@@ -423,6 +424,143 @@ class Parser {
 	
 	#pruneIncompleteProductions(node) {
 		//TODO: Post-order prune
+		
+		//Check non-leaf node
+		if(typeof node.children !== "undefined") {
+			
+			//Expand node tree
+			let children = node.children.slice();
+			for(let i = 0; i < children.length; i++) {
+				this.#pruneIncompleteProductions(children[i]);
+			}
+			
+			//Check fork children
+			if(node.type == NODE_TYPE.FORK) {
+					
+				//Get rule
+				let rule = this.grammarMap[node.production_id].rules[node.production_idx];
+				
+				//Try to fill missing rule items
+				while(node.children.length < rule.length) {
+					
+					//Get next missing rule item
+					let ruleItem = rule[node.children.length];
+					
+					//Check rule item type
+					if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.TERMINAL) {
+						//TERMINAL: Create ghost node
+						node.children.push({
+							type: NODE_TYPE.TERMINAL,
+							production_id: ruleItem,
+							production_idx: node.children.length,
+							parentNode: node,
+							linkNode: null,
+							linkedChildren: [],
+							info: GHOST_INFO
+						});
+					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
+						
+						/*//PRODUCTION: Check if exist an EPSILON rule
+						let subRules = this.grammarMap[ruleItem].rules;
+						let epsilonIdx = -1;
+						for(let i = 0; i < subRules.length; i++) {
+							if(subRules[i].find(item => item == EPSILON)) {
+								epsilonIdx = i;
+								break;
+							}
+						}
+						
+						//Create ghost node if EPSILON was found
+						if(epsilonIdx > 0) {
+							//Create ghost production
+							this.#ghostProduction(ruleItem, node.children.length, epsilonIdx, node);
+						} else {
+							//Cannot fill missing rule items
+							break;
+						}*/
+						
+						//PRODUCTION: Check if first contains an EPSILON
+						let ruleItemFirst = this.firstFollow.productions[ruleItem].first;
+						if(ruleItemFirst.find(item => item == EPSILON)) {
+							//Create EPSILON node
+							node.children.push({
+								type: NODE_TYPE.EPSILON,
+								production_id: EPSILON,
+								production_idx: node.children.length,
+								parentNode: node,
+								linkNode: null,
+								linkedChildren: []
+							});
+						} else {
+							//Cannot fill missing rule items
+							break;
+						}
+						
+					} else {
+						//EPSILON: Create ghost node
+						node.children.push({
+							type: NODE_TYPE.EPSILON,
+							production_id: ruleItem,
+							production_idx: node.children.length,
+							parentNode: node,
+							linkNode: null,
+							linkedChildren: []
+						});
+					}
+					
+				}
+				
+				//Prune incomplete rule set if requried
+				if(node.children.length < rule.length) {
+					pruneNode(node);
+				}
+					
+			} else {
+				//Prune production node if remains no children
+				if(node.children.length == 0) {
+					if(node.parentNode != null) {
+						pruneNode(node);
+					}
+				}
+			}
+			
+		}
+		
+	}
+	
+	#ghostProduction(productionId, productionIdx, epsilonIdx, parentNode) {
+		
+		//Create PRODUCTION node
+		let productionNode = {
+			type: NODE_TYPE.PRODUCTION,
+			production_id: productionId,
+			production_idx: productionIdx,
+			parentNode: parentNode,
+			children: []
+		};
+		parentNode.children.push(productionNode);
+		
+		//Create FORK node
+		let forkNode = {
+			type: NODE_TYPE.FORK,
+			production_id: productionId,
+			production_idx: epsilonIdx,
+			parentNode: productionNode,
+			children: []
+		};
+		productionNode.children.push(forkNode);
+		
+		//Create EPSILON node (ghost)
+		let epsilonNode = {
+			type: NODE_TYPE.EPSILON,
+			production_id: EPSILON,
+			production_idx: epsilonIdx,
+			parentNode: forkNode,
+			linkNode: null,
+			linkedChildren: []
+		};
+		forkNode.children.push(epsilonNode);
+		
 	}
 	
 }

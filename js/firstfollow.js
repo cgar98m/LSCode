@@ -7,7 +7,7 @@ class FirstFollow {
 	/* Available variables:
 	 * grammarMap
 	 * ruleItemTypes
-	 * firstFollow
+	 * productions
 	 */
 
 	constructor(ruleItemTypes, grammarMap) {
@@ -19,14 +19,14 @@ class FirstFollow {
 		this.ruleItemTypes = ruleItemTypes;
 		
 		//Get first & follow list
-		this.firstFollow = [];
+		this.productions = [];
 		for(let prodId in this.grammarMap) {
-			this.firstFollow[prodId] = {
+			this.productions[prodId] = {
 				first: [...new Set(this.#first(this.grammarMap[prodId]))]
 			};
 		}
 		for(let prodId in this.grammarMap) {
-			this.firstFollow[prodId].follow = [...new Set(this.#follow(prodId, [prodId]))];
+			this.productions[prodId].follow = [...new Set(this.#follow(prodId, [prodId]))];
 		}
 		
 	}
@@ -83,16 +83,16 @@ class FirstFollow {
 		
 	}
 	
-	#follow(prodId, visitedProd) {
+	#follow(targetProdId, visitedProd) {
 		
 		//Check if is base production
 		let followList = [];
-		if(prodId == BASE_PRODUCTION) {
+		if(targetProdId == BASE_PRODUCTION) {
 			followList.push(END_MARKER);
 		}
 		
 		//Loop for productions
-		for(prodId in this.grammarMap) {
+		for(let prodId in this.grammarMap) {
 			//Loop for production rules
 			let prod = this.grammarMap[prodId];
 			for(let i = 0; i < prod.rules.length; i++) {
@@ -100,7 +100,7 @@ class FirstFollow {
 				let rule = prod.rules[i];
 				for(let j = 0; j < rule.length; j++) {
 					//Check if current item is desired production
-					if(prodId == rule[j]) {
+					if(targetProdId == rule[j]) {
 						//Check if is last rule item
 						if(j == rule.length - 1) {
 							//Check if production wasn't visited
@@ -115,24 +115,24 @@ class FirstFollow {
 							for(let k = j + 1; k < rule.length; k++) {
 								
 								//Get next rule item
-								let nextRule = rule[k];
+								let nextItem = rule[k];
 								
 								//Check if next item is terminal
-								if(this.ruleItems[nextRule] == RULE_ITEM_TYPE.TERMINAL) {
+								if(this.ruleItemTypes[nextItem] == RULE_ITEM_TYPE.TERMINAL) {
 									//Follow found
-									followList.push(nextRule);
+									followList.push(nextItem);
 									break;
 								} else {
 									
 									//Get first from next rule item
-									let nextRuleFollowList = this.firstFollow[nextRule].first.slice();
+									let nextItemFollowList = this.productions[nextItem].first.slice();
 									
 									//Check if contains epsilon
-									if(nextRuleFollowList.includes(EPSILON)) {
+									if(nextItemFollowList.includes(EPSILON)) {
 										
 										//Remove epsilon and store in follow
-										nextRuleFollowList = nextRuleFollowList.filter(prodId => prodId != EPSILON);
-										followList.push(...nextRuleFollowList);
+										nextItemFollowList = nextItemFollowList.filter(item => item != EPSILON);
+										followList.push(...nextItemFollowList);
 										
 										//Check if is last rule item (if not continue loop)
 										if(k == rule.length - 1) {
@@ -146,7 +146,7 @@ class FirstFollow {
 										
 									} else {
 										//Follow found
-										followList.push(...nextRuleFollowList);
+										followList.push(...nextItemFollowList);
 										break;
 									}
 									
