@@ -13,7 +13,10 @@ const GHOST_INFO = "GHOST TOKEN";
 
 class Parser {
 	
-	constructor(lexic, grammar) {
+	constructor(lexic, grammar, errorHandler) {
+		
+		//Keep error handler
+		this.errorHandler = errorHandler;
 		
 		//Map grammar by production id
 		this.grammarMap = [];
@@ -127,12 +130,16 @@ class Parser {
 			
 			//TODO: Check null predictions
 			if(this.predNodes.length == 0) {
+				//Unexpected token
+				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Unexpected token in line " + token.line + ", char " + token.offset + " ==> " + token.content);
 				break;
 			}
 			
 		}
 		
 		//Clean parse tree
+		let blockCount = [];
+		let tmpParseTree = [];
 		for(let i = 0; i < newParseTreeList.length; i++) {
 			
 			//Copy prediction tree
@@ -146,12 +153,37 @@ class Parser {
 			
 			//Update parse tree list if new parse tree has content
 			if(predTreeCopy.children.length > 0) {
-				this.parseTree.push(predTreeCopy);
+				
+				//TODO: Check if already exist equal tree
+				let foundEqualTree = false;
+				for(let i = 0; i < tmpParseTree.length; i++) {
+					if(compareTrees(tmpParseTree[i], predTreeCopy)) {
+						foundEqualTree = true;
+						break;
+					}
+				}
+				
+				//New parse tree
+				if(!foundEqualTree) {
+					tmpParseTree.push(predTreeCopy);
+					blockCount.push(this.#blockCount(predTreeCopy));
+				}
+				
 			}
 			
 		}
 		
-		//TODO: Choose final parse tree
+		//Get largest block tree
+		let maxBlockCount = 0;
+		for(let i = 0; i < tmpParseTree.length; i++) {
+			//Get largest code
+			if(blockCount[i] > maxBlockCount) {
+				this.parseTree = [tmpParseTree[i]];
+				maxBlockCount = blockCount[i];
+			} else if(blockCount[i] == maxBlockCount) {
+				this.parseTree.push(tmpParseTree[i]);
+			}
+		}
 		
 	}
 	
@@ -425,7 +457,6 @@ class Parser {
 	}
 	
 	#pruneIncompleteProductions(node) {
-		//TODO: Post-order prune
 		
 		//Check non-leaf node
 		if(typeof node.children !== "undefined") {
@@ -450,21 +481,8 @@ class Parser {
 					
 					//Check rule item type
 					if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.TERMINAL) {
-						//TERMINAL: Create ghost node if isn't a KW_ID token
-						if(ruleItem != TOKEN_KW_ID) {
-							node.children.push({
-								type: NODE_TYPE.TERMINAL,
-								production_id: ruleItem,
-								production_idx: node.children.length,
-								parentNode: node,
-								linkNode: null,
-								linkedChildren: [],
-								info: GHOST_INFO
-							});
-						} else {
-							//Cannot fill missing rule items
-							break;
-						}
+						//TERMINAL: Cannot fill missing rule items
+						break;
 					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
 						//PRODUCTION: Check if first contains an EPSILON
 						let ruleItemFirst = this.firstFollow.productions[ruleItem].first;
@@ -511,6 +529,28 @@ class Parser {
 			}
 			
 		}
+		
+	}
+	
+	#blockCount(node) {
+		
+		//Check children if possible
+		let count = 0;
+		if(typeof node.children !== "undefined") {
+			
+			//Post-order tree navigation
+			for(let i = 0; i < node.children.length; i++) {
+				count += this.#blockCount(node.children[i]);
+			}
+			
+			//Check if is a block node
+			if(node.type == NODE_TYPE.PRODUCTION && node.production_id == PROD_CODE_BLOCK) {
+				count++;
+			}
+			
+		}
+		
+		return count;
 		
 	}
 	

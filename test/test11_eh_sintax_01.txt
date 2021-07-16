@@ -1,0 +1,3 @@
+//Codi incomplet
+mentre 1
+   si 1

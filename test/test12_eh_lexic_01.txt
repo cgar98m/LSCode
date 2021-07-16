@@ -1,0 +1,3 @@
+//Declaració de variable amb errors lèxics
+"a?!·
+:enter"

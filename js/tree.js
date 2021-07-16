@@ -173,3 +173,40 @@ function pruneNode(node) {
 	node.parentNode.children.splice(node.parentNode.children.indexOf(node), 1);
 	node.parentNode = null;
 }
+
+function compareTrees(targetTree, sourceTree) {
+	
+	//Get leafes from both trees (real content)
+	let targetLeafes = leafes(targetTree);
+	let sourceLeafes = leafes(sourceTree);
+	
+	//Compare leafes amount
+	if(targetLeafes.length != sourceLeafes.length) {
+		return false;
+	}
+	
+	//Compare leafes paths
+	for(let i = 0; i < targetLeafes.length; i++) {
+		
+		//Get leaf path
+		let targetPath = nodePath(targetLeafes[i]);
+		let sourcePath = nodePath(sourceLeafes[i]);
+		
+		//Compare path length
+		if(targetPath.length != sourcePath.length) {
+			return false;
+		}
+		
+		//Compare leafes' path
+		for(let j = 0; j < targetPath.length; j++) {
+			if(targetPath[j] != sourcePath[j]) {
+				return false;
+			}
+		}
+	
+	}
+	
+	//Equal trees
+	return true;
+	
+}

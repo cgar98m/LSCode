@@ -3,15 +3,17 @@ const GRAMMAR_ID = "grammar";
 
 class FrontEnd {
 
-	constructor(guidelines) {
-		
-		//TODO: Create error handler
+	constructor(guidelines, errorHandler) {
 		
 		//Create lexer
-		this.lexer = new Lexer(guidelines[LEXIC_ID]);
-		this.parser = new Parser(guidelines[LEXIC_ID], guidelines[GRAMMAR_ID]);
+		this.lexer = new Lexer(guidelines[LEXIC_ID], errorHandler);
+		
+		//Create parser
+		this.parser = new Parser(guidelines[LEXIC_ID], guidelines[GRAMMAR_ID], errorHandler);
+		
 		//TODO: Create semantic analyzer
-		//TODO: Create code generator
+		
+		//TODO: Create AST generator
 		
 	}
 	
@@ -24,7 +26,7 @@ class FrontEnd {
 		this.parser.parse(this.lexer.tokens);
 		
 		//TODO: Analyze semantic
-		//TODO: Generate code
+		//TODO: Generate AST code
 		
 	}
 	

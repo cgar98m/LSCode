@@ -49,6 +49,7 @@ var hideButton;
 
 var lang;
 
+var errorHandler;
 var frontEnd;
 var lexer;
 
@@ -73,6 +74,9 @@ window.onload = function() {
 
 		//Disable button
 		interpreteButton.disabled = true;
+
+		//Clear previous errors
+		errorHandler.clear();
 
 		//Scan input
 		frontEnd.process(inputTextArea.value);
@@ -238,8 +242,11 @@ window.onload = function() {
 				//Get file data
 				let data = JSON.parse(xhr.responseText.replace("/\\/g", "\\\\"));
 				
+				//Create error handler
+				errorHandler = new ErrorHandler();
+				
 				//Create front end
-				frontEnd = new FrontEnd(data);
+				frontEnd = new FrontEnd(data, errorHandler);
 				
 				//TODO: Create back end
 				

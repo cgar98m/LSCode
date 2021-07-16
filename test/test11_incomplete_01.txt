@@ -1,3 +1,0 @@
-//Codi incomplet, però passable
-mentre 1
-   si 1

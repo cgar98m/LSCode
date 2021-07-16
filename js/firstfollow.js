@@ -3,6 +3,7 @@ const END_MARKER = "$"
 const BASE_PRODUCTION = "CODE";
 
 const TOKEN_KW_ID = "KW_ID";
+const PROD_CODE_BLOCK = "CODE_BLOCK";
 
 class FirstFollow {
 

@@ -5,7 +5,10 @@ const TOKEN_COMMENT_CLOSE = "SP_COMMENT_CLOSE";
 
 class Lexer {
 
-	constructor(lexic) {
+	constructor(lexic, errorHandler) {
+		
+		//Keep error handler
+		this.errorHandler = errorHandler;
 		
 		//Pre-build regex
 		for(let i = 0; i < lexic.length; i++) {
@@ -109,13 +112,37 @@ class Lexer {
 						}
 					}
 					
-					//Remove token from line and update offset
+					//Get token last char offset
 					let offset = (matches[bestMatch].offset - charOffset) + matches[bestMatch].content.length;
+					
+					//Check if some undefined token was ignored
+					let unexpectedContent = line.substring(0, matches[bestMatch].offset - charOffset).trim();
+					if(unexpectedContent.length != 0) {
+						//Check if error should not be ignored
+						if(!ignoreTokens) {
+							//Unexpected token warning
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " ==> " + unexpectedContent);
+						}
+					}
+					
+					//Remove token from line and update offset
 					line = line.substring(offset, line.length);
 					charOffset += offset;
 					
 				} else {
+					
+					//Check if something left isn't a blankspace
+					let unexpectedContent = line.trim();
+					if(unexpectedContent.length != 0) {
+						//Check if error should not be ignored
+						if(!ignoreTokens) {
+							//Unexpected token warning
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " ==> " + unexpectedContent);
+						}
+					}
+					
 					break;	//No more matches remaining in this line
+					
 				}
 				
 			}
