@@ -1,14 +1,9 @@
 const INPUT_TEXTAREA_ID = "inputTextArea";
-const ERROR_TEXTAREA_ID = "errorTextArea";
 const TOKENS_TEXTAREA_ID = "tokensTextArea";
 const INTERPRETE_BUTTON_ID = "interpreteButton";
-
-const TAB_ERROR_ID = "tabError";
-const TAB_DEBUG_ID = "tabDebug";
 const TAB_TOKENS_ID = "tabTokens";
 const TAB_PRED_PARSE_TREE_ID = "tabPredParseTree";
 const TAB_PARSE_TREE_ID = "tabParseTree";
-
 const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
 const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
@@ -27,8 +22,6 @@ const TREE_LIST_ARROW_DOWN_CLASS = "treeListArrowDown";
 const NESTED_TREE_LIST_CLASS = "nestedTreeList";
 const ACTIVE_TREE_LIST_CLASS = "activeTreeList";
 
-const DROPDOWN_MENU = '.dropdown-toggle';
-
 const LIST_ITEM = "li";
 const SUBLIST_ITEM = "ul";
 const SPAN_ITEM = "span";
@@ -37,7 +30,7 @@ const LANG_PATH = "lang/";
 const JSON_TRAIL = ".json";
 
 var inputTextArea;
-var errorTextArea;
+
 var tokensTextArea;
 
 var predParseTreeContainer;
@@ -47,7 +40,6 @@ var parseTreeList;
 
 var interpreteButton;
 
-var tabError;
 var tabTokens;
 var tabPredParseTree;
 var tabParseTree;
@@ -55,31 +47,17 @@ var tabParseTree;
 var collapseButton;
 var hideButton;
 
-var viewMode;
-
 var lang;
 
 var errorHandler;
 var frontEnd;
 var lexer;
 
-const VIEW_MODE = {
-	ERROR: 'E',
-	TOKENS: 'T',
-	PREDICTION: 'P',
-	SINTAX: 'S'
-}
-var dropdownList;
-
 //Main
 window.onload = function() {
 	
-	//Set default view mode
-	viewMode = VIEW_MODE.TOKENS;
-	
 	//Get text areas
 	inputTextArea = document.getElementById(INPUT_TEXTAREA_ID);
-	errorTextArea = document.getElementById(ERROR_TEXTAREA_ID);
 	tokensTextArea = document.getElementById(TOKENS_TEXTAREA_ID);
 	
 	//Get predict parse tree list items
@@ -122,13 +100,6 @@ window.onload = function() {
 		createPaths(predParseTreeList, frontEnd.parser.predTree);
 		createPaths(parseTreeList, frontEnd.parser.parseTree);
 		
-		//Display errors
-		errorTextArea.value = "";
-		for(let i = 0; i < errorHandler.errors.length; i++) {
-			let error = errorHandler.errors[i];
-			errorTextArea.value += ("[" + error.type + " - " + error.font + "] " + error.msg + "\n");
-		}
-		
 		//TODO: Display more info and execution
 		
 		//Enable button
@@ -137,8 +108,6 @@ window.onload = function() {
 	};
 	
 	//Get tab bar items
-	tabError = document.getElementById(TAB_ERROR_ID);
-	tabDebug = document.getElementById(TAB_DEBUG_ID);
 	tabTokens = document.getElementById(TAB_TOKENS_ID);
 	tabPredParseTree = document.getElementById(TAB_PRED_PARSE_TREE_ID);
 	tabParseTree = document.getElementById(TAB_PARSE_TREE_ID);
@@ -149,7 +118,7 @@ window.onload = function() {
 		
 		//Get selected tree list
 		let tree;
-		if(viewMode == VIEW_MODE.PREDICTION) {
+		if(tabPredParseTree.classList.contains(ACTIVE_CLASS)) {
 			tree = predParseTreeContainer;
 		} else {
 			tree = parseTreeContainer;
@@ -170,7 +139,7 @@ window.onload = function() {
 		
 		//Get selected tree list
 		let tree;
-		if(viewMode == VIEW_MODE.PREDICTION) {
+		if(tabPredParseTree.classList.contains(ACTIVE_CLASS)) {
 			tree = predParseTreeContainer;
 		} else {
 			tree = parseTreeContainer;
@@ -186,41 +155,9 @@ window.onload = function() {
 	}
 	
 	//Link click actions
-	tabError.onclick = function() {
-		
-		//Update view mode
-		viewMode = VIEW_MODE.ERROR;
-		
-		//Display errors and hide others
-		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
-		tokensTextArea.classList.add(DISP_NONE_CLASS);
-		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
-		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
-		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
-		parseTreeContainer.classList.add(DISP_NONE_CLASS);
-		errorTextArea.classList.remove(DISP_NONE_CLASS);
-		errorTextArea.classList.add(DISP_FLEX_CLASS);
-		
-		//Mark error tab
-		tabError.classList.add(ACTIVE_CLASS);
-		tabDebug.classList.remove(ACTIVE_CLASS);
-		tabTokens.classList.remove(ACTIVE_CLASS);
-		tabPredParseTree.classList.remove(ACTIVE_CLASS);
-		tabParseTree.classList.remove(ACTIVE_CLASS);
-		
-		//Hide buttons
-		collapseButton.classList.add(DISP_NONE_CLASS);
-		hideButton.classList.add(DISP_NONE_CLASS);
-		
-	}
 	tabTokens.onclick = function() {
 		
-		//Update view mode
-		viewMode = VIEW_MODE.TOKENS;
-		
 		//Display tokens and hide others
-		errorTextArea.classList.remove(DISP_FLEX_CLASS);
-		errorTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -228,12 +165,13 @@ window.onload = function() {
 		tokensTextArea.classList.remove(DISP_NONE_CLASS);
 		tokensTextArea.classList.add(DISP_FLEX_CLASS);
 		
-		//Mark tokens tab
-		tabError.classList.remove(ACTIVE_CLASS);
-		tabDebug.classList.add(ACTIVE_CLASS);
+		//Update tab bar
+		tabTokens.classList.add(DISABLED_CLASS);
 		tabTokens.classList.add(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(DISABLED_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(DISABLED_CLASS);
 		
 		//Hide buttons
 		collapseButton.classList.add(DISP_NONE_CLASS);
@@ -242,12 +180,7 @@ window.onload = function() {
 	}
 	tabPredParseTree.onclick = function() {
 		
-		//Update view mode
-		viewMode = VIEW_MODE.PREDICTION;
-		
 		//Display parse tree and hide others
-		errorTextArea.classList.remove(DISP_FLEX_CLASS);
-		errorTextArea.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		parseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
@@ -255,12 +188,13 @@ window.onload = function() {
 		predParseTreeContainer.classList.remove(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.add(DISP_FLEX_CLASS);
 		
-		//Mark prediction tab
-		tabError.classList.remove(ACTIVE_CLASS);
-		tabDebug.classList.add(ACTIVE_CLASS);
-		tabTokens.classList.remove(ACTIVE_CLASS);
+		//Update tab bar
+		tabPredParseTree.classList.add(DISABLED_CLASS);
 		tabPredParseTree.classList.add(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(DISABLED_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabTokens.classList.remove(DISABLED_CLASS);
 		
 		//Show buttons
 		collapseButton.classList.remove(DISP_NONE_CLASS);
@@ -269,12 +203,7 @@ window.onload = function() {
 	}
 	tabParseTree.onclick = function() {
 		
-		//Update view mode
-		viewMode = VIEW_MODE.SINTAX;
-		
 		//Display parse tree and hide others
-		errorTextArea.classList.remove(DISP_FLEX_CLASS);
-		errorTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
@@ -282,18 +211,24 @@ window.onload = function() {
 		parseTreeContainer.classList.remove(DISP_NONE_CLASS);
 		parseTreeContainer.classList.add(DISP_FLEX_CLASS);
 		
-		//Mark parse tab
-		tabError.classList.remove(ACTIVE_CLASS);
-		tabDebug.classList.add(ACTIVE_CLASS);
-		tabTokens.classList.remove(ACTIVE_CLASS);
-		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		//Update tab bar
+		tabParseTree.classList.add(DISABLED_CLASS);
 		tabParseTree.classList.add(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(DISABLED_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabTokens.classList.remove(DISABLED_CLASS);
 		
 		//Show buttons
 		collapseButton.classList.remove(DISP_NONE_CLASS);
 		hideButton.classList.remove(DISP_NONE_CLASS);
 		
 	}
+	
+	//Set default view
+	tabTokens.classList.add(ACTIVE_CLASS);
+	tabParseTree.classList.remove(DISABLED_CLASS);
+	tabPredParseTree.classList.remove(DISABLED_CLASS);
 	
 	//TODO: Prepare interprete depending on language
 	lang = "cat";

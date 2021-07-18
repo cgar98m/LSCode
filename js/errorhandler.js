@@ -1,11 +1,11 @@
 const ERROR_FONT = {
-	LEXER: 'L',
-	PARSER: 'P',
-	SEMANTICA: 'S'
+	LEXER: "Lexer",
+	PARSER: "Parser",
+	SEMANTICA: "Semantica"
 };
 const ERROR_TYPE = {
-	WARNING: 'W',
-	ERROR: 'E'
+	WARNING: "Warning",
+	ERROR: "Error"
 };
 
 class ErrorHandler {
