@@ -22,8 +22,11 @@ class ErrorHandler {
 		});
 	}
 	
-	newErrorPack(errorHandler) {
-		this.errors.push(...errorHandler.errors);
+	newErrorPack(errorList, msgHeader) {
+		for(let i = 0; i < errorList.length; i++) {
+			let error = errorList[i];
+			this.newError(error.font, error.type, "[" + msgHeader + "] " + error.msg);
+		}
 	}
 	
 	clear() {

@@ -131,22 +131,25 @@ class Parser {
 			//TODO: Check null predictions
 			if(this.predNodes.length == 0) {
 				//Unexpected token
-				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Unexpected token in line " + token.line + ", char " + token.offset + " ==> " + token.content);
+				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Unexpected token in line " + token.line + ", char " + token.offset + " ==> \"" + token.content + "\"");
 				break;
 			}
 			
 		}
 		
-		//Clean parse tree
+		//Clean parse trees
 		let blockCount = [];
 		let tmpParseTree = [];
+		let okErrorHandlers = [];
+		let koErrorHandlers = [];
 		for(let i = 0; i < newParseTreeList.length; i++) {
 			
 			//Copy prediction tree
 			let predTreeCopy = treeCopy(newParseTreeList[i], null);
 			
 			//Prune incomplete predictions
-			this.#pruneIncompleteProductions(predTreeCopy);
+			let treeErrorHandler = new ErrorHandler();
+			this.#pruneIncompleteProductions(predTreeCopy, null, treeErrorHandler);
 			
 			//Prune predictions
 			this.#prunePredictions(predTreeCopy);
@@ -154,7 +157,7 @@ class Parser {
 			//Update parse tree list if new parse tree has content
 			if(predTreeCopy.children.length > 0) {
 				
-				//TODO: Check if already exist equal tree
+				//Check if already exist equal tree
 				let foundEqualTree = false;
 				for(let i = 0; i < tmpParseTree.length; i++) {
 					if(compareTrees(tmpParseTree[i], predTreeCopy)) {
@@ -167,21 +170,40 @@ class Parser {
 				if(!foundEqualTree) {
 					tmpParseTree.push(predTreeCopy);
 					blockCount.push(this.#blockCount(predTreeCopy));
+					okErrorHandlers.push(treeErrorHandler);
 				}
 				
+			} else {
+				koErrorHandlers.push(treeErrorHandler);
 			}
 			
 		}
 		
 		//Get largest block tree
 		let maxBlockCount = 0;
+		let finalErrorHandlers = [];
 		for(let i = 0; i < tmpParseTree.length; i++) {
 			//Get largest code
 			if(blockCount[i] > maxBlockCount) {
 				this.parseTree = [tmpParseTree[i]];
+				finalErrorHandlers = [okErrorHandlers[i]];
 				maxBlockCount = blockCount[i];
 			} else if(blockCount[i] == maxBlockCount) {
 				this.parseTree.push(tmpParseTree[i]);
+				finalErrorHandlers.push(okErrorHandlers[i]);
+			}
+		}
+		
+		//Check if no tree was picked
+		if(finalErrorHandlers.length == 0) {
+			//Dump error handlers
+			for(let i = 0; i < koErrorHandlers.length; i++) {
+				this.errorHandler.newErrorPack(koErrorHandlers[i].errors.slice(), "TREE " + i);
+			}
+		} else {
+			//Dump error handlers
+			for(let i = 0; i < finalErrorHandlers.length; i++) {
+				this.errorHandler.newErrorPack(finalErrorHandlers[i].errors.slice(), "TREE " + i);
 			}
 		}
 		
@@ -456,7 +478,7 @@ class Parser {
 		
 	}
 	
-	#pruneIncompleteProductions(node) {
+	#pruneIncompleteProductions(node, token, errorHandler) {
 		
 		//Check non-leaf node
 		if(typeof node.children !== "undefined") {
@@ -464,7 +486,7 @@ class Parser {
 			//Expand node tree
 			let children = node.children.slice();
 			for(let i = 0; i < children.length; i++) {
-				this.#pruneIncompleteProductions(children[i]);
+				token = this.#pruneIncompleteProductions(children[i], token, errorHandler);
 			}
 			
 			//Check fork children
@@ -482,6 +504,7 @@ class Parser {
 					//Check rule item type
 					if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.TERMINAL) {
 						//TERMINAL: Cannot fill missing rule items
+						this.#incompleteError(token, ruleItem, errorHandler);
 						break;
 					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
 						//PRODUCTION: Check if first contains an EPSILON
@@ -498,6 +521,7 @@ class Parser {
 							});
 						} else {
 							//Cannot fill missing rule items
+							this.#incompleteError(token, ruleItem, errorHandler);
 							break;
 						}
 					} else {
@@ -528,8 +552,20 @@ class Parser {
 				}
 			}
 			
+		} else {
+			if(typeof node.info !== "undefined") {
+				token = node.info;
+			}
 		}
 		
+		return token;
+		
+	}
+	
+	#incompleteError(token, ruleItem, errorHandler) {
+		if(token != null && errorHandler.errors.length == 0) {
+			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.WARNING, "Expected \"" + ruleItem + "\" after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
+		}
 	}
 	
 	#blockCount(node) {
