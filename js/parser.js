@@ -22,7 +22,8 @@ class Parser {
 		this.grammarMap = [];
 		for(let i = 0; i < grammar.length; i++) {
 			this.grammarMap[grammar[i].production_id] = {
-				rules: grammar[i].rules
+				rules: grammar[i].rules,
+				semantica: grammar[i].semantica
 			};
 		}
 		
@@ -207,6 +208,10 @@ class Parser {
 			}
 		}
 		
+	}
+	
+	clear() {
+		this.parseTree = [];
 	}
 	
 	#matchToken(token, list) {

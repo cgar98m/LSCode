@@ -8,11 +8,15 @@ const TAB_DEBUG_ID = "tabDebug";
 const TAB_TOKENS_ID = "tabTokens";
 const TAB_PRED_PARSE_TREE_ID = "tabPredParseTree";
 const TAB_PARSE_TREE_ID = "tabParseTree";
+const TAB_AST_TREE_ID = "tabAstTree";
 
 const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
 const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
 const PRED_PARSE_TREE_LIST_ID = "predParseTreeList";
+const AST_TREE_CONTAINER_ID = "astTreeContainer";
+const AST_TREE_LIST_ID = "astTreeList";
+
 const COLLAPSE_BUTTON_ID = "expandButton";
 const HIDE_BUTTON_ID = "collapseButton";
 
@@ -67,7 +71,8 @@ const VIEW_MODE = {
 	ERROR: 'E',
 	TOKENS: 'T',
 	PREDICTION: 'P',
-	SINTAX: 'S'
+	SINTAX: 'S',
+	AST: 'A'
 }
 var dropdownList;
 
@@ -89,6 +94,10 @@ window.onload = function() {
 	//Get parse tree list items
 	parseTreeContainer = document.getElementById(PARSE_TREE_CONTAINER_ID);
 	parseTreeList = document.getElementById(PARSE_TREE_LIST_ID);
+	
+	//Get ast tree list items
+	astTreeContainer = document.getElementById(AST_TREE_CONTAINER_ID);
+	astTreeList = document.getElementById(AST_TREE_LIST_ID);
 	
 	//Get interprete button and link action
 	interpreteButton = document.getElementById(INTERPRETE_BUTTON_ID);
@@ -122,6 +131,9 @@ window.onload = function() {
 		createPaths(predParseTreeList, frontEnd.parser.predTree);
 		createPaths(parseTreeList, frontEnd.parser.parseTree);
 		
+		//Create AST tree
+		createAstTree(astTreeList, frontEnd.semantica.astTree);
+		
 		//Display errors
 		errorTextArea.value = "";
 		for(let i = 0; i < errorHandler.errors.length; i++) {
@@ -129,7 +141,7 @@ window.onload = function() {
 			errorTextArea.value += ("[" + error.type + " - " + error.font + "] " + error.msg + "\n");
 		}
 		
-		//TODO: Display more info and execution
+		//TODO: Display execution
 		
 		//Enable button
 		interpreteButton.disabled = false;
@@ -142,6 +154,7 @@ window.onload = function() {
 	tabTokens = document.getElementById(TAB_TOKENS_ID);
 	tabPredParseTree = document.getElementById(TAB_PRED_PARSE_TREE_ID);
 	tabParseTree = document.getElementById(TAB_PARSE_TREE_ID);
+	tabAstTree = document.getElementById(TAB_AST_TREE_ID);
 	
 	//Get collapse button and link action
 	collapseButton = document.getElementById(COLLAPSE_BUTTON_ID);
@@ -151,8 +164,10 @@ window.onload = function() {
 		let tree;
 		if(viewMode == VIEW_MODE.PREDICTION) {
 			tree = predParseTreeContainer;
-		} else {
+		} else if(viewMode == VIEW_MODE.SINTAX) {
 			tree = parseTreeContainer;
+		} else {
+			tree = astTreeContainer;
 		}
 		
 		//Select all nested arrow items
@@ -172,8 +187,10 @@ window.onload = function() {
 		let tree;
 		if(viewMode == VIEW_MODE.PREDICTION) {
 			tree = predParseTreeContainer;
-		} else {
+		} else if(viewMode == VIEW_MODE.SINTAX) {
 			tree = parseTreeContainer;
+		} else {
+			tree = astTreeContainer;
 		}
 		
 		//Select all nested arrow items
@@ -198,6 +215,8 @@ window.onload = function() {
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
 		errorTextArea.classList.remove(DISP_NONE_CLASS);
 		errorTextArea.classList.add(DISP_FLEX_CLASS);
 		
@@ -207,6 +226,7 @@ window.onload = function() {
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
 		//Hide buttons
 		collapseButton.classList.add(DISP_NONE_CLASS);
@@ -225,6 +245,8 @@ window.onload = function() {
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_NONE_CLASS);
 		tokensTextArea.classList.add(DISP_FLEX_CLASS);
 		
@@ -234,6 +256,7 @@ window.onload = function() {
 		tabTokens.classList.add(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
 		//Hide buttons
 		collapseButton.classList.add(DISP_NONE_CLASS);
@@ -248,10 +271,12 @@ window.onload = function() {
 		//Display parse tree and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
-		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
-		parseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.add(DISP_FLEX_CLASS);
 		
@@ -261,6 +286,7 @@ window.onload = function() {
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.add(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
 		//Show buttons
 		collapseButton.classList.remove(DISP_NONE_CLASS);
@@ -275,10 +301,12 @@ window.onload = function() {
 		//Display parse tree and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
-		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
-		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_NONE_CLASS);
 		parseTreeContainer.classList.add(DISP_FLEX_CLASS);
 		
@@ -288,6 +316,37 @@ window.onload = function() {
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.add(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
+		
+		//Show buttons
+		collapseButton.classList.remove(DISP_NONE_CLASS);
+		hideButton.classList.remove(DISP_NONE_CLASS);
+		
+	}
+	tabAstTree.onclick = function() {
+		
+		//Update view mode
+		viewMode = VIEW_MODE.AST;
+		
+		//Display ast tree and hide others
+		errorTextArea.classList.remove(DISP_FLEX_CLASS);
+		errorTextArea.classList.add(DISP_NONE_CLASS);
+		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
+		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
+		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_NONE_CLASS);
+		astTreeContainer.classList.add(DISP_FLEX_CLASS);
+		
+		//Mark ast tab
+		tabError.classList.remove(ACTIVE_CLASS);
+		tabDebug.classList.add(ACTIVE_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.add(ACTIVE_CLASS);
 		
 		//Show buttons
 		collapseButton.classList.remove(DISP_NONE_CLASS);
@@ -295,7 +354,7 @@ window.onload = function() {
 		
 	}
 	
-	//TODO: Prepare interprete depending on language
+	//TODO: Prepare interpreter depending on language
 	lang = "cat";
 	let xhr = new XMLHttpRequest();
 	xhr.open("GET", LANG_PATH + lang + JSON_TRAIL, true);
@@ -356,13 +415,13 @@ function createPaths(domElement, trees) {
 		listItem.appendChild(subListItem);
 		
 		//Create subtree
-		createTree(subListItem, trees[i]);
+		createPathTree(subListItem, trees[i]);
 		
 	}
 	
 }
 
-function createTree(domElement, node) {
+function createPathTree(domElement, node) {
 	
 	//Check null node
 	if(node == null) {
@@ -405,7 +464,7 @@ function createTree(domElement, node) {
 			
 			//Create sublist item for every child
 			for(let i = 0; i < node.children.length; i++) {
-				createTree(subListItem, node.children[i]);
+				createPathTree(subListItem, node.children[i]);
 			}
 			
 		} else {
@@ -417,6 +476,14 @@ function createTree(domElement, node) {
 			}
 		}
 
+	}
+	
+}
+
+function createAstTree(domElement, node) {
+	
+	//TODO
+	if(node != null) {
 	}
 	
 }

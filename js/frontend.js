@@ -5,15 +5,17 @@ class FrontEnd {
 
 	constructor(guidelines, errorHandler) {
 		
+		//Keep error handler
+		this.errorHandler = errorHandler;
+		
 		//Create lexer
 		this.lexer = new Lexer(guidelines[LEXIC_ID], errorHandler);
 		
 		//Create parser
 		this.parser = new Parser(guidelines[LEXIC_ID], guidelines[GRAMMAR_ID], errorHandler);
 		
-		//TODO: Create semantic analyzer
-		
-		//TODO: Create AST generator
+		//Create semantic analyzer (AST generator)
+		this.semantica = new Semantica(this.parser.grammarMap, errorHandler);
 		
 	}
 	
@@ -23,10 +25,18 @@ class FrontEnd {
 		this.lexer.scan(naturalText);
 		
 		//Parse tokens
-		this.parser.parse(this.lexer.tokens);
+		if(this.errorHandler.criticalErrors == 0) {
+			this.parser.parse(this.lexer.tokens);
+		} else {
+			this.parser.clear();
+		}
 		
-		//TODO: Analyze semantic
-		//TODO: Generate AST code
+		//Generate AST code
+		if(this.errorHandler.criticalErrors == 0 && this.parser.parseTree.length > 0) {
+			this.semantica.generateAst(this.parser.parseTree[0]);
+		} else {
+			this.semantica.clear();
+		}
 		
 	}
 	

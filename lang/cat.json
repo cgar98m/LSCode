@@ -187,97 +187,134 @@
 			"production_id": "CODE",
 			"rules": [
 				["CODE_BLOCK", "CODE_S"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "CODE_S",
 			"rules": [
 				["CODE"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "CODE_BLOCK",
 			"rules": [
 				["BASIC_BLOCK"],
 				["FUNC_BLOCK"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "BASIC_BLOCK",
 			"rules": [
 				["VAR_DEC_BLOCK"],
 				["VAR_ASSIGN_BLOCK"],
+				["CALL_BLOCK"],
 				["IF_BLOCK"],
-				["WHILE_BLOCK"],
-				["CALL_BLOCK"]
-			]
-		},
-		{
-			"production_id": "BASIC_BLOCK_GROUP",
-			"rules": [
-				["BASIC_BLOCK", "BASIC_BLOCK_GROUP_S"]
-			]
-		},
-		{
-			"production_id": "BASIC_BLOCK_GROUP_S",
-			"rules": [
-				["BASIC_BLOCK_GROUP"],
-				["EPSILON"]
-			]
+				["WHILE_BLOCK"]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "CONTENT_BLOCK",
 			"rules": [
 				["BASIC_BLOCK_GROUP"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"newContext": {
+				}
+			}
+		},
+		{
+			"production_id": "BASIC_BLOCK_GROUP",
+			"rules": [
+				["BASIC_BLOCK", "BASIC_BLOCK_GROUP_S"]
+			],
+			"semantica": {
+			}
+		},
+		{
+			"production_id": "BASIC_BLOCK_GROUP_S",
+			"rules": [
+				["BASIC_BLOCK_GROUP"],
+				["EPSILON"]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_DEC_BLOCK",
 			"rules": [
 				["VAR_DEC_ROW"],
 				["KW_STRUCT_VAR", "VAR_DEC_CONTENT", "KW_STRUCT_ENDVAR"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_DEC_CONTENT",
 			"rules": [
 				["VAR_DEC_LIST"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_DEC_LIST",
 			"rules": [
 				["VAR_DEC_ROW", "VAR_DEC_LIST_S"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_DEC_LIST_S",
 			"rules": [
 				["VAR_DEC_LIST"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_DEC_ROW",
 			"rules": [
 				["VAR_DEC_CONCAT", "OP_ASSIGN_TYPE", "TYPE"]
-			]
+			],
+			"semantica": {
+				"varDefine": {
+					"vars": "VAR_DEC_CONCAT",
+					"type": "TYPE"
+				}
+			}
 		},
 		{
 			"production_id": "VAR_DEC_CONCAT",
 			"rules": [
 				["KW_ID", "VAR_DEC_CONCAT_S"]
-			]
+			],
+			"semantica": {
+				"var": {
+					"varName": "KW_ID"
+				}
+			}
 		},
 		{
 			"production_id": "VAR_DEC_CONCAT_S",
 			"rules": [
 				["OP_SEPARATOR", "VAR_DEC_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "TYPE",
@@ -286,223 +323,516 @@
 				["KW_TYPE_CHAR"],
 				["KW_TYPE_BOOL"],
 				["KW_TYPE_STRING"]
-			]
+			],
+			"semantica": {
+				"type": {
+					"typePairs": [
+						{
+							"KW_TYPE_INT": "int"
+						},
+						{
+							"KW_TYPE_CHAR": "int"
+						},
+						{
+							"KW_TYPE_BOOL": "bool"
+						},
+						{
+							"KW_TYPE_STRING": "string"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "VAR_ASSIGN_BLOCK",
 			"rules": [
-				["VAR_ASSIGN_EQ", "EXP_OR"]
-			]
+				["VAR_ASSIGN_EQ", "EXP_CONCAT"]
+			],
+			"semantica": {
+				"varAssign": {
+					"vars": "VAR_ASSIGN_EQU",
+					"values": "EXP_CONCAT"
+				}
+			}
 		},
 		{
 			"production_id": "VAR_ASSIGN_EQ",
 			"rules": [
 				["VAR_ASSIGN_CONCAT", "OP_ASSIGN", "VAR_ASSIGN_EQ_S"]
-			]
+			],
+			"semantica": {
+				"varSeparation": {
+					"varGoups": [
+						"VAR_ASSIGN_CONCAT",
+						"VAR_ASSIGN_EQ_S"
+					]
+				}
+			}
 		},
 		{
 			"production_id": "VAR_ASSIGN_EQ_S",
 			"rules": [
 				["VAR_ASSIGN_EQ"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "VAR_ASSIGN_CONCAT",
 			"rules": [
 				["KW_ID", "VAR_ASSIGN_CONCAT_S"]
-			]
+			],
+			"semantica": {
+				"var": {
+					"varName": "KW_ID"
+				}
+			}
 		},
 		{
 			"production_id": "VAR_ASSIGN_CONCAT_S",
 			"rules": [
 				["OP_SEPARATOR", "VAR_ASSIGN_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "IF_BLOCK",
 			"rules": [
 				["KW_STRUCT_IF", "EXP_OR", "IF_BLOCK_THEN", "CONTENT_BLOCK", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
-			]
+			],
+			"semantica": {
+				"fork" : {
+					"condition": "EXP_OR",
+					"trueCase": "CONTENT_BLOCK",
+					"falseCase": "IF_BLOCK_ELSE"
+				}
+			}
 		},
 		{
 			"production_id": "IF_BLOCK_THEN",
 			"rules": [
 				["KW_STRUCT_THEN"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "IF_BLOCK_ELSE",
 			"rules": [
 				["KW_STRUCT_ELSE", "CONTENT_BLOCK"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "WHILE_BLOCK",
 			"rules": [
 				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "CONTENT_BLOCK", "KW_STRUCT_ENDWHILE"]
-			]
+			],
+			"semantica": {
+				"loop": {
+					"condition": "EXP_OR",
+					"code": "CONTENT_BLOCK"
+				}
+			}
 		},
 		{
 			"production_id": "LOOP_BLOCK_DO",
 			"rules": [
 				["KW_STRUCT_DO"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "FUNC_BLOCK",
 			"rules": [
-				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_RETURN_TYPE", "CONTENT_BLOCK", "FUNC_RETURN", "KW_STRUCT_ENDFUNC"]
-			]
+				["KW_STRUCT_FUNC", "KW_ID", "SP_EXP_OPEN", "FUNC_EXP", "SP_EXP_CLOSE", "FUNC_RETURN_TYPE", "CONTENT_BLOCK", "FUNC_RETURN_DATA", "KW_STRUCT_ENDFUNC"]
+			],
+			"semantica": {
+				"funcDefine": {
+					"funcName": "KW_ID",
+					"params": "FUNC_EXP",
+					"code": "CONTENT_BLOCK",
+					"returnType": "FUNC_RETURN_TYPE",
+					"returnData": "FUNC_RETURN_DATA"
+				}
+			}
 		},
 		{
 			"production_id": "FUNC_EXP",
 			"rules": [
 				["FUNC_VARS"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "FUNC_VARS",
 			"rules": [
 				["FUNC_SINGLE_VAR", "FUNC_VARS_S"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "FUNC_SINGLE_VAR",
 			"rules": [
 				["KW_ID", "OP_ASSIGN_TYPE", "TYPE"]
-			]
+			],
+			"semantica": {
+				"funcVar": {
+					"var": "KW_ID",
+					"type": "TYPE"
+				}
+			}
 		},
 		{
 			"production_id": "FUNC_VARS_S",
 			"rules": [
 				["OP_SEPARATOR", "FUNC_VARS"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "FUNC_RETURN_TYPE",
 			"rules": [
 				["OP_ASSIGN_TYPE", "TYPE_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "TYPE_CONCAT",
 			"rules": [
 				["TYPE", "TYPE_CONCAT_S"]
-			]
+			],
+			"semantica": {
+				"typeSeparation": {
+					"typeGroups": [
+						"TYPE",
+						"TYPE_CONCAT_S"
+					]
+				}
+			}
 		},
 		{
 			"production_id": "TYPE_CONCAT_S",
 			"rules": [
 				["OP_SEPARATOR", "TYPE_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
-			"production_id": "FUNC_RETURN",
+			"production_id": "FUNC_RETURN_DATA",
 			"rules": [
 				["KW_STRUCT_RETURN", "EXP_CONTENT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
+		},
+		{
+			"production_id": "CALL_BLOCK",
+			"rules": [
+				["KW_ID", "SP_EXP_OPEN", "EXP_CONTENT", "SP_EXP_CLOSE"]
+			],
+			"semantica": {
+				"funcCall": {
+					"funcName": "KW_ID",
+					"params": "EXP_CONTENT"
+				}
+			}
 		},
 		{
 			"production_id": "EXP_CONTENT",
 			"rules": [
 				["EXP_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
 		{
 			"production_id": "EXP_CONCAT",
 			"rules": [
 				["EXP_OR", "EXP_CONCAT_S"]
-			]
+			],
+			"semantica": {
+				"expSeparation": {
+					"expGroups": [
+						"EXP_OR",
+						"EXP_CONCAT_S"
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_CONCAT_S",
 			"rules": [
 				["OP_SEPARATOR", "EXP_CONCAT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+			}
 		},
-		{
-			"production_id": "CALL_BLOCK",
-			"rules": [
-				["KW_ID", "SP_EXP_OPEN", "CALL_PARAMS", "SP_EXP_CLOSE"]
-			]
-		},
-		{
-			"production_id": "CALL_PARAMS",
-			"rules": [
-				["EXP_CONCAT"],
-				["EPSILON"]
-			]
-		},
+		
+		
+		
+		
+		
+		
 		{
 			"production_id": "EXP_OR",
 			"rules": [
 				["EXP_AND", "EXP_OR_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "EXP_AND",
+					"subExp": "EXP_OR_S",
+					"typeOptions": [
+						{
+							"mainExp": "bool",
+							"subExp": "bool",
+							"type": "bool"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_OR_S",
 			"rules": [
 				["OP_LOG_OR", "EXP_OR"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_OR",
+					"operatorPair": {
+						"OP_LOG_OR": "or"
+					}
+				}
+			}
 		},
 		{
 			"production_id": "EXP_AND",
 			"rules": [
 				["EXP_EQ", "EXP_AND_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "EXP_EQ",
+					"subExp": "EXP_AND_S",
+					"typeOptions": [
+						{
+							"mainExp": "bool",
+							"subExp": "bool",
+							"type": "bool"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_AND_S",
 			"rules": [
 				["OP_LOG_AND", "EXP_AND"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_AND",
+					"operatorPair": {
+						"OP_LOG_AND": "and"
+					}
+				}
+			}
 		},
 		{
 			"production_id": "EXP_EQ",
 			"rules": [
 				["EXP_COMP", "EXP_EQ_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "EXP_COMP",
+					"subExp": "EXP_EQ_S",
+					"typeOptions": [
+						{
+							"mainExp": "bool",
+							"subExp": "bool",
+							"type": "bool"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "int",
+							"subExp": "int",
+							"type": "int"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_EQ_S",
 			"rules": [
 				["OP_EQ", "EXP_EQ"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_EQ",
+					"operatorPair": {
+						"OP_EQ": null
+					}
+				}
+			}
 		},
 		{
 			"production_id": "OP_EQ",
 			"rules": [
 				["OP_REL_EQ"],
 				["OP_REL_NOT_EQ"]
-			]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_REL_EQ": "equal"
+						},
+						{
+							"OP_REL_NOT_EQ": "notEqual"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_COMP",
 			"rules": [
 				["EXP_SUM", "EXP_COMP_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "EXP_SUM",
+					"subExp": "EXP_COMP_S",
+					"typeOptions": [
+						{
+							"mainExp": "int",
+							"subExp": "int",
+							"type": "int"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_COMP_S",
 			"rules": [
 				["OP_COMP", "EXP_SUM"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_SUM",
+					"operatorPair": {
+						"OP_COMP": null
+					}
+				}
+			}
 		},
 		{
 			"production_id": "OP_COMP",
@@ -511,40 +841,152 @@
 				["OP_REL_LT_EQ"],
 				["OP_REL_GT"],
 				["OP_REL_GT_EQ"]
-			]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_REL_LT": "lower"
+						},
+						{
+							"OP_REL_LT_EQ": "lowerEqual"
+						},
+						{
+							"OP_REL_GT": "greater"
+						},
+						{
+							"OP_REL_GT_EQ": "greaterEqual"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_SUM",
 			"rules": [
 				["EXP_MULT", "EXP_SUM_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "EXP_MULT",
+					"subExp": "EXP_SUM_S",
+					"typeOptions": [
+						{
+							"mainExp": "int",
+							"subExp": "int",
+							"type": "int"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_SUM_S",
 			"rules": [
 				["OP_SUM", "EXP_SUM"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_SUM",
+					"operatorPair": {
+						"OP_SUM": null
+					}
+				}
+			}
 		},
 		{
 			"production_id": "OP_SUM",
 			"rules": [
 				["OP_ARIT_PLUS"],
 				["OP_ARIT_MINUS"]
-			]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_ARIT_PLUS": "plus"
+						},
+						{
+							"OP_ARIT_MINUS": "minus"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_MULT",
 			"rules": [
 				["VALUE", "EXP_MULT_S"]
-			]
+			],
+			"semantica": {
+				"expression": {
+					"mainExp": "VALUE",
+					"subExp": "EXP_MULT_S",
+					"typeOptions": [
+						{
+							"mainExp": "int",
+							"subExp": "int",
+							"type": "int"
+						},
+						{
+							"mainExp": "int",
+							"subExp": null,
+							"type": "int"
+						},
+						{
+							"mainExp": "bool",
+							"subExp": null,
+							"type": "bool"
+						},
+						{
+							"mainExp": "string",
+							"subExp": null,
+							"type": "string"
+						},
+						{
+							"mainExp": "group",
+							"subExp": null,
+							"type": "group"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "EXP_MULT_S",
 			"rules": [
 				["OP_MULT", "EXP_MULT"],
 				["EPSILON"]
-			]
+			],
+			"semantica": {
+				"operation": {
+					"expression": "EXP_MULT",
+					"operatorPair": {
+						"OP_MULT": null
+					}
+				}
+			}
 		},
 		{
 			"production_id": "OP_MULT",
@@ -552,33 +994,69 @@
 				["OP_ARIT_MULT"],
 				["OP_ARIT_DIV"],
 				["OP_ARIT_MOD"]
-			]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_ARIT_MULT": "mult"
+						},
+						{
+							"OP_ARIT_DIV": "div"
+						},
+						{
+							"OP_ARIT_MOD": "mod"
+						}
+					]
+				}
+			}
 		},
 		{
 			"production_id": "VALUE",
 			"rules": [
 				["KW_ID"],
 				["CALL_BLOCK"],
-				["VALUE_CONST_BOOL"],
-				["VALUE_CONST_NUM"],
-				["CONST_STRING"],
-				["SP_EXP_OPEN", "EXP_OR", "SP_EXP_CLOSE"]
-			]
-		},
-		{
-			"production_id": "VALUE_CONST_BOOL",
-			"rules": [
 				["KW_BOOL_TRUE"],
-				["KW_BOOL_FALSE"]
-			]
-		},
-		{
-			"production_id": "VALUE_CONST_NUM",
-			"rules": [
+				["KW_BOOL_FALSE"],
 				["CONST_CHAR"],
 				["CONST_HEX"],
-				["CONST_INT"]
-			]
+				["CONST_INT"],
+				["CONST_STRING"],
+				["SP_EXP_OPEN", "EXP_OR", "SP_EXP_CLOSE"]
+			],
+			"semantica": {
+				"value": {
+					"typePairs": [
+						{
+							"KW_ID": "id"
+						},
+						{
+							"CALL_BLOCK": "return"
+						},
+						{
+							"KW_BOOL_TRUE": "bool"
+						},
+						{
+							"KW_BOOL_FALSE": "bool"
+						},
+						{
+							"CONST_CHAR": "int"
+						},
+						{
+							"CONST_HEX": "int"
+						},
+						{
+							"CONST_INT": "int"
+						},
+						{
+							"CONST_STRING": "string"
+						},
+						{
+							"EXP_OR": "expression"
+						}
+					]
+				}
+			}
 		}
 	]
 }
