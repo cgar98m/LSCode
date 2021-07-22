@@ -350,7 +350,7 @@
 			],
 			"semantica": {
 				"varAssign": {
-					"vars": "VAR_ASSIGN_EQU",
+					"varConcat": "VAR_ASSIGN_EQU",
 					"values": "EXP_CONCAT"
 				}
 			}

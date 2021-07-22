@@ -129,7 +129,7 @@ class Parser {
 			this.predNodes = newPredNodes;
 			this.predTree = newPredTrees;
 			
-			//TODO: Check null predictions
+			//Check null predictions
 			if(this.predNodes.length == 0) {
 				//Unexpected token
 				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Unexpected token in line " + token.line + ", char " + token.offset + " ==> \"" + token.content + "\"");
@@ -202,10 +202,17 @@ class Parser {
 				this.errorHandler.newErrorPack(koErrorHandlers[i].errors.slice(), "TREE " + i);
 			}
 		} else {
+			
 			//Dump error handlers
 			for(let i = 0; i < finalErrorHandlers.length; i++) {
 				this.errorHandler.newErrorPack(finalErrorHandlers[i].errors.slice(), "TREE " + i);
 			}
+			
+			//Prune FORK nodes (redundant)
+			for(let i = 0; i < this.parseTree.length; i++) {
+				this.#pruneForkNodes(this.parseTree[i]);
+			}
+			
 		}
 		
 	}
@@ -593,6 +600,31 @@ class Parser {
 		
 		return count;
 		
+	}
+	
+	#pruneForkNodes(node) {
+		//Check non-leaf node
+		if(typeof node.children !== "undefined") {
+			
+			//Check if is a FORK node
+			if(node.type == NODE_TYPE.FORK) {
+				
+				//Set FORK children as PRODUCTION children (must have single FORK as children or malfunctioning is granted)
+				node.parentNode.children = node.children;
+				
+				//Set children's parent
+				for(let i = 0; i < node.children.length; i++) {
+					node.children[i].parentNode = node.parentNode;
+				}
+				
+			}
+			
+			//Visit children
+			for(let i = 0; i < node.children.length; i++) {
+				this.#pruneForkNodes(node.children[i]);
+			}
+			
+		}
 	}
 	
 }
