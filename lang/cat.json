@@ -350,7 +350,7 @@
 			],
 			"semantica": {
 				"varAssign": {
-					"varConcat": "VAR_ASSIGN_EQU",
+					"varConcat": "VAR_ASSIGN_EQ",
 					"values": "EXP_CONCAT"
 				}
 			}
@@ -362,10 +362,7 @@
 			],
 			"semantica": {
 				"varSeparation": {
-					"varGoups": [
-						"VAR_ASSIGN_CONCAT",
-						"VAR_ASSIGN_EQ_S"
-					]
+					"varGroup": "VAR_ASSIGN_CONCAT"
 				}
 			}
 		},
@@ -572,10 +569,7 @@
 			],
 			"semantica": {
 				"expSeparation": {
-					"expGroups": [
-						"EXP_OR",
-						"EXP_CONCAT_S"
-					]
+					"expGroup": "EXP_OR"
 				}
 			}
 		},

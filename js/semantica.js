@@ -1,6 +1,8 @@
 const AST_NODE = {
 	STRUCT: "struct",
 	ACTION: "action",
+	IMPLICIT_ACTION: "implicitAction",
+	INFO_HEADER: "infoHeader",
 	INFO: "info"
 }
 const SEMANTICA_KEYS = {
@@ -93,12 +95,13 @@ class Semantica {
 						break;*/
 						
 					case SEMANTICA_KEYS.VAR_ASSIGN:
-						this.#varAssign(parseNode, astNodeParent);
+						this.#varAssign(parseNode, astNodeParent, semantica);
 						tmp = false;
 						break;
 						
-					case SEMANTICA_KEYS.VAR_SEPARATION:
-						break;
+					/*case SEMANTICA_KEYS.VAR_SEPARATION:
+						break;*/
+						
 					case SEMANTICA_KEYS.FORK:
 						break;
 					case SEMANTICA_KEYS.LOOP:
@@ -174,14 +177,19 @@ class Semantica {
 		};
 		astNodeParent.children.push(varDefineNode);
 		
-		//Assign type to vars in symbolic table
+		//Create vars in symbolic table
 		let visitedVars = [];
+		let varsNode = {
+			type: AST_NODE.INFO_HEADER,
+			children: []
+		};
+		varDefineNode.children.push(varsNode);
 		for(let i = 0; i < varList.length; i++) {
 			
 			//Get var info
 			let varInfo = varList[i];
 			
-			//Check if var was already visitedVars
+			//Check if var was already visited
 			if(visitedVars.find(item => item.content == varInfo.content)) {
 				//Duplicated definition
 				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Duplicated var definition in line " + varInfo.line + ", char " + varInfo.offset + " ==> \"" + varInfo.content + "\"");
@@ -191,10 +199,10 @@ class Semantica {
 			//Update sym table and visited vars
 			let varDef = {
 				type: AST_NODE.INFO,
-				info: varInfo,
-				type: null,
-				value: null
+				info: varInfo
 			};
+			varDef.info.type = null;
+			varDef.info.value = null;
 			
 			//Check if var already exists
 			if(!this.#existsVar(varInfo.content, varDefineNode.context)) {
@@ -203,16 +211,166 @@ class Semantica {
 			}
 			
 			//Append to action node
-			varDefineNode.children.push(varDef);
+			varsNode.children.push(varDef);
 			
 		}
 		
 		//Append type to action node
-		varDefineNode.children.push(type);
+		let typesNode = {
+			type: AST_NODE.INFO_HEADER,
+			children: []
+		};
+		varDefineNode.children.push(typesNode);
+		typesNode.children.push(type);
 		
 	}
 	
-	#varAssign(parseNode, astNodeParent) {
+	#varAssign(parseNode, astNodeParent, semantica) {
+		
+		//Extract var groups
+		let varConcat = this.#varConcatExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].varConcat));
+		
+		//Extract values
+		let values = this.#valuesExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].values));
+		
+		//Create var assign node
+		let varAssignNode = {
+			type: AST_NODE.ACTION,
+			semantica: Object.keys(semantica)[0],
+			context: astNodeParent.context,
+			children: []
+		};
+		
+		//Check same length on vars and values
+		/*values = [{
+			data: 2
+		},
+		{
+			data: 3
+		}];*/
+		for(let i = 0; i < varConcat.length; i++) {
+			let varGroup = varConcat[i];
+			if(varGroup.length != values.length) {
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var group amount differs on assign values amount in line " + varGroup[0].line + ", char " + varGroup[0].offset);
+				return;
+			}
+		}
+		
+		//Append action node to parent (no critical error was found)
+		astNodeParent.children.push(varAssignNode);
+		
+		//Create vars in symbolic table if don't exist
+		for(let i = 0; i < varConcat.length; i++) {
+			for(let j = 0; j < varConcat[i].length; j++) {
+				
+				//Get var info
+				let varInfo = varConcat[i][j];
+				
+				//Check if var already exists
+				if(!this.#existsVar(varInfo.content, varAssignNode.context)) {
+					
+					//Update sym table
+					let varDef = {
+						type: AST_NODE.INFO,
+						info: varInfo
+					};
+					varDef.info.type = null;
+					varDef.info.value = null;
+					astNodeParent.context.vars[varInfo.content] = varDef;
+					
+					//TODO: Create implicit type conversion action
+					
+				}
+				
+			}
+		}
+		
+		//Create separated vars depending on position
+		let varAssignVarsNode = {
+			type: AST_NODE.INFO_HEADER,
+			children: []
+		};
+		varAssignNode.children.push(varAssignVarsNode);
+		let varAssignValuesNode = {
+			type: AST_NODE.INFO_HEADER,
+			children: []
+		};
+		varAssignNode.children.push(varAssignValuesNode);
+		for(let i = 0; i < values.length; i++) {
+			
+			//Update value node
+			varAssignValuesNode.children.push(values[i]);
+			
+			//Update vars node
+			let nodeVars = {
+				type: AST_NODE.INFO_HEADER,
+				children: []
+			};
+			varAssignVarsNode.children.push(nodeVars);
+			for(let j = 0; j < varConcat.length; j++) {
+				nodeVars.children.push(varConcat[j][i]);
+			}
+			
+		}
+		
+	}
+	
+	#varConcatExtraction(parseNode) {
+	
+		//Check if is a production
+		let varConcat = [];
+		if(parseNode.type == NODE_TYPE.PRODUCTION) {
+			
+			//Get production semantica
+			let semantica = this.grammarMap[parseNode.production_id].semantica;
+			
+			//Process all children
+			let existsVarGroup = typeof semantica[SEMANTICA_KEYS.VAR_SEPARATION] !== "undefined";
+			for(let i = 0; i < parseNode.children.length; i++) {
+				if(existsVarGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR_SEPARATION].varGroup) {
+					varConcat.push(this.#varExtraction(parseNode.children[i]));
+				} else {
+					varConcat.push(...this.#varConcatExtraction(parseNode.children[i]));
+				}
+			}
+		
+		}
+	
+		return varConcat;
+		
+	}
+	
+	#valuesExtraction(parseNode) {
+		
+		//Check if is a production
+		let expConcat = [];
+		if(parseNode.type == NODE_TYPE.PRODUCTION) {
+			
+			//Get production semantica
+			let semantica = this.grammarMap[parseNode.production_id].semantica;
+			
+			//Process all children
+			let existsExpGroup = typeof semantica[SEMANTICA_KEYS.EXP_SEPARATION] !== "undefined";
+			for(let i = 0; i < parseNode.children.length; i++) {
+				if(existsExpGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.EXP_SEPARATION].expGroup) {
+					
+					//Get expression
+					let expression = this.#expExtraction(parseNode.children[i]);
+					
+					//TODO: Check if is multiple return
+					
+					//Append expression
+					expConcat.push(...expression);
+					
+				} else {
+					expConcat.push(...this.#valuesExtraction(parseNode.children[i]));
+				}
+			}
+		
+		}
+	
+		return expConcat;
+	
 	}
 	
 	#varExtraction(parseNode) {
@@ -253,11 +411,12 @@ class Semantica {
 				//Find type pair
 				let typePairs = semantica[SEMANTICA_KEYS.TYPE].typePairs;
 				for(let i = 0; i < parseNode.children.length; i++) {
-					return {
+					let typeInfo = {
 						type: AST_NODE.INFO,
-						info: parseNode.children[i].info,
-						type: typePairs.find(item => Object.keys(item)[0] == parseNode.children[i].production_id)
+						info: parseNode.children[i].info
 					};
+					typeInfo.info.type = typePairs.find(item => Object.keys(item)[0] == parseNode.children[i].production_id);
+					return typeInfo;
 				}
 			}
 			
@@ -265,6 +424,14 @@ class Semantica {
 		
 		return null;
 		
+	}
+	
+	#expExtraction(parseNode) {
+	
+		return [{
+			data: 2
+		}];
+	
 	}
 	
 	#existsVar(varName, context) {
