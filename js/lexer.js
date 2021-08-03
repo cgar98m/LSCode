@@ -121,7 +121,7 @@ class Lexer {
 						//Check if error should not be ignored
 						if(!ignoreTokens) {
 							//Unexpected token warning
-							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " -> \"" + unexpectedContent + "\"");
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " -> \"" + unexpectedContent + "\"" + "\nProgram may not work as expected");
 						}
 					}
 					
@@ -137,7 +137,7 @@ class Lexer {
 						//Check if error should not be ignored
 						if(!ignoreTokens) {
 							//Unexpected token warning
-							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " -> \"" + unexpectedContent + "\"");
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token in line " + i + ", char " + charOffset + " -> \"" + unexpectedContent + "\"" + "\nProgram may not work as expected");
 						}
 					}
 					

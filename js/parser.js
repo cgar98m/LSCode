@@ -576,7 +576,7 @@ class Parser {
 	
 	#incompleteError(token, ruleItem, errorHandler) {
 		if(token != null && errorHandler.errors.length == 0) {
-			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.WARNING, "Expected \"" + ruleItem + "\" after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
+			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected \"" + ruleItem + "\" after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
 		}
 	}
 	

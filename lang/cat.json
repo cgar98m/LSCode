@@ -302,7 +302,7 @@
 				["KW_ID", "VAR_DEC_CONCAT_S"]
 			],
 			"semantica": {
-				"var": {
+				"varName": {
 					"varName": "KW_ID"
 				}
 			}
@@ -381,7 +381,7 @@
 				["KW_ID", "VAR_ASSIGN_CONCAT_S"]
 			],
 			"semantica": {
-				"var": {
+				"varName": {
 					"varName": "KW_ID"
 				}
 			}
@@ -403,8 +403,10 @@
 			"semantica": {
 				"fork" : {
 					"condition": "EXP_OR",
-					"trueCase": "CONTENT_BLOCK",
-					"falseCase": "IF_BLOCK_ELSE"
+					"cases": [
+						"CONTENT_BLOCK",
+						"IF_BLOCK_ELSE"
+					]
 				}
 			}
 		},
@@ -486,7 +488,7 @@
 			],
 			"semantica": {
 				"funcVar": {
-					"var": "KW_ID",
+					"varName": "KW_ID",
 					"type": "TYPE"
 				}
 			}
@@ -516,10 +518,7 @@
 			],
 			"semantica": {
 				"typeSeparation": {
-					"typeGroups": [
-						"TYPE",
-						"TYPE_CONCAT_S"
-					]
+					"typeGroup": "TYPE"
 				}
 			}
 		},
@@ -582,12 +581,6 @@
 			"semantica": {
 			}
 		},
-		
-		
-		
-		
-		
-		
 		{
 			"production_id": "EXP_OR",
 			"rules": [
