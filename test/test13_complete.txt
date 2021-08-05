@@ -1,0 +1,9 @@
+//Codi amb display per pantalla
+a,b=hola(1,3)
+printa(a)
+printa(b)
+func hola(num1: enter, num2: enter):enter,cadena
+   c: enter
+   c = num1+num2
+   retorna num1+num2,"hola"
+fifunc
