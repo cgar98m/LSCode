@@ -37,6 +37,12 @@ const EXP_SPECIAL_KEYS = {
 	GROUP: "group"
 }
 
+const DATA_TYPES = {
+	BOOL: "bool",
+	INT: "int",
+	STRING: "string"
+}
+
 class Semantica {
 	
 	constructor(grammarMap, errorHandler) {
@@ -1479,7 +1485,7 @@ class Semantica {
 			}
 		}
 		
-		//Check if return data has expected length
+		//Check if data has expected length
 		let singleVarGroupNode = astNodeParent.children[0];
 		let expTypes = this.#expConcatTypes(valueData);
 		if(expTypes.length != singleVarGroupNode.children.length) {
@@ -1524,15 +1530,79 @@ class Semantica {
 	}
 	
 	#forkExp(parseNode, astNodeParent, semantica) {
-		//TODO
+		
+		//Get condition data
+		let conditionData = [];
+		for(let i = 0; i < parseNode.children.length; i++) {
+			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FORK].condition) {
+				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));	
+			}
+		}
+		
+		//Check if is a valid expression
+		if(conditionData[0] == null) {
+			return;	//Already notified error
+		}
+		
+		//Check if data has expected length (1)
+		let expTypes = this.#expConcatTypes(conditionData);
+		if(expTypes.length != 1) {
+			//New error: arguments total must match if requirements
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition missmatch");
+			return;
+		}
+		
+		//Check data type
+		if(expTypes[0] != DATA_TYPES.BOOL) {
+			//New error: argument must be boolean
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch");
+			return;
+		}
+		
+		//Append data
+		astNodeParent.children[0].children.push(...conditionData);
+		
 	}
 	
 	#loopExp(parseNode, astNodeParent, semantica) {
-		//TODO
+		
+		//Get condition data
+		let conditionData = [];
+		for(let i = 0; i < parseNode.children.length; i++) {
+			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.LOOP].condition) {
+				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));	
+			}
+		}
+		
+		//Check if is a valid expression
+		if(conditionData[0] == null) {
+			return;	//Already notified error
+		}
+		
+		//Check if data has expected length (1)
+		let expTypes = this.#expConcatTypes(conditionData);
+		if(expTypes.length != 1) {
+			//New error: arguments total must match while requirements
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition missmatch");
+			return;
+		}
+		
+		//Check data type
+		if(expTypes[0] != DATA_TYPES.BOOL) {
+			//New error: argument must be boolean
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch");
+			return;
+		}
+		
+		//Append data
+		astNodeParent.children[0].children.push(...conditionData);
+		
 	}
 	
 	#funcCallExp(parseNode, astNodeParent, semantica) {
+		
 		//TODO
+		
 	}
 	
 }
