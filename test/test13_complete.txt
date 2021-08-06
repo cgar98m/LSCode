@@ -1,9 +1,13 @@
 //Codi amb display per pantalla
 a,b=hola(1,3)
-printa(a)
-printa(b)
+printaInt(a)
+printaString(b)
 func hola(num1: enter, num2: enter):enter,cadena
    c: enter
    c = num1+num2
-   retorna num1+num2,"hola"
+   retorna c,"hola"
 fifunc
+/*
+a,b declaració implícita (warning)
+printaInt i printaString no definits (cal definir al sistema o error)
+*/

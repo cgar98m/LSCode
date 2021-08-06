@@ -2,3 +2,6 @@
 func exemple(): enter, boolea
    retorna 1, 2
 fifunc
+/*
+2 no coincideix amb el tipat (error)
+*/

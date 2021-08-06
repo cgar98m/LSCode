@@ -1,3 +1,6 @@
 //Declaració de variable amb errors lèxics
 "a?!·
 :enter"
+/*
+Codi amb tokens no definits (warning)
+*/

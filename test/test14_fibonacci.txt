@@ -1,0 +1,11 @@
+//Fibonacci
+func fib(n: enter): enter
+   tmpN = n
+   si n > 1
+      tmpN = fib(n - 1) + fib(n - 2)
+   fisi
+   retorna tmpN
+fifunc
+/*
+tmpN declaració implícita (warning)
+*/

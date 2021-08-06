@@ -331,7 +331,7 @@
 							"KW_TYPE_INT": "int"
 						},
 						{
-							"KW_TYPE_CHAR": "int"
+							"KW_TYPE_CHAR": "char"
 						},
 						{
 							"KW_TYPE_BOOL": "bool"
@@ -607,6 +607,11 @@
 							"type": "int"
 						},
 						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
+						},
+						{
 							"mainExp": "string",
 							"subExp": null,
 							"type": "string"
@@ -661,6 +666,11 @@
 							"type": "int"
 						},
 						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
+						},
+						{
 							"mainExp": "string",
 							"subExp": null,
 							"type": "string"
@@ -712,12 +722,22 @@
 						{
 							"mainExp": "int",
 							"subExp": "int",
-							"type": "int"
+							"type": "bool"
 						},
 						{
 							"mainExp": "int",
 							"subExp": null,
 							"type": "int"
+						},
+						{
+							"mainExp": "char",
+							"subExp": "char",
+							"type": "bool"
+						},
+						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
 						},
 						{
 							"mainExp": "string",
@@ -780,12 +800,22 @@
 						{
 							"mainExp": "int",
 							"subExp": "int",
-							"type": "int"
+							"type": "bool"
 						},
 						{
 							"mainExp": "int",
 							"subExp": null,
 							"type": "int"
+						},
+						{
+							"mainExp": "char",
+							"subExp": "char",
+							"type": "bool"
+						},
+						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
 						},
 						{
 							"mainExp": "bool",
@@ -869,6 +899,16 @@
 							"type": "int"
 						},
 						{
+							"mainExp": "char",
+							"subExp": "char",
+							"type": "char"
+						},
+						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
+						},
+						{
 							"mainExp": "bool",
 							"subExp": null,
 							"type": "bool"
@@ -940,6 +980,16 @@
 							"mainExp": "int",
 							"subExp": null,
 							"type": "int"
+						},
+						{
+							"mainExp": "char",
+							"subExp": "char",
+							"type": "char"
+						},
+						{
+							"mainExp": "char",
+							"subExp": null,
+							"type": "char"
 						},
 						{
 							"mainExp": "bool",
@@ -1027,7 +1077,7 @@
 							"KW_BOOL_FALSE": "bool"
 						},
 						{
-							"CONST_CHAR": "int"
+							"CONST_CHAR": "char"
 						},
 						{
 							"CONST_HEX": "int"

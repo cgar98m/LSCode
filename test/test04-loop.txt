@@ -7,3 +7,9 @@ fimentre
 mentre cert
    a := 1
 fimentre
+/*
+a > b usa variables no declarades (error)
+c declaració implícita (warning)
+a declaració implícita (warning)
+si 1 condició no booleana (error)
+*/

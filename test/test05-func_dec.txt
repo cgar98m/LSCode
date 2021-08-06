@@ -5,3 +5,6 @@ fifunc
 func hola()
    msg = 'h'
 fifunc
+/*
+msg declaració implícita (warning)
+*/

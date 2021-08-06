@@ -8,3 +8,6 @@ var
 fivar
 e: enter
 f: cadena
+/*
+Sense errors
+*/

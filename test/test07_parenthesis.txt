@@ -1,2 +1,5 @@
 //Parèntesis
 a = ((((2))))
+/*
+a declaració implícita (warning)
+*/
