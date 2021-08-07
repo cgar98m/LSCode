@@ -273,7 +273,7 @@ class Semantica {
 		
 		//Check if function exists
 		if(typeof this.funcAstTree[funcNodeName.info.content] !== "undefined") {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
 			return;
 		}
 		
@@ -464,10 +464,10 @@ class Semantica {
 				//Check if is located in same context
 				if(typeof astNodeParent.context.vars[varInfo.content] === "undefined") {
 					//Var re-definition in different context accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " ==> \"" + varInfo.content + "\"" + "\nProgram may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" re-definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
 				} else {
 					//Var re-definition in same context not accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var re-definition in line " + varInfo.line + ", col " + varInfo.offset + " ==> \"" + varInfo.content + "\"");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var \"" + varInfo.content + "\" re-definition in line " + varInfo.line + ", col " + varInfo.offset);
 					return;
 				}
 			}
@@ -498,7 +498,7 @@ class Semantica {
 				if(!this.#existsVar(varInfo.content, astNodeParent.context)) {
 					
 					//Var creation notification
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Implicit var definition in line " + varInfo.line + ", col " + varInfo.offset + " ==> \"" + varInfo.content + "\"" + "\nProgram may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" implicit definition in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
 					
 					//Update sym table
 					varInfo.type = null;	//Undefined value (depends on expression, which can contain itself --> mimics neighbour type)
@@ -663,10 +663,10 @@ class Semantica {
 				//Check if is located in same context
 				if(typeof astNodeParent.context.vars[varInfo.content] === "undefined") {
 					//Var re-definition in different context accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " ==> \"" + varInfo.content + "\"" + "\nProgram may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
 				} else {
 					//Var re-definition in same context not accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var re-definition in line " + varInfo.line + ", col " + varInfo.offset + " ==> \"" + varInfo.content + "\"");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var \"" + varInfo.content + "\" re-definition in line " + varInfo.line + ", col " + varInfo.offset);
 					return;
 				}
 			}
@@ -869,15 +869,15 @@ class Semantica {
 	#varAccesCheck(posNode, astNodeParent) {
 		//Check var existance
 		if(!this.#existsVar(posNode.info.content, astNodeParent.context)) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var in line " + posNode.info.line + ", col " + posNode.info.offset + " ==> \"" + posNode.info.content + "\"");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
 		} else {
 			//Check if was previosuly defined
 			let varRef = this.#locateVar(posNode.info.content, astNodeParent.context);
 			if(posNode.info.line < varRef.line) {
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var in line " + posNode.info.line + ", col " + posNode.info.offset + " ==> \"" + posNode.info.content + "\"");
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
 			} else if(posNode.info.line == varRef.line) {
 				if(posNode.info.offset < varRef.offset) {
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var in line " + posNode.info.line + ", col " + posNode.info.offset + " ==> \"" + posNode.info.content + "\"");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
 				}
 			}
 		}
@@ -924,7 +924,7 @@ class Semantica {
 		
 		//Check if function exists
 		if(typeof this.funcAstTree[funcNodeName.info.content] === "undefined") {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Call to undefined function in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset + " ==> \"" + funcNodeName.info.content + "\"");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Call to undefined function \"" + funcNodeName.info.content + "\" in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
 			return;
 		}
 		
@@ -993,7 +993,7 @@ class Semantica {
 		let expTypes = this.#expConcatTypes(funcData);
 		if(expTypes.length != funcTypeNode.children.length) {
 			//New error: return arguments total must match function requriements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return total arguments missmatch in function \"" + funcNodeName.info.content +"\" in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return total arguments missmatch in function \"" + funcNodeName.info.content);
 			return;
 		}
 		
@@ -1001,7 +1001,7 @@ class Semantica {
 		for(let i = 0; i < funcData.length; i++) {
 			if(expTypes[i] != funcTypeNode.children[i].info.type) {
 				//New error: return arguments must match function return type requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return type missmatch in function \"" + funcNodeName.info.content +"\" in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset + " on param " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return type missmatch in function \"" + funcNodeName.info.content + ", return value " + i);
 				return;
 			}
 		}
@@ -1134,10 +1134,13 @@ class Semantica {
 			return null;
 		}
 		
+		//Get condition first terminal (error related info)
+		let firstTerm = this.#expressionFirst(mainExp);
+		
 		//Check expressions type
 		let typeMatch = this.#expMatch(mainExp, operation == null ? null : operation.exp, semantica[SEMANTICA_KEYS.EXPRESSION].typeOptions);
 		if(typeMatch == null) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return null;
 		}
 		
@@ -1319,11 +1322,13 @@ class Semantica {
 						//Get func info (existance previously checked)
 						let funcRef = this.#funcCallExtraction(foundNode, context);
 						let funcType = this.#funcReturnType(funcRef, false);
+						let semantica = this.grammarMap[foundNode.production_id].semantica;
+						let funcNodeName = foundNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 						
 						//Check null return
 						if(funcType == null) {
 							//Null function return used on expression
-							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Null return function used on expression");
+							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Null return function \"" + funcNodeName.info.content + "\" used on expression in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
 							return null;
 						}
 						
@@ -1337,7 +1342,8 @@ class Semantica {
 							type: AST_NODE.FUNC_EXP,
 							dataType: funcType,
 							multiType: this.#funcReturnType(funcRef, true),
-							ref: funcRef
+							funcRef: funcRef,
+							call: funcNodeName.info
 						};
 						
 					case EXP_SPECIAL_KEYS.ID:
@@ -1347,8 +1353,9 @@ class Semantica {
 						
 						//Check data type
 						if(varRef.type == null) {
-							//Undefined var type
-							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Undefined var type used on expression");
+							//Undefined var type (implicit declaration in same assign)
+							let varInfo = foundNode.info;
+							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Undefined var \"" + varInfo.content + "\" type used on expression in line " + varInfo.line + ", col " + varInfo.offset);
 							return null;
 						}
 						
@@ -1471,7 +1478,7 @@ class Semantica {
 		for(let i = 0; i < expTypes.length; i++) {
 			if(expTypes[i] != funcParamTypes[i]) {
 				//New error: argument types must match function requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" type missmatch in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset + " , param " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" type missmatch in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset + ", param " + i);
 				return null;
 			}
 		}
@@ -1571,7 +1578,7 @@ class Semantica {
 			let varRef = this.#locateVar(singleVarGroupNode.children[i].children[0].content, astNodeParent.context);
 			if(expTypes[i] != varRef.type) {
 				//New error: var assign arguments must match var type requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var assign type missmatch in line " + singleVarGroupNode.children[0].children[0].line + ", col " + singleVarGroupNode.children[0].children[0].offset + " on var " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var assign type missmatch in line " + singleVarGroupNode.children[0].children[0].line + ", col " + singleVarGroupNode.children[0].children[0].offset + ", var " + i);
 				return;
 			}
 		}
@@ -1603,18 +1610,21 @@ class Semantica {
 			return;	//Already notified error
 		}
 		
+		//Get condition first terminal (error related info)
+		let firstTerm = this.#expressionFirst(conditionData[0]);
+		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match if requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition missmatch");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition arguments length missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
 		
@@ -1647,18 +1657,21 @@ class Semantica {
 			return;	//Already notified error
 		}
 		
+		//Get condition first terminal (error related info)
+		let firstTerm = this.#expressionFirst(conditionData[0]);
+		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match while requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition missmatch");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition arguments length missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch");
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
 		
@@ -1672,6 +1685,22 @@ class Semantica {
 			}
 		}
 		
+	}
+	
+	#expressionFirst(expression) {
+		//Check if is last item
+		if(typeof expression.children === "undefined") {
+			//Check data origin
+			if(typeof expression.value !== "undefined") {
+				return expression.value;
+			} else if(typeof expression.ref !== "undefined") {
+				return expression.ref;
+			} else {
+				return expression.call;
+			}
+		} else {
+			return this.#expressionFirst(expression.children[0]);
+		}
 	}
 	
 	#funcCallExp(parseNode, astNodeParent, semantica) {
