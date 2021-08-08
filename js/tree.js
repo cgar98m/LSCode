@@ -137,7 +137,7 @@ function deepPrune(node) {
 			//Prune node from linked node
 			node.linkNode.linkedChildren.splice(node.linkNode.linkedChildren.indexOf(node), 1);
 			
-			//Deep prune linked ndoe if was last link
+			//Deep prune linked node if was last link
 			if(node.linkNode.linkedChildren.length == 0) {
 				deepPrune(node.linkNode);
 			}

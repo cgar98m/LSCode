@@ -24,6 +24,7 @@ const SEMANTICA_KEYS = {
 	TYPE_SEPARATION: "typeSeparation",
 	FUNC_CALL: "funcCall",
 	EXP_SEPARATION: "expSeparation",
+	UNARY_EXPRESSION: "unaryExpression",
 	EXPRESSION: "expression",
 	OPERATION: "operation",
 	OPERATOR: "operator",
@@ -117,6 +118,11 @@ class Semantica {
 		//Func return validation (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
 			this.#astFuncReturnCheck(parseTree, this.astTree);
+		}
+		
+		//Check critical error
+		if(this.errorHandler.criticalErrors != 0) {
+			this.clear();
 		}
 		
 	}
@@ -504,6 +510,9 @@ class Semantica {
 					varInfo.type = null;	//Undefined value (depends on expression, which can contain itself --> mimics neighbour type)
 					astNodeParent.context.vars[varInfo.content] = varInfo;
 					
+				} else {
+					let varRef = this.#locateVar(varInfo.content, astNodeParent.context);
+					varInfo.type = varRef.type;
 				}
 				
 			}
@@ -1086,6 +1095,10 @@ class Semantica {
 			for(let key in semantica) {
 				switch(key) {
 						
+					case SEMANTICA_KEYS.UNARY_EXPRESSION:
+						exp = this.#expUnaryExpression(parseNode, semantica, context);
+						break;
+						
 					case SEMANTICA_KEYS.EXPRESSION:
 						exp = this.#expExpression(parseNode, semantica, context);
 						break;
@@ -1112,6 +1125,50 @@ class Semantica {
 		}
 		
 		return exp;
+		
+	}
+	
+	#expUnaryExpression(parseNode, semantica, context) {
+		
+		//Get info nodes
+		let expNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].exp);
+		let opNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].operator);
+		
+		//Process expression and operator
+		let exp = this.#expExtraction(expNode, context);
+		let operator = null;
+		if(typeof opNode !== "undefined") {
+			operator = this.#operatorExtraction(opNode);
+		}
+		
+		//Check if went ok
+		if(exp == null) {
+			//Already notified error
+			return null;
+		}
+		
+		//Get condition first terminal (error related info)
+		let firstTerm = this.#expressionFirst(expNode);
+		
+		//Check expressions type
+		let typeMatch = this.#unaryExpMatch(exp, operator != null, semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].typeOptions);
+		if(typeMatch == null) {
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			return null;
+		}
+		
+		//Create unary expression node
+		let unaryExpNode = {
+			type: AST_NODE.EXPRESSION,
+			dataType: typeMatch,
+			children: [
+				exp
+			]
+		};
+		if(operator != null) {
+			unaryExpNode.operation = operator;
+		}
+		return unaryExpNode;
 		
 	}
 	
@@ -1157,6 +1214,24 @@ class Semantica {
 			expNode.children.push(operation.exp);
 		}
 		return expNode;
+		
+	}
+	
+	#unaryExpMatch(exp, opExists, rules) {
+		
+		//Get data types
+		let expType = exp.dataType;
+		
+		//Check every rule
+		for(let i = 0; i < rules.length; i++) {
+			let rule = rules[i];
+			if(rule.exp == expType && rule.opExists == opExists) {
+				return rule.type;
+			}
+		}
+		
+		//Invalid data types
+		return null;
 		
 	}
 	
@@ -1290,8 +1365,7 @@ class Semantica {
 		
 		//Get operator
 		for(let i = 0; i < opPairs.length; i++) {
-			
-			if(typeof parseNode.children.find(child => child.production_id == Object.keys(opPairs[i])[0]) !== "unedfined") {
+			if(typeof parseNode.children.find(child => child.production_id == Object.keys(opPairs[i])[0]) !== "undefined") {
 				return opPairs[i][Object.keys(opPairs[i])[0]];
 			}
 		}
@@ -1333,7 +1407,8 @@ class Semantica {
 						}
 						
 						//Check function params
-						if(this.#funcCallParamsCheck(foundNode, context) == null) {
+						let paramsData = this.#funcCallParamsCheck(foundNode, context);
+						if(paramsData == null) {
 							return null;	//Error already registered
 						}
 						
@@ -1343,7 +1418,8 @@ class Semantica {
 							dataType: funcType,
 							multiType: this.#funcReturnType(funcRef, true),
 							funcRef: funcRef,
-							call: funcNodeName.info
+							call: funcNodeName.info,
+							children: paramsData
 						};
 						
 					case EXP_SPECIAL_KEYS.ID:
@@ -1691,13 +1767,21 @@ class Semantica {
 		//Check if is last item
 		if(typeof expression.children === "undefined") {
 			//Check data origin
-			if(typeof expression.value !== "undefined") {
+			switch(expression.type) {
+				case AST_NODE.ID:
+					return expression.ref;
+				case AST_NODE.FUNC_EXP:
+					return expression.call;
+				default:
+					return expression.value;
+			}
+			/*if(typeof expression.value !== "undefined") {
 				return expression.value;
 			} else if(typeof expression.ref !== "undefined") {
 				return expression.ref;
 			} else {
 				return expression.call;
-			}
+			}*/
 		} else {
 			return this.#expressionFirst(expression.children[0]);
 		}

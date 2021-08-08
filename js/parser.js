@@ -126,13 +126,14 @@ class Parser {
 			}
 			
 			//Update predictions (tree + nodes)
+			let oldPredNodes = this.predNodes;
 			this.predNodes = newPredNodes;
 			this.predTree = newPredTrees;
 			
 			//Check null predictions
-			if(this.predNodes.length == 0) {
+			if(newPredNodes.length == 0) {
 				//Unexpected token
-				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Unexpected token in line " + token.line + ", char " + token.offset + " ==> \"" + token.content + "\"");
+				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected " + this.#expectedTokensFromPred(oldPredNodes) + " instead of \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
 				break;
 			}
 			
@@ -155,8 +156,8 @@ class Parser {
 			//Prune predictions
 			this.#prunePredictions(predTreeCopy);
 			
-			//Update parse tree list if new parse tree has content
-			if(predTreeCopy.children.length > 0) {
+			//Update parse tree list if new parse tree has content and no errors
+			if(predTreeCopy.children.length > 0 && treeErrorHandler.criticalErrors == 0) {
 				
 				//Check if already exist equal tree
 				let foundEqualTree = false;
@@ -364,7 +365,7 @@ class Parser {
 		
 		} else {
 			//Prune link node (it's an EPSILON node)
-			prune(linkNode);
+			deepPrune(linkNode);
 		}
 	}
 	
@@ -576,7 +577,7 @@ class Parser {
 	
 	#incompleteError(token, ruleItem, errorHandler) {
 		if(token != null && errorHandler.errors.length == 0) {
-			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected \"" + ruleItem + "\" after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
+			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected " + this.#expectedTokensFromProd(ruleItem) + " after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
 		}
 	}
 	
@@ -625,6 +626,54 @@ class Parser {
 			}
 			
 		}
+	}
+	
+	#expectedTokensFromPred(predNodes) {
+	
+		//Prepare msg
+		let msg = "";
+	
+		//Check every predicted production
+		let visitedPred = [];
+		for(let i = 0; i < predNodes.length; i++) {
+			for(let j = 0; j < predNodes[i].length; j++) {
+				//Append production if wasn't visited
+				if(typeof visitedPred.find(item => item == predNodes[i][j].production_id) === "undefined") {
+					visitedPred.push(predNodes[i][j].production_id);
+					let extraMsg = "\"" + predNodes[i][j].production_id + "\"";
+					if(msg.length > 0) {
+						msg += " / "
+					}
+					msg += extraMsg;
+				}
+			}
+		}
+		
+		return msg;
+	
+	}
+	
+	#expectedTokensFromProd(prodId) {
+	
+		//Prepare msg
+		let msg = "";
+	
+		//Check if is terminal
+		let production = this.firstFollow.productions[prodId];
+		if(typeof production !== "undefined") {
+			for(let i = 0; i < production.first.length; i++) {
+				let extraMsg = "\"" + production.first[i] + "\"";
+				if(msg.length > 0) {
+					msg += " / "
+				}
+				msg += extraMsg;
+			}
+		} else {
+			msg += ("\"" + prodId + "\"");
+		}
+		
+		return msg;
+	
 	}
 	
 }
