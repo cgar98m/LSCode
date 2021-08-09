@@ -1,0 +1,10 @@
+//Asignació simple a variables
+a = b = 2
+c := 3
+a, b = 3
+g = "hola"
+a = b
+/*
+Totes les variables tenen declaració implicita (warning)
+a, b = 3 li falta un valor (error)
+*/

@@ -1,0 +1,15 @@
+//Bucles simples
+a,b:enter
+mentre a > b fer
+   si 1>a
+      c = 0
+      c = c + 1
+   fisi
+fimentre
+mentre cert
+   a := 1
+fimentre
+/*
+c declaració implícita (warning)
+a declaració implícita (warning)
+*/

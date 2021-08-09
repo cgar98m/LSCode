@@ -150,6 +150,11 @@ window.onload = function() {
 			errorTextArea.value += ("[" + error.type + " - " + error.font + "] " + error.msg + "\n");
 		}
 		
+		//Check if no critical error was found (valid code)
+		if(errorHandler.criticalErrors == 0) {
+			errorTextArea.value += "[Info] No critical errors found";
+		}
+		
 		//TODO: Display execution
 		
 		//Enable button
@@ -541,110 +546,45 @@ function createAstTree(domElement, codeNode, funcNodeList) {
 	//Get code actions
 	let actions = codeNode.children;
 	if(actions.length > 0) {
-		
-		//Create core code item
-		let codeItem = document.createElement(LIST_ITEM);
-		domElement.appendChild(codeItem);
-		
-		//Create arrow and append to list item
-		let actionListArrow = document.createElement(SPAN_ITEM);
-		actionListArrow.classList.add(TREE_LIST_ARROW_CLASS);
-		actionListArrow.addEventListener("click", function() {
-			this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-			this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-		});
-		actionListArrow.textContent = "CODE";
-		codeItem.appendChild(actionListArrow);
-			
-		//Create context item
-		let contextItem = document.createElement(SUBLIST_ITEM);
-		contextItem.classList.add(NESTED_TREE_LIST_CLASS);
-		contextItem.classList.add(TREE_LIST);
-		codeItem.appendChild(contextItem);
-		
-		//Create subtree
-		createAstTreePath(contextItem, codeNode);
-		
+		let codeItem = createArrowElement(domElement, "CODE");
+		createAstTreePath(createSubListElement(codeItem), codeNode);
 	}
 	
-	//Get functions
+	//Check no funcs
 	let funcs = Object.keys(funcNodeList);
 	if(funcs.length == 0) {
 		return;
 	}
 	
 	//Create function list tree
-	let funcListItem = document.createElement(LIST_ITEM);
-	domElement.appendChild(funcListItem);
-	
-	//Create arrow and append to list item
-	let funcListArrow = document.createElement(SPAN_ITEM);
-	funcListArrow.classList.add(TREE_LIST_ARROW_CLASS);
-	funcListArrow.addEventListener("click", function() {
-		this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-		this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-	});
-	funcListArrow.textContent = "FUNCTIONS";
-	funcListItem.appendChild(funcListArrow);
+	let funcListItem = createArrowElement(domElement, "FUNCTIONS");
+	let funcSubListItem = createSubListElement(funcListItem);
 	
 	//Explore all possible functions
 	for(let i = 0; i < funcs.length; i++) {
-		
-		//Create function item
-		let funcItem = document.createElement(SUBLIST_ITEM);
-		funcItem.classList.add(NESTED_TREE_LIST_CLASS);
-		funcItem.classList.add(TREE_LIST);
-		funcListItem.appendChild(funcItem);
-		
-		//Create subtree
-		createAstTreePath(funcItem, funcNodeList[funcs[i]]);
-		
+		createAstTreePath(funcSubListItem, funcNodeList[funcs[i]]);
 	}
 	
 }
 
 function createAstTreePath(domElement, node) {
-	
-	//TODO
-	
-	//Check null node
-	if(node == null) {
-		return;
-	}
-	
-	//Create list content and append to parent
-	let listItem = document.createElement(LIST_ITEM);
-	domElement.appendChild(listItem);
-	
 	//Check node type
 	switch(node.type) {
 		
 		case AST_NODE.STRUCT:
 			if(node.children.length > 0) {
 				
-				//Create arrow and append to list item
-				let arrow = document.createElement(SPAN_ITEM);
-				arrow.classList.add(TREE_LIST_ARROW_CLASS);
-				arrow.addEventListener("click", function() {
-					this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-					this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-				});
-				listItem.appendChild(arrow);
-				arrow.textContent = "CONTEXT";
-				
-				//Create sublist item
-				let subListItem = document.createElement(SUBLIST_ITEM);
-				subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-				subListItem.classList.add(TREE_LIST);
-				listItem.appendChild(subListItem);
+				//Create struct item
+				let actionItem = createArrowElement(domElement, "context");
+				let actionSubListItem = createSubListElement(actionItem);
 				
 				//Create sublist item for every child
 				for(let i = 0; i < node.children.length; i++) {
-					createAstTreePath(subListItem, node.children[i]);
+					createAstTreePath(actionSubListItem, node.children[i]);
 				}
 				
 			} else {
-				listItem.textContent = "CONTEXT";
+				createListElement(domElement, "context");
 			}
 			break;
 			
@@ -653,139 +593,197 @@ function createAstTreePath(domElement, node) {
 				
 				case SEMANTICA_KEYS.VAR_ASSIGN:
 				
-					//Create arrow and append to list item
-					let arrow = document.createElement(SPAN_ITEM);
-					arrow.classList.add(TREE_LIST_ARROW_CLASS);
-					arrow.addEventListener("click", function() {
-						this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-						this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-					});
-					listItem.appendChild(arrow);
-					arrow.textContent = node.semantica;
-					
-					//Create sublist item
-					let subListItem = document.createElement(SUBLIST_ITEM);
-					subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-					subListItem.classList.add(TREE_LIST);
-					listItem.appendChild(subListItem);
+					//Create assign node
+					let assignItem = createArrowElement(domElement, node.semantica);
+					let assignSubListItem = createSubListElement(assignItem);
 				
 					//Create info nodes
-					createVarListPath(subListItem, node.children[0]);
-					createExpressionListPath(subListItem, node.children[1]);
+					createVarListPath(assignSubListItem, node.children[0]);
+					createExpressionListPath(assignSubListItem, node.children[1]);
 					
 					break;
 					
 				case SEMANTICA_KEYS.FORK:
+				
+					//Create fork item
+					let forkItem = createArrowElement(domElement, node.semantica);
+					let forkSubListItem = createSubListElement(forkItem);
+					
+					//Create info nodes
+					createConditionPath(forkSubListItem, node.children[0]);
+					createIfCasesPath(forkSubListItem, node.children[1]);
+					
 					break;
 					
 				case SEMANTICA_KEYS.LOOP:
+				
+					//Create loop node
+					let loopItem = createArrowElement(domElement, node.semantica);
+					let loopSubListItem = createSubListElement(loopItem);
+					
+					//Create info nodes
+					createConditionPath(loopSubListItem, node.children[0]);
+					if(node.children[1].children.length != 0) {
+						let codeNode = createArrowElement(loopSubListItem, "loopCode");
+						createAstTreePath(createSubListElement(codeNode), node.children[1].children[0]);
+					}
+					
 					break;
 					
 				case SEMANTICA_KEYS.FUNC_CALL:
+					createCallPath(domElement, node, node.ref);
+					break;
+					
+				default:	//Undefined case
+					createListElement(domElement, "undefined");
 					break;
 					
 			}
 			break;
 			
 		case AST_NODE.FUNC:
+			
+			//Create func item
+			let funcItem = createArrowElement(domElement, node.funcName + "()");
+			let funcSubListItem = createSubListElement(funcItem);
+		
+			//Create info nodes
+			createParamListPath(funcSubListItem, node.children[0]);
+			createReturnTypePath(funcSubListItem, node.children[1]);
+			if(node.children[2].children.length != 0) {
+				let codeNode = createArrowElement(funcSubListItem, "funcCode");
+				createAstTreePath(createSubListElement(codeNode), node.children[2].children[0]);
+			}
+			createReturnDataPath(funcSubListItem, node.children[3]);
+			
+			break;
+			
+		default:	//Undefined case
+			createListElement(domElement, "undefined");
 			break;
 			
 	}
+}
+
+function createConditionPath(domElement, node) {
 	
+	//Create condition item
+	let conditionItem = createArrowElement(domElement, "condition");
+	
+	//Create expression item
+	createExpressionPath(createSubListElement(conditionItem), node.children[0]);
+	
+}
+
+function createIfCasesPath(domElement, node) {
+	
+	//Check if exists any context
+	if(node.children.length == 0) {
+		return;
+	}
+	
+	//Create as context item as required
+	for(let i = 0; i < node.children.length; i++) {
+		//Create case item
+		let caseItem = createArrowElement(domElement, "case " + i);
+		createAstTreePath(createSubListElement(caseItem), node.children[i]);
+	}
+	
+}
+
+function createParamListPath(domElement, node) {
+	//Check if has any var
+	if(node.children.length == 0) {
+		createListElement(domElement, "params");
+	} else {
+		
+		//Create params item
+		let paramsItem = createArrowElement(domElement, "params");
+		let paramsSubListItem = createSubListElement(paramsItem);
+		
+		//Create node for every param
+		for(let i = 0; i < node.children.length; i++) {
+			createListElement(paramsSubListItem, node.children[i].info.content + ": " + node.children[i].info.type);
+		}
+		
+	}
+}
+
+function createReturnTypePath(domElement, node) {
+	//Check if has any return type
+	if(node.children.length == 0) {
+		createListElement(domElement, "returnTypes");
+	} else {
+		
+		//Create params item
+		let returnItem = createArrowElement(domElement, "returnTypes");
+		let returnSubListItem = createSubListElement(returnItem);
+		
+		//Create node for every param
+		for(let i = 0; i < node.children.length; i++) {
+			createListElement(returnSubListItem, node.children[i].info.type);
+		}
+		
+	}
+}
+
+function createReturnDataPath(domElement, node) {
+	//Check if has any return data
+	if(node.children.length == 0) {
+		createListElement(domElement, "returnData");
+	} else {
+		
+		//Create return item
+		let returnItem = createArrowElement(domElement, "returnData");
+		let returnSubListItem = createSubListElement(returnItem);
+		
+		//Create sublist item for every return expression
+		for(let i = 0; i < node.children.length; i++) {
+			let expressionItem = createArrowElement(returnSubListItem, "expresion " + i);
+			createExpressionPath(createSubListElement(expressionItem), node.children[i]);
+		}
+		
+	}
 }
 
 function createVarListPath(domElement, node) {
 	
-	//Create list content and append to parent
-	let listItem = document.createElement(LIST_ITEM);
-	domElement.appendChild(listItem);
-	
-	//Create arrow and append to list item
-	let arrow = document.createElement(SPAN_ITEM);
-	arrow.classList.add(TREE_LIST_ARROW_CLASS);
-	arrow.addEventListener("click", function() {
-		this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-		this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-	});
-	listItem.appendChild(arrow);
-	arrow.textContent = "vars";
-	
-	//Create sublist item
-	let subListItem = document.createElement(SUBLIST_ITEM);
-	subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-	subListItem.classList.add(TREE_LIST);
-	listItem.appendChild(subListItem);
+	//Create var list item
+	let varListItem = createArrowElement(domElement, "vars");
+	let subListItem = createSubListElement(varListItem);
 	
 	//Create sublist item for every var position
 	for(let i = 0; i < node.children.length; i++) {
-		createVarPositionPath(subListItem, node.children[i], i);
-	}
-	
-}
-
-function createVarPositionPath(domElement, node, position) {
-	
-	//Create list content and append to parent
-	let listItem = document.createElement(LIST_ITEM);
-	domElement.appendChild(listItem);
-	
-	//Create arrow and append to list item
-	let arrow = document.createElement(SPAN_ITEM);
-	arrow.classList.add(TREE_LIST_ARROW_CLASS);
-	arrow.addEventListener("click", function() {
-		this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-		this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-	});
-	listItem.appendChild(arrow);
-	arrow.textContent = "position " + position;
-	
-	//Create sublist item
-	let subListItem = document.createElement(SUBLIST_ITEM);
-	subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-	subListItem.classList.add(TREE_LIST);
-	listItem.appendChild(subListItem);
-	
-	//Create sublist item for every var
-	for(let i = 0; i < node.children.length; i++) {
-		let varListItem = document.createElement(LIST_ITEM);
-		subListItem.appendChild(varListItem);
-		varListItem.textContent = node.children[i].content + ": " + node.children[i].type;
+		
+		//Set var position info
+		let varPositionItem = createArrowElement(subListItem, "position " + i);
+		let varPositionSubListItem = createSubListElement(varPositionItem);
+		
+		//Create var items
+		for(let j = 0; j < node.children[i].children.length; j++) {
+			createListElement(varPositionSubListItem, node.children[i].children[j].content + ": " + node.children[i].children[j].type);
+		}
+		
 	}
 	
 }
 
 function createExpressionListPath(domElement, node) {
 	
-	//Create list content and append to parent
-	let listItem = document.createElement(LIST_ITEM);
-	domElement.appendChild(listItem);
-	
-	//Create arrow and append to list item
-	let arrow = document.createElement(SPAN_ITEM);
-	arrow.classList.add(TREE_LIST_ARROW_CLASS);
-	arrow.addEventListener("click", function() {
-		this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-		this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-	});
-	listItem.appendChild(arrow);
-	arrow.textContent = "expressions";
-	
-	//Create sublist item
-	let subListItem = document.createElement(SUBLIST_ITEM);
-	subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-	subListItem.classList.add(TREE_LIST);
-	listItem.appendChild(subListItem);
+	//Create expression list item
+	let expressionListItem = createArrowElement(domElement, "expressions");
+	let subListItem = createSubListElement(expressionListItem);
 	
 	//Create sublist item for every var position
 	for(let i = 0; i < node.children.length; i++) {
-		createExpressionPath(subListItem, node.children[i]);
+		let expressionItem = createArrowElement(subListItem, "expresion " + i);
+		createExpressionPath(createSubListElement(expressionItem), node.children[i]);
 	}
 	
 }
 
 function createExpressionPath(domElement, node) {
 	//Check node type
-	let listItem = document.createElement(LIST_ITEM);
 	switch(node.type) {
 		case AST_NODE.EXPRESSION:
 			//Check if has any operation assigned
@@ -793,70 +791,92 @@ function createExpressionPath(domElement, node) {
 				createExpressionPath(domElement, node.children[0]);
 			} else {
 				
-				//Append list item
-				domElement.appendChild(listItem);
-				
-				//Create arrow and append to list item
-				let arrow = document.createElement(SPAN_ITEM);
-				arrow.classList.add(TREE_LIST_ARROW_CLASS);
-				arrow.addEventListener("click", function() {
-					this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-					this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-				});
-				listItem.appendChild(arrow);
-				arrow.textContent = node.operation;
-				
-				//Create sublist item
-				let subListItem = document.createElement(SUBLIST_ITEM);
-				subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-				subListItem.classList.add(TREE_LIST);
-				listItem.appendChild(subListItem);
+				//Set operation item
+				let operationItem = createArrowElement(domElement, node.operation);
+				let operationSubListItem = createSubListElement(operationItem);
 				
 				//Create sublist item for every var position
 				for(let i = 0; i < node.children.length; i++) {
-					createExpressionPath(subListItem, node.children[i]);
+					createExpressionPath(operationSubListItem, node.children[i]);
 				}
 				
 			}
 			break;
 		
 		case AST_NODE.VALUE:
-			domElement.appendChild(listItem);
-			listItem.textContent = node.value.content;
+			let valueItem = createArrowElement(domElement, "const");
+			let valueSubListItem = createSubListElement(valueItem);
+			createListElement(valueSubListItem, node.value.content);
 			break;
 			
 		case AST_NODE.ID:
-			domElement.appendChild(listItem);
-			listItem.textContent = node.ref.content;
+			let varItem = createArrowElement(domElement, "var");
+			let varSubListItem = createSubListElement(varItem);
+			createListElement(varSubListItem, node.ref.content);
 			break;
 			
 		case AST_NODE.FUNC_EXP:
-		
-			//Append list item
-			domElement.appendChild(listItem);
-				
-			//Create arrow and append to list item
-			let arrow = document.createElement(SPAN_ITEM);
-			arrow.classList.add(TREE_LIST_ARROW_CLASS);
-			arrow.addEventListener("click", function() {
-				this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
-				this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
-			});
-			listItem.appendChild(arrow);
-			arrow.textContent = node.call.content;
+			createCallPath(domElement, node, node.call.content);
+			break;
 			
-			//Create sublist item
-			let subListItem = document.createElement(SUBLIST_ITEM);
-			subListItem.classList.add(NESTED_TREE_LIST_CLASS);
-			subListItem.classList.add(TREE_LIST);
-			listItem.appendChild(subListItem);
-			
-			//Create sublist item for every param
-			for(let i = 0; i < node.children.length; i++) {
-				createExpressionPath(subListItem, node.children[i]);
-			}
-			
+		default:	//Undefined case
+			createListElement(domElement, "undefined");
 			break;
 			
 	}
+}
+
+function createCallPath(domElement, node, callName) {
+	
+	//Create call node
+	let callBaseItem = createArrowElement(domElement, "funcCall");
+	let callBaseSubListItem = createSubListElement(callBaseItem);
+	
+	//Check if has params
+	if(node.children.length == 0) {
+		createListElement(callBaseSubListItem, callName + "()");
+	} else {
+		//Create sublist item for every param
+		let callItem = createArrowElement(callBaseSubListItem, callName + "()");
+		let callSubListItem = createSubListElement(callItem);
+		for(let i = 0; i < node.children.length; i++) {
+			let paramItem = createArrowElement(callSubListItem, "param " + i);
+			createExpressionPath(createSubListElement(paramItem), node.children[i]);
+		}
+	}
+	
+}
+
+function createListElement(domElement, textContent) {
+	let listItem = document.createElement(LIST_ITEM);
+	listItem.textContent = textContent;
+	domElement.appendChild(listItem);
+	return listItem;
+}
+
+function createArrowElement(domElement, textContent) {
+	
+	//Create list item
+	let listItem = createListElement(domElement, "");
+	
+	//Create arrow and append to list item
+	let arrow = document.createElement(SPAN_ITEM);
+	arrow.classList.add(TREE_LIST_ARROW_CLASS);
+	arrow.addEventListener("click", function() {
+		this.parentElement.querySelector("." + NESTED_TREE_LIST_CLASS).classList.toggle(ACTIVE_TREE_LIST_CLASS);
+		this.classList.toggle(TREE_LIST_ARROW_DOWN_CLASS);
+	});
+	listItem.appendChild(arrow);
+	arrow.textContent = textContent;
+	
+	return listItem;
+	
+}
+
+function createSubListElement(listItem) {
+	let subListItem = document.createElement(SUBLIST_ITEM);
+	subListItem.classList.add(NESTED_TREE_LIST_CLASS);
+	subListItem.classList.add(TREE_LIST);
+	listItem.appendChild(subListItem);
+	return subListItem;
 }

@@ -1,0 +1,10 @@
+//Funció amb múltiples variables de retorn
+c = d = 2
+a, b = divisioAmbResidu(c, d)
+func divisioAmbResidu(num1:enter,num2:enter): enter, enter
+   retorna num1/num2,num1%num2
+fifunc
+/*
+a, b declaració implícita (warning)
+c, d declaració implícita (warning)
+*/

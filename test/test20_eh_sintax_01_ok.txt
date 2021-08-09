@@ -1,0 +1,8 @@
+//Codi incomplet
+mentre 1==1
+   si 1>0
+   fisi
+fimentre
+/*
+Sense errors
+*/

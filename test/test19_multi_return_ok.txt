@@ -1,0 +1,7 @@
+//Funció multi-retorn
+func exemple(): enter, boolea
+   retorna 1, cert
+fifunc
+/*
+Sense errors
+*/

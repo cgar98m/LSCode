@@ -39,10 +39,17 @@ const EXP_SPECIAL_KEYS = {
 }
 
 const DATA_TYPES = {
-	BOOL: "bool",
 	INT: "int",
-	STRING: "string",
-	CHAR: "char"
+	CHAR: "char",
+	BOOL: "bool",
+	STRING: "string"
+}
+
+const SYS_FUNC = {
+	INT: "printaEnter",
+	CHAR: "printaCaracter",
+	BOOL: "printaBoolea",
+	STRING: "printaCadena"
 }
 
 class Semantica {
@@ -57,6 +64,7 @@ class Semantica {
 		
 		//Clear strcuts
 		this.clear();
+		this.#sysFuncClear();
 		
 	}
 	
@@ -125,6 +133,57 @@ class Semantica {
 			this.clear();
 		}
 		
+	}
+	
+	//Hardcoded func. May improve in the future (sysFunc.json?)
+	#sysFuncClear() {
+		
+		//Reset system funcs
+		this.sysFunc = [];
+		
+		//Create all data types print
+		let types = Object.keys(DATA_TYPES);
+		for(let i = 0; i < types.length; i++) {
+			this.#sysPrint(SYS_FUNC[types[i]], DATA_TYPES[types[i]]);
+		}
+		
+	}
+	
+	#sysPrint(printName, printType) {
+		this.sysFunc[printName] = {
+			type: AST_NODE.FUNC,
+			funcName: printName,
+			context: {
+				vars: {
+					msg: {
+						content: "msg",
+						type: printType
+					}
+				},
+				parentContext: this.globalContext
+			},
+			children: [
+				{
+					children: [
+						{
+							info: {
+								content: "msg",
+								type: printType
+							}
+						}
+					]
+				},
+				{
+					children: []
+				},
+				{
+					children: []
+				},
+				{
+					children: []
+				}
+			]
+		}
 	}
 	
 	/*******
@@ -278,14 +337,19 @@ class Semantica {
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].funcName);
 		
 		//Check if function exists
-		if(typeof this.funcAstTree[funcNodeName.info.content] !== "undefined") {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+		if(this.#existsFunc(funcNodeName.info.content)) {
+			if(this.#isSysFunc(funcNodeName.info.content)) {
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "System function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+			} else {
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+			}
 			return;
 		}
 		
 		//Create function
 		let funcNode = {
 			type: AST_NODE.FUNC,
+			funcName: funcNodeName.info.content,
 			context: {
 				vars: {},
 				parentContext: this.globalContext
@@ -932,7 +996,7 @@ class Semantica {
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 		
 		//Check if function exists
-		if(typeof this.funcAstTree[funcNodeName.info.content] === "undefined") {
+		if(!this.#existsFunc(funcNodeName.info.content)) {
 			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Call to undefined function \"" + funcNodeName.info.content + "\" in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
 			return;
 		}
@@ -1148,7 +1212,7 @@ class Semantica {
 		}
 		
 		//Get condition first terminal (error related info)
-		let firstTerm = this.#expressionFirst(expNode);
+		let firstTerm = this.#expressionFirst(exp);
 		
 		//Check expressions type
 		let typeMatch = this.#unaryExpMatch(exp, operator != null, semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].typeOptions);
@@ -1471,7 +1535,7 @@ class Semantica {
 					case SEMANTICA_KEYS.FUNC_CALL:
 						//Get function reference
 						let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
-						funcRef = this.funcAstTree[funcNodeName.info.content];
+						funcRef = this.#referenceToFunc(funcNodeName.info.content);
 						break;
 						
 					default:
@@ -1495,10 +1559,10 @@ class Semantica {
 		
 	}
 	
-	#funcReturnType(funcNode, complete) {
+	#funcReturnType(funcRef, complete) {
 		
 		//Get return types
-		let funcTypes = funcNode.children[1].children;
+		let funcTypes = funcRef.children[1].children;
 		
 		//Check if has any return
 		if(funcTypes.length == 0) {
@@ -1539,7 +1603,7 @@ class Semantica {
 		}
 		
 		//Get function params type
-		let funcRef = this.funcAstTree[funcNodeName.info.content];
+		let funcRef = this.#referenceToFunc(funcNodeName.info.content);
 		let funcParamTypes = this.#funcParamsType(funcRef);
 		
 		//Check if params has expected length
@@ -1645,6 +1709,7 @@ class Semantica {
 				if(varRef.type == null) {
 					varRef.type = expTypes[i];
 				}
+				iVarList.children[j].type = varRef.type;
 			}
 		}
 		
@@ -1765,7 +1830,7 @@ class Semantica {
 	
 	#expressionFirst(expression) {
 		//Check if is last item
-		if(typeof expression.children === "undefined") {
+		if(expression.type != EXP_SPECIAL_KEYS.EXP) {
 			//Check data origin
 			switch(expression.type) {
 				case AST_NODE.ID:
@@ -1775,13 +1840,6 @@ class Semantica {
 				default:
 					return expression.value;
 			}
-			/*if(typeof expression.value !== "undefined") {
-				return expression.value;
-			} else if(typeof expression.ref !== "undefined") {
-				return expression.ref;
-			} else {
-				return expression.call;
-			}*/
 		} else {
 			return this.#expressionFirst(expression.children[0]);
 		}
@@ -1822,6 +1880,14 @@ class Semantica {
 		
 	}
 	
+	#existsFunc(funcName) {
+		if(this.#isSysFunc(funcName)) {
+			return true;
+		} else {
+			return typeof this.funcAstTree[funcName] !== "undefined";
+		}
+	}
+	
 	#funcParamsType(funcRef) {
 		
 		//Get param node
@@ -1835,6 +1901,18 @@ class Semantica {
 		
 		return paramTypes;
 		
+	}
+	
+	#referenceToFunc(funcName) {
+		if(this.#isSysFunc(funcName)) {
+			return this.sysFunc[funcName];
+		} else {
+			return this.funcAstTree[funcName];
+		}
+	}
+	
+	#isSysFunc(funcName) {
+		return typeof this.sysFunc[funcName] !== "undefined";
 	}
 	
 }
