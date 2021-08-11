@@ -8,7 +8,9 @@
 		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="css/styles.css"/>
+		<link rel="stylesheet" href="css/tooltip.css"/>
 		<script src="js/main.js"></script>
+		<script src="js/console.js"></script>
 		<script src="js/errorhandler.js"></script>
 		<script src="js/frontend.js"></script>
 		<script src="js/lexer.js"></script>
@@ -32,6 +34,12 @@
 						<div class="nav-item">
 							<a id="tabError" class="nav-link active">Errors</a>
 						</div>
+						<div class="nav-item">
+							<a id="tabExecution" class="nav-link">Execution</a>
+						</div>
+						<div class="nav-item">
+							<a id="tabCost" class="nav-link">Cost</a>
+						</div>
 						<div id="tabDebugContainer" class="nav-item dropdown">
 							<a id="tabDebug" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Debug</a>
 							<div class="dropdown-menu">
@@ -44,13 +52,17 @@
 					</div>
 				</div>
 			</div>
-			<div class="row flex-grow-1 h-75">
+			<div class="row flex-grow-1 h-50">
 				<div class="col-6 h-100">
 					<textarea id="inputTextArea" class="userText" placeholder="Code here"></textarea>
 				</div>
 				<div class="col-6 h-100">
 					<div class="col overflow-auto h-100 border border-secondary">
 						<textarea readonly id="errorTextArea" class="userText d-flex border-0"></textarea>
+						<div id="executionContainer" class="h-100 d-none flex-column m-0">
+							<div id="codeContainer" class="h-75 d-block m-0 py-1 overflow-auto"></div>
+							<textarea readonly id="outputTextArea" class="userText d-flex sticky-bottom h-25 overflow-auto"></textarea>
+						</div>
 						<textarea readonly id="tokensTextArea" class="userText d-none border-0"></textarea>
 						<div id="predParseTreeContainer" class="h-100 py-1 d-none">
 							<ul id="predParseTreeList" class="treeListRoot treeList">
@@ -70,13 +82,30 @@
 			<div class="row mb-3">
 				<div class="col">
 					<div class="btn-group w-100" role="group">
-						<input id="interpreteButton" class="w-100" type="button" value="Run" disabled/>
+						<button id="interpreteButton" class="w-100 btn btn-outline-primary" type="button" disabled>Run</button>
 					</div>
 				</div>
 				<div class="col">
-					<div class="btn-group w-100" role="group">
-						<input id="expandButton" class="w-100 d-none" type="button" value="Expand"/>
-						<input id="collapseButton" class="w-100 d-none" type="button" value="Collapse"/>
+					<div id="treeButtons" class="btn-group w-100 d-none" role="group">
+						<button id="expandButton" class="w-100 btn btn-outline-primary" type="button">Expand</button>
+						<button id="collapseButton" class="w-100 btn btn-outline-primary" type="button">Collapse</button>
+					</div>
+					<div id="executionButtons" class="btn-group w-100 d-none" role="group">
+						<button id="playButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+								<path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/>
+							</svg>
+						</button>
+						<button id="skipButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-skip-forward" viewBox="0 0 16 16">
+								<path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5zM1 4.633v6.734L6.804 8 1 4.633zm7.5 0v6.734L14.304 8 8.5 4.633z"/>
+							</svg>
+						</button>
+						<button id="pauseButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
+								<path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z"/>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>

@@ -1,9 +1,13 @@
 const INPUT_TEXTAREA_ID = "inputTextArea";
 const ERROR_TEXTAREA_ID = "errorTextArea";
+const OUTPUT_TEXTAREA_ID = "outputTextArea";
 const TOKENS_TEXTAREA_ID = "tokensTextArea";
+
 const INTERPRETE_BUTTON_ID = "interpreteButton";
 
 const TAB_ERROR_ID = "tabError";
+const TAB_EXECUTION_ID = "tabExecution";
+const TAB_COST_ID = "tabCost";
 const TAB_DEBUG_CONTAINER_ID = "tabDebugContainer";
 const TAB_DEBUG_ID = "tabDebug";
 const TAB_TOKENS_ID = "tabTokens";
@@ -11,6 +15,8 @@ const TAB_PRED_PARSE_TREE_ID = "tabPredParseTree";
 const TAB_PARSE_TREE_ID = "tabParseTree";
 const TAB_AST_TREE_ID = "tabAstTree";
 
+const EXECUTION_CONTAINER_ID = "executionContainer";
+const CODE_CONTAINER_ID = "codeContainer";
 const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
 const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
@@ -18,8 +24,14 @@ const PRED_PARSE_TREE_LIST_ID = "predParseTreeList";
 const AST_TREE_CONTAINER_ID = "astTreeContainer";
 const AST_TREE_LIST_ID = "astTreeList";
 
+const TREE_BUTTON_GROUP_ID = "treeButtons";
 const COLLAPSE_BUTTON_ID = "expandButton";
 const HIDE_BUTTON_ID = "collapseButton";
+
+const EXECUTION_BUTTON_GROUP_ID = "executionButtons";
+const PLAY_BUTTON_ID = "playButton";
+const PAUSE_BUTTON_ID = "pauseButton";
+const SKIP_BUTTON_ID = "skipButton";
 
 const ACTIVE_CLASS = "active";
 const DISABLED_CLASS = "disabled";
@@ -37,14 +49,28 @@ const DROPDOWN_MENU = '.dropdown-toggle';
 const LIST_ITEM = "li";
 const SUBLIST_ITEM = "ul";
 const SPAN_ITEM = "span";
+const BR_ITEM = "br";
+const MARK_ITEM = "mark";
+const PRE_ITEM = "pre";
+const DIV_ITEM = "div";
+
+const CLASS_ATTR = "class";
+
+const BG_PRIMARY_CLASS = "bg-primary";
+const BG_SUCCESS_CLASS = "bg-success";
+const PAD_NONE_CLASS = "p-0";
+const MARGIN_NONE_CLASS = "m-0";
 
 const LANG_PATH = "lang/";
 const JSON_TRAIL = ".json";
 
 var inputTextArea;
 var errorTextArea;
+var outputTextArea;
 var tokensTextArea;
 
+var executionContainer;
+var codeContainer;
 var predParseTreeContainer;
 var predParseTreeList;
 var parseTreeContainer;
@@ -53,14 +79,22 @@ var parseTreeList;
 var interpreteButton;
 
 var tabError;
+var tabExecution;
+var tabCost;
 var tabDebugContainer;
 var tabDebug;
 var tabTokens;
 var tabPredParseTree;
 var tabParseTree;
 
+var treeButtons;
 var collapseButton;
 var hideButton;
+
+var executionButtons;
+var playButton;
+var skipButton;
+var pauseButton;
 
 var viewMode;
 
@@ -92,6 +126,11 @@ window.onload = function() {
 	errorTextArea = document.getElementById(ERROR_TEXTAREA_ID);
 	tokensTextArea = document.getElementById(TOKENS_TEXTAREA_ID);
 	
+	//Get execution items
+	executionContainer = document.getElementById(EXECUTION_CONTAINER_ID);
+	codeContainer = document.getElementById(CODE_CONTAINER_ID);
+	outputTextArea = document.getElementById(OUTPUT_TEXTAREA_ID);
+	
 	//Get predict parse tree list items
 	predParseTreeContainer = document.getElementById(PRED_PARSE_TREE_CONTAINER_ID);
 	predParseTreeList = document.getElementById(PRED_PARSE_TREE_LIST_ID);
@@ -103,6 +142,10 @@ window.onload = function() {
 	//Get ast tree list items
 	astTreeContainer = document.getElementById(AST_TREE_CONTAINER_ID);
 	astTreeList = document.getElementById(AST_TREE_LIST_ID);
+	
+	//Get button groups
+	treeButtons = document.getElementById(TREE_BUTTON_GROUP_ID);
+	executionButtons = document.getElementById(EXECUTION_BUTTON_GROUP_ID);
 	
 	//Get interprete button and link action
 	interpreteButton = document.getElementById(INTERPRETE_BUTTON_ID);
@@ -162,8 +205,49 @@ window.onload = function() {
 		
 	};
 	
+	//Get play button and link action
+	playButton = document.getElementById(PLAY_BUTTON_ID);
+	playButton.onclick = function() {
+		
+		//TODO
+		
+		//Disable button
+		playButton.disabled = true;
+		//Enable button
+		playButton.disabled = false;
+		
+	}
+	
+	//Get play button and link action
+	skipButton = document.getElementById(SKIP_BUTTON_ID);
+	skipButton.onclick = function() {
+		
+		//TODO
+		
+		//Disable button
+		skipButton.disabled = true;
+		//Enable button
+		skipButton.disabled = false;
+		
+	}
+	
+	//Get play button and link action
+	pauseButton = document.getElementById(PAUSE_BUTTON_ID);
+	pauseButton.onclick = function() {
+		
+		//TODO
+		
+		//Disable button
+		pauseButton.disabled = true;
+		//Enable button
+		pauseButton.disabled = false;
+		
+	}
+	
 	//Get tab bar items
 	tabError = document.getElementById(TAB_ERROR_ID);
+	tabExecution = document.getElementById(TAB_EXECUTION_ID);
+	tabCost = document.getElementById(TAB_COST_ID);
 	tabDebugContainer = document.getElementById(TAB_DEBUG_CONTAINER_ID);
 	tabDebug = document.getElementById(TAB_DEBUG_ID);
 	tabTokens = document.getElementById(TAB_TOKENS_ID);
@@ -174,6 +258,9 @@ window.onload = function() {
 	//Get collapse button and link action
 	collapseButton = document.getElementById(COLLAPSE_BUTTON_ID);
 	collapseButton.onclick = function() {
+		
+		//Disable button
+		collapseButton.disabled = true;
 		
 		//Get selected tree list
 		let tree;
@@ -192,11 +279,17 @@ window.onload = function() {
 			arrowItems[i].classList.add(TREE_LIST_ARROW_DOWN_CLASS);
 		}
 		
+		//Enable button
+		collapseButton.disabled = false;
+		
 	}
 	
 	//Get hide button and link action
 	hideButton = document.getElementById(HIDE_BUTTON_ID);
 	hideButton.onclick = function() {
+		
+		//Disable button
+		hideButton.disabled = true;
 		
 		//Get selected tree list
 		let tree;
@@ -215,6 +308,9 @@ window.onload = function() {
 			arrowItems[i].classList.remove(TREE_LIST_ARROW_DOWN_CLASS);
 		}
 		
+		//Enable button
+		hideButton.disabled = false;
+		
 	}
 	
 	//Link click actions
@@ -224,6 +320,8 @@ window.onload = function() {
 		viewMode = VIEW_MODE.ERROR;
 		
 		//Display errors and hide others
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -237,6 +335,8 @@ window.onload = function() {
 		
 		//Mark error tab
 		tabError.classList.add(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
 		tabDebug.classList.remove(ACTIVE_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
@@ -244,8 +344,78 @@ window.onload = function() {
 		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
 		//Hide buttons
-		collapseButton.classList.add(DISP_NONE_CLASS);
-		hideButton.classList.add(DISP_NONE_CLASS);
+		treeButtons.classList.add(DISP_NONE_CLASS);
+		executionButtons.classList.add(DISP_NONE_CLASS);
+		
+	}
+	tabExecution.onclick = function() {
+		
+		//Update view mode
+		viewMode = VIEW_MODE.ERROR;
+		
+		//Display errors and hide others
+		errorTextArea.classList.remove(DISP_FLEX_CLASS);
+		errorTextArea.classList.add(DISP_NONE_CLASS);
+		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
+		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
+		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_NONE_CLASS);
+		executionContainer.classList.add(DISP_FLEX_CLASS);
+		
+		//Mark error tab
+		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.add(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
+		tabDebug.classList.remove(ACTIVE_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
+		
+		//Hide tree buttons
+		treeButtons.classList.add(DISP_NONE_CLASS);
+		
+		//Show exec buttons
+		executionButtons.classList.remove(DISP_NONE_CLASS);
+		
+	}
+	tabCost.onclick = function() {
+		
+		//Update view mode
+		viewMode = VIEW_MODE.ERROR;
+		
+		//Display errors and hide others
+		errorTextArea.classList.remove(DISP_FLEX_CLASS);
+		errorTextArea.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
+		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
+		tokensTextArea.classList.add(DISP_NONE_CLASS);
+		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
+		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		parseTreeContainer.classList.add(DISP_NONE_CLASS);
+		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
+		astTreeContainer.classList.add(DISP_NONE_CLASS);
+		
+		//Mark error tab
+		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.add(ACTIVE_CLASS);
+		tabDebug.classList.remove(ACTIVE_CLASS);
+		tabTokens.classList.remove(ACTIVE_CLASS);
+		tabPredParseTree.classList.remove(ACTIVE_CLASS);
+		tabParseTree.classList.remove(ACTIVE_CLASS);
+		tabAstTree.classList.remove(ACTIVE_CLASS);
+		
+		//Hide buttons
+		treeButtons.classList.add(DISP_NONE_CLASS);
+		executionButtons.classList.add(DISP_NONE_CLASS);
 		
 	}
 	tabTokens.onclick = function() {
@@ -256,6 +426,8 @@ window.onload = function() {
 		//Display tokens and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -267,6 +439,8 @@ window.onload = function() {
 		
 		//Mark tokens tab
 		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
 		tabDebug.classList.add(ACTIVE_CLASS);
 		tabTokens.classList.add(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
@@ -274,8 +448,8 @@ window.onload = function() {
 		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
 		//Hide buttons
-		collapseButton.classList.add(DISP_NONE_CLASS);
-		hideButton.classList.add(DISP_NONE_CLASS);
+		treeButtons.classList.add(DISP_NONE_CLASS);
+		executionButtons.classList.add(DISP_NONE_CLASS);
 		
 	}
 	tabPredParseTree.onclick = function() {
@@ -286,6 +460,8 @@ window.onload = function() {
 		//Display parse tree and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -297,15 +473,19 @@ window.onload = function() {
 		
 		//Mark prediction tab
 		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
 		tabDebug.classList.add(ACTIVE_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.add(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
 		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
-		//Show buttons
-		collapseButton.classList.remove(DISP_NONE_CLASS);
-		hideButton.classList.remove(DISP_NONE_CLASS);
+		//Hide exec buttons
+		executionButtons.classList.add(DISP_NONE_CLASS);
+		
+		//Show tree buttons
+		treeButtons.classList.remove(DISP_NONE_CLASS);
 		
 	}
 	tabParseTree.onclick = function() {
@@ -316,6 +496,8 @@ window.onload = function() {
 		//Display parse tree and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -327,15 +509,19 @@ window.onload = function() {
 		
 		//Mark parse tab
 		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
 		tabDebug.classList.add(ACTIVE_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.add(ACTIVE_CLASS);
 		tabAstTree.classList.remove(ACTIVE_CLASS);
 		
-		//Show buttons
-		collapseButton.classList.remove(DISP_NONE_CLASS);
-		hideButton.classList.remove(DISP_NONE_CLASS);
+		//Hide exec buttons
+		executionButtons.classList.add(DISP_NONE_CLASS);
+		
+		//Show tree buttons
+		treeButtons.classList.remove(DISP_NONE_CLASS);
 		
 	}
 	tabAstTree.onclick = function() {
@@ -346,6 +532,8 @@ window.onload = function() {
 		//Display ast tree and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
+		executionContainer.classList.remove(DISP_FLEX_CLASS);
+		executionContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -357,15 +545,19 @@ window.onload = function() {
 		
 		//Mark ast tab
 		tabError.classList.remove(ACTIVE_CLASS);
+		tabExecution.classList.remove(ACTIVE_CLASS);
+		tabCost.classList.remove(ACTIVE_CLASS);
 		tabDebug.classList.add(ACTIVE_CLASS);
 		tabTokens.classList.remove(ACTIVE_CLASS);
 		tabPredParseTree.classList.remove(ACTIVE_CLASS);
 		tabParseTree.classList.remove(ACTIVE_CLASS);
 		tabAstTree.classList.add(ACTIVE_CLASS);
 		
-		//Show buttons
-		collapseButton.classList.remove(DISP_NONE_CLASS);
-		hideButton.classList.remove(DISP_NONE_CLASS);
+		//Hide exec buttons
+		executionButtons.classList.add(DISP_NONE_CLASS);
+		
+		//Show tree buttons
+		treeButtons.classList.remove(DISP_NONE_CLASS);
 		
 	}
 	
@@ -415,6 +607,8 @@ window.onload = function() {
 				viewMode = VIEW_MODE.ERROR;
 				
 				//Display errors and hide others
+				executionContainer.classList.remove(DISP_FLEX_CLASS);
+				executionContainer.classList.add(DISP_NONE_CLASS);
 				tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 				tokensTextArea.classList.add(DISP_NONE_CLASS);
 				predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -428,6 +622,8 @@ window.onload = function() {
 				
 				//Mark error tab
 				tabError.classList.add(ACTIVE_CLASS);
+				tabExecution.classList.remove(ACTIVE_CLASS);
+				tabCost.classList.remove(ACTIVE_CLASS);
 				tabDebug.classList.remove(ACTIVE_CLASS);
 				tabTokens.classList.remove(ACTIVE_CLASS);
 				tabPredParseTree.classList.remove(ACTIVE_CLASS);
@@ -435,8 +631,8 @@ window.onload = function() {
 				tabAstTree.classList.remove(ACTIVE_CLASS);
 				
 				//Hide buttons
-				collapseButton.classList.add(DISP_NONE_CLASS);
-				hideButton.classList.add(DISP_NONE_CLASS);
+				treeButtons.classList.add(DISP_NONE_CLASS);
+				executionButtons.classList.add(DISP_NONE_CLASS);
 				
 			}
 		}
@@ -880,3 +1076,7 @@ function createSubListElement(listItem) {
 	listItem.appendChild(subListItem);
 	return subListItem;
 }
+
+//TESTING
+
+
