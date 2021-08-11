@@ -103,7 +103,8 @@ class Console {
 		
 		//Create tooltip
 		let tooltip = this.#createDiv([TOOLTIP_CLASS, color]);
-		tooltip.textContent = msg;
+		tooltip.innerHTML = msg.replace(/ /g, "&nbsp");
+		//tooltip.textContent = msg;
 		
 		//Append tip
 		if(tip.length > 0) {
@@ -134,7 +135,8 @@ class Console {
 		let spanItem = document.createElement(SPAN_ITEM);
 		
 		//Set info
-		spanItem.textContent = msg;
+		spanItem.innerHTML = msg.replace(/ /g, "&nbsp")
+		//spanItem.textContent = msg;
 		if(className != null) {
 			spanItem.classList.add(className);
 		}
@@ -149,7 +151,8 @@ class Console {
 		let markItem = document.createElement(MARK_ITEM);
 		
 		//Set info
-		markItem.textContent = msg;
+		markItem.innerHTML = msg.replace(/ /g, "&nbsp");
+		//markItem.textContent = msg;
 		if(className != null) {
 			markItem.classList.add(className);
 		}
