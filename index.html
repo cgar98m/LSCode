@@ -9,13 +9,17 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="css/styles.css"/>
 		<link rel="stylesheet" href="css/tooltip.css"/>
+		<link rel="stylesheet" href="css/color.css"/>
+		<script src="js/tooltip.js"></script>
 		<script src="js/main.js"></script>
-		<script src="js/console.js"></script>
+		<script src="js/display.js"></script>
+		<script src="js/color.js"></script>
 		<script src="js/errorhandler.js"></script>
 		<script src="js/frontend.js"></script>
 		<script src="js/lexer.js"></script>
 		<script src="js/parser.js"></script>
 		<script src="js/semantica.js"></script>
+		<script src="js/interpreter.js"></script>
 		<script src="js/firstfollow.js"></script>
 		<script src="js/tree.js"></script>
 	</head>
@@ -23,7 +27,7 @@
 		<div class="container h-100 d-flex flex-column">
 			<div class="row">
 				<h1>
-					LSCode v0.5.1
+					LSCode v0.5.2
 				</h1>
 			</div>
 			<div class="row">
@@ -62,6 +66,9 @@
 						<div id="executionContainer" class="h-100 d-none flex-column m-0">
 							<div id="codeContainer" class="h-75 d-block m-0 py-1 overflow-auto"></div>
 							<textarea readonly id="outputTextArea" class="userText d-flex sticky-bottom h-25 overflow-auto"></textarea>
+						</div>
+						<div id="costContainer" class="h-100 d-none flex-column m-0">
+							<div id="costTextContainer" class="h-100 d-block m-0 py-1 overflow-auto"></div>
 						</div>
 						<textarea readonly id="tokensTextArea" class="userText d-none border-0"></textarea>
 						<div id="predParseTreeContainer" class="h-100 py-1 d-none">

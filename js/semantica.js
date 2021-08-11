@@ -166,10 +166,7 @@ class Semantica {
 				{
 					children: [
 						{
-							info: {
-								content: "msg",
-								type: printType
-							}
+							info: {}
 						}
 					]
 				},
@@ -184,6 +181,8 @@ class Semantica {
 				}
 			]
 		}
+		this.sysFunc[printName].children[0].children[0].info = this.sysFunc[printName].context.vars.msg;
+		this.sysFunc[printName].children[0].children[0].varRef = this.sysFunc[printName].context.vars.msg;
 	}
 	
 	/*******
@@ -242,10 +241,18 @@ class Semantica {
 	
 	#varAssignSkell(parseNode, astNodeParent, semantica) {
 	
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+	
 		//Create var assign node
 		let varAssignNode = {
 			type: AST_NODE.ACTION,
 			semantica: Object.keys(semantica)[0],
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			context: astNodeParent.context,
 			children: []
 		};
@@ -258,10 +265,18 @@ class Semantica {
 	
 	#forkSkell(parseNode, astNodeParent, semantica) {
 		
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+		
 		//Create if node
 		let ifNode = {
 			type: AST_NODE.ACTION,
 			semantica: Object.keys(semantica)[0],
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			context: astNodeParent.context,
 			children: []
 		};
@@ -296,10 +311,18 @@ class Semantica {
 	
 	#loopSkell(parseNode, astNodeParent, semantica) {
 		
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+		
 		//Create loop node
 		let loopNode = {
 			type: AST_NODE.ACTION,
 			semantica: Object.keys(semantica)[0],
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			context: astNodeParent.context,
 			children: []
 		};
@@ -346,9 +369,17 @@ class Semantica {
 			return;
 		}
 		
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+		
 		//Create function
 		let funcNode = {
 			type: AST_NODE.FUNC,
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			funcName: funcNodeName.info.content,
 			context: {
 				vars: {},
@@ -452,10 +483,18 @@ class Semantica {
 		//Get function name node
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 		
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+		
 		//Create func call node
 		let funcCallNode = {
 			type: AST_NODE.ACTION,
 			semantica: Object.keys(semantica)[0],
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			context: astNodeParent.context,
 			ref: funcNodeName.info.content,
 			children: []
@@ -744,13 +783,14 @@ class Semantica {
 				}
 			}
 			
-			//Create var on symbolic table
+			//Create var on symbolic table and assign data type
 			astNodeParent.context.vars[varInfo.content] = varInfo;
 			
 			//Create var node
 			let funcVarDef = {
 				type: AST_NODE.INFO,
-				info: varInfo
+				info: varInfo,
+				varRef: astNodeParent.context.vars[varInfo.content]
 			};
 			funcVarDefineNode.children.push(funcVarDef);
 			
@@ -1129,8 +1169,16 @@ class Semantica {
 					//Get expression
 					let expression = this.#expExtraction(parseNode.children[i], context);
 					
+					//Get first and last terminals
+					let firstTerm = this.#terminalFirst(parseNode.children[i]);
+					let lastTerm = this.#terminalLast(parseNode.children[i]);
+					
 					//Append expression
 					if(expression != null) {
+						expression.lineStart = firstTerm.info.line;
+						expression.lineEnd = lastTerm.info.line;
+						expression.offsetStart = firstTerm.info.offset;
+						expression.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
 						expConcat.push(expression);
 					}
 					
@@ -1476,9 +1524,17 @@ class Semantica {
 							return null;	//Error already registered
 						}
 						
+						//Get first and last terminals
+						let firstTerm = this.#terminalFirst(foundNode);
+						let lastTerm = this.#terminalLast(foundNode);
+						
 						//Return info
 						return {
 							type: AST_NODE.FUNC_EXP,
+							lineStart: firstTerm.info.line,
+							lineEnd: lastTerm.info.line,
+							offsetStart: firstTerm.info.offset,
+							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 							dataType: funcType,
 							multiType: this.#funcReturnType(funcRef, true),
 							funcRef: funcRef,
@@ -1724,9 +1780,17 @@ class Semantica {
 			}
 		}
 		
+		//Get first and last terminals
+		let firstTerm = this.#terminalFirst(parseNode);
+		let lastTerm = this.#terminalLast(parseNode);
+		
 		//Create value assign node
 		let valueAssignNode = {
 			type: AST_NODE.INFO_HEADER,
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 			children: []
 		};
 		astNodeParent.children.push(valueAssignNode);
@@ -1753,6 +1817,7 @@ class Semantica {
 		
 		//Get condition first terminal (error related info)
 		let firstTerm = this.#expressionFirst(conditionData[0]);
+		let lastTerm = this.#expressionLast(conditionData[0]);
 		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
@@ -1768,6 +1833,12 @@ class Semantica {
 			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
+		
+		//Update condition data
+		conditionData[0].lineStart = firstTerm.line;
+		conditionData[0].lineEnd = lastTerm.line;
+		conditionData[0].offsetStart = firstTerm.offset;
+		conditionData[0].offsetEnd = lastTerm.offset + lastTerm.content.length - 1;
 		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
@@ -1800,6 +1871,7 @@ class Semantica {
 		
 		//Get condition first terminal (error related info)
 		let firstTerm = this.#expressionFirst(conditionData[0]);
+		let lastTerm = this.#expressionLast(conditionData[0]);
 		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
@@ -1815,6 +1887,12 @@ class Semantica {
 			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
 			return;
 		}
+		
+		//Update condition data
+		conditionData[0].lineStart = firstTerm.line;
+		conditionData[0].lineEnd = lastTerm.line;
+		conditionData[0].offsetStart = firstTerm.offset;
+		conditionData[0].offsetEnd = lastTerm.offset + lastTerm.content.length - 1;
 		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
@@ -1842,6 +1920,41 @@ class Semantica {
 			}
 		} else {
 			return this.#expressionFirst(expression.children[0]);
+		}
+	}
+	
+	#expressionLast(expression) {
+		//Check if is last item
+		if(expression.type != EXP_SPECIAL_KEYS.EXP) {
+			//Check data origin
+			switch(expression.type) {
+				case AST_NODE.ID:
+					return expression.ref;
+				case AST_NODE.FUNC_EXP:
+					return expression.call;
+				default:
+					return expression.value;
+			}
+		} else {
+			return this.#expressionFirst(expression.children[expression.children.length - 1]);
+		}
+	}
+	
+	#terminalFirst(node) {
+		//Check if is a production
+		if(node.type == NODE_TYPE.PRODUCTION) {
+			return this.#terminalFirst(node.children[0]);
+		} else {
+			return node;
+		}
+	}
+	
+	#terminalLast(node) {
+		//Check if is a production
+		if(node.type == NODE_TYPE.PRODUCTION) {
+			return this.#terminalFirst(node.children[node.children.length - 1]);
+		} else {
+			return node;
 		}
 	}
 	

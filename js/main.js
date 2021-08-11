@@ -17,6 +17,8 @@ const TAB_AST_TREE_ID = "tabAstTree";
 
 const EXECUTION_CONTAINER_ID = "executionContainer";
 const CODE_CONTAINER_ID = "codeContainer";
+const COST_CONTAINER_ID = "costContainer";
+const COST_TEXT_CONTAINER_ID = "costTextContainer";
 const PARSE_TREE_CONTAINER_ID = "parseTreeContainer";
 const PARSE_TREE_LIST_ID = "parseTreeList";
 const PRED_PARSE_TREE_CONTAINER_ID = "predParseTreeContainer";
@@ -71,6 +73,8 @@ var tokensTextArea;
 
 var executionContainer;
 var codeContainer;
+var costContainer;
+var costTextContainer;
 var predParseTreeContainer;
 var predParseTreeList;
 var parseTreeContainer;
@@ -95,6 +99,9 @@ var executionButtons;
 var playButton;
 var skipButton;
 var pauseButton;
+
+var codeDisplay;
+var costDisplay;
 
 var viewMode;
 
@@ -130,6 +137,8 @@ window.onload = function() {
 	executionContainer = document.getElementById(EXECUTION_CONTAINER_ID);
 	codeContainer = document.getElementById(CODE_CONTAINER_ID);
 	outputTextArea = document.getElementById(OUTPUT_TEXTAREA_ID);
+	costContainer = document.getElementById(COST_CONTAINER_ID);
+	costTextContainer = document.getElementById(COST_TEXT_CONTAINER_ID);
 	
 	//Get predict parse tree list items
 	predParseTreeContainer = document.getElementById(PRED_PARSE_TREE_CONTAINER_ID);
@@ -198,7 +207,23 @@ window.onload = function() {
 			errorTextArea.value += "[Info] No critical errors found";
 		}
 		
-		//TODO: Display execution
+		//Display code in execution and cost windows
+		codeDisplay.setContent(inputTextArea.value);
+		costDisplay.setContent(inputTextArea.value);
+		
+		//Clear previous execution output
+		outputTextArea.value = "";
+		
+		//Config execution buttons depending on code state
+		if(errorHandler.criticalErrors == 0) {
+			playButton.disabled = false;
+			skipButton.disabled = false;
+			pauseButton.disabled = true;
+		} else {
+			playButton.disabled = true;
+			skipButton.disabled = true;
+			pauseButton.disabled = true;
+		}
 		
 		//Enable button
 		interpreteButton.disabled = false;
@@ -322,6 +347,8 @@ window.onload = function() {
 		//Display errors and hide others
 		executionContainer.classList.remove(DISP_FLEX_CLASS);
 		executionContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -356,6 +383,8 @@ window.onload = function() {
 		//Display errors and hide others
 		errorTextArea.classList.remove(DISP_FLEX_CLASS);
 		errorTextArea.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -402,6 +431,8 @@ window.onload = function() {
 		parseTreeContainer.classList.add(DISP_NONE_CLASS);
 		astTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		astTreeContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_NONE_CLASS);
+		costContainer.classList.add(DISP_FLEX_CLASS);
 		
 		//Mark error tab
 		tabError.classList.remove(ACTIVE_CLASS);
@@ -428,6 +459,8 @@ window.onload = function() {
 		errorTextArea.classList.add(DISP_NONE_CLASS);
 		executionContainer.classList.remove(DISP_FLEX_CLASS);
 		executionContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
 		predParseTreeContainer.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -462,6 +495,8 @@ window.onload = function() {
 		errorTextArea.classList.add(DISP_NONE_CLASS);
 		executionContainer.classList.remove(DISP_FLEX_CLASS);
 		executionContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		parseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -498,6 +533,8 @@ window.onload = function() {
 		errorTextArea.classList.add(DISP_NONE_CLASS);
 		executionContainer.classList.remove(DISP_FLEX_CLASS);
 		executionContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -534,6 +571,8 @@ window.onload = function() {
 		errorTextArea.classList.add(DISP_NONE_CLASS);
 		executionContainer.classList.remove(DISP_FLEX_CLASS);
 		executionContainer.classList.add(DISP_NONE_CLASS);
+		costContainer.classList.remove(DISP_FLEX_CLASS);
+		costContainer.classList.add(DISP_NONE_CLASS);
 		tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 		tokensTextArea.classList.add(DISP_NONE_CLASS);
 		predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -609,6 +648,8 @@ window.onload = function() {
 				//Display errors and hide others
 				executionContainer.classList.remove(DISP_FLEX_CLASS);
 				executionContainer.classList.add(DISP_NONE_CLASS);
+				costContainer.classList.remove(DISP_FLEX_CLASS);
+				costContainer.classList.add(DISP_NONE_CLASS);
 				tokensTextArea.classList.remove(DISP_FLEX_CLASS);
 				tokensTextArea.classList.add(DISP_NONE_CLASS);
 				predParseTreeContainer.classList.remove(DISP_FLEX_CLASS);
@@ -638,6 +679,10 @@ window.onload = function() {
 		}
 		
 	}
+	
+	//Create execution and cost code display
+	codeDisplay = new Display(codeContainer);
+	costDisplay = new Display(costTextContainer);
 	
 }
 
@@ -982,6 +1027,7 @@ function createExpressionPath(domElement, node) {
 	//Check node type
 	switch(node.type) {
 		case AST_NODE.EXPRESSION:
+		case AST_NODE.UNARY_EXPRESSION:
 			//Check if has any operation assigned
 			if(typeof node.operation === "undefined") {
 				createExpressionPath(domElement, node.children[0]);
@@ -1076,7 +1122,3 @@ function createSubListElement(listItem) {
 	listItem.appendChild(subListItem);
 	return subListItem;
 }
-
-//TESTING
-
-
