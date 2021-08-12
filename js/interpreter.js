@@ -22,15 +22,19 @@ const BOOL = {
 
 class Interpreter {
 
-	constructor(astTree, astFunc, astSys, console) {
+	constructor(console) {
+		this.console = console;
+		this.curNode = null;
+	}
+	
+	setCode(astTree, astFunc, astSys) {
 		
-		//Get required elements
+		//Get required data
 		this.astTree = astTree;
 		this.astFunc = astFunc;
 		this.astSys = astSys;
-		this.console = console;
 		
-		//Prepare execution status
+		//Reset console
 		this.resetStatus();
 		
 	}
@@ -51,13 +55,46 @@ class Interpreter {
 			this.curNode = null;
 		}
 		
-		//Clear console
-		this.console.value = "";
-		
 	}
 	
 	isRunnable() {
 		return this.curNode != null;
+	}
+	
+	runnableCode() {
+		
+		//Check end of program
+		if(!this.isRunnable()) {
+			return null;
+		}
+		
+		//Check action
+		switch(this.curNode.semantica) {
+			
+			case SEMANTICA_KEYS.VAR_ASSIGN:
+			case SEMANTICA_KEYS.FUNC_CALL:
+				return {
+					lineStart: this.curNode.lineStart,
+					lineEnd: this.curNode.lineEnd,
+					offsetStart: this.curNode.offsetStart,
+					offsetEnd: this.curNode.offsetEnd
+				};
+				
+			case SEMANTICA_KEYS.FORK:
+			case SEMANTICA_KEYS.LOOP:
+				let exp = this.curNode.children[0].children[0];
+				return {
+					lineStart: exp.lineStart,
+					lineEnd: exp.lineEnd,
+					offsetStart: exp.offsetStart,
+					offsetEnd: exp.offsetEnd
+				};
+				
+			default:	//Undefined case
+				return null;
+				
+		}
+		
 	}
 	
 	runNext() {
@@ -67,44 +104,44 @@ class Interpreter {
 			return;
 		}
 		
-		//Check node type
-		switch(this.curNode.type) {
-				
-			case AST_NODE.ACTION:
-				switch(this.curNode.semantica) {
-					
-					case SEMANTICA_KEYS.VAR_ASSIGN:
-						if(this.#varAssign()) {
-							this.#prepareNext();
-						} else {
-							this.curNode = null;
-						}
-						break;
-						
-					case SEMANTICA_KEYS.FORK:
-						this.#fork();
-						break;
-						
-					case SEMANTICA_KEYS.LOOP:
-						this.#loop();
-						break;
-						
-					case SEMANTICA_KEYS.FUNC_CALL:
-						let returnValue = this.#funcCall();
-						for(let i = 0; i < returnValue.length; i++) {
-							if(returnValue[i] == null) {
-								this.curNode = null;
-								return;
-							}
-						}
-						this.#prepareNext();
-						break;
-						
-					default:	//Undefined case
-						this.curNode = null;
-						break;
-						
+		//Check action
+		switch(this.curNode.semantica) {
+			
+			case SEMANTICA_KEYS.VAR_ASSIGN:
+				if(this.#varAssign()) {
+					this.#prepareNext();
+				} else {
+					this.curNode = null;
 				}
+				break;
+				
+			case SEMANTICA_KEYS.FORK:
+				let forkResp = this.#fork();
+				if(forkResp == null) {
+					this.curNode = null;
+				} else if(forkResp) {
+					this.#prepareNext();
+				}
+				break;
+				
+			case SEMANTICA_KEYS.LOOP:
+				let loopResp = this.#loop();
+				if(loopResp == null) {
+					this.curNode = null;
+				} else if(loopResp) {
+					this.#prepareNext();
+				}
+				break;
+				
+			case SEMANTICA_KEYS.FUNC_CALL:
+				let returnValue = this.#funcCall();
+				for(let i = 0; i < returnValue.length; i++) {
+					if(returnValue[i] == null) {
+						this.curNode = null;
+						return;
+					}
+				}
+				this.#prepareNext();
 				break;
 				
 			default:	//Undefined case
@@ -138,7 +175,17 @@ class Interpreter {
 			
 			//Prepare next if possible
 			if(this.nodePath.length > 0) {
+				
+				//Check if current action is a loop
+				let nextNode = this.nodePath[this.nodePath.length - 1].children[this.indexPath[this.indexPath.length - 1]];
+				if(nextNode.semantica == SEMANTICA_KEYS.LOOP) {
+					this.curNode = nextNode;
+					this.context = this.#contextCopy(this.curNode.context);
+					return;
+				}
+				
 				this.#prepareNext();
+				
 			} else {
 				this.curNode = null;
 			}
@@ -187,11 +234,78 @@ class Interpreter {
 	}
 	
 	#fork() {
-		//TODO
+		
+		//Get condition and cases
+		let condition = this.curNode.children[0].children[0];
+		let cases = this.curNode.children[1];
+		
+		//Eval condition
+		let results = this.#evalExp(condition);
+		if(results[0] == null) {
+			return null;
+		}
+		
+		//Load correspondant case
+		let expectedCase = results[0] ? 0 : 1;
+		for(let i = 0; i < cases.children.length; i++) {
+			if(cases.children[i].conditionCase == expectedCase) {
+				if(this.#prepareCase(cases.children[i])) {
+					return false;
+				}
+			}
+		}
+		
+		//No match found: empty/inexistant case
+		return true;		
+		
 	}
 	
 	#loop() {
-		//TODO
+		
+		//Get condition and run code
+		let condition = this.curNode.children[0].children[0];
+		let code = this.curNode.children[1];
+		
+		//Eval condition
+		let results = this.#evalExp(condition);
+		if(results[0] == null) {
+			return null;
+		}
+		
+		//Load code
+		if(results[0]) {
+			if(code.children.length > 0) {
+				if(this.#prepareCase(code.children[0])) {
+					return false;
+				}
+			}
+		} else {
+			//End of loop
+			return true;
+		}
+		
+		//Empty/inexistant code (endless loop)
+		this.#displayMsg("[Warning] Endless loop");
+		return false;
+		
+	}
+	
+	#prepareCase(caseNode) {
+		//Check if any action exists
+		if(caseNode.children.length > 0) {
+			
+			this.curNode = caseNode.children[0];
+			
+			this.nodePath.push(caseNode);
+			this.indexPath.push(0);
+			
+			this.context = this.#contextCopy(this.curNode.context);
+			
+			return true;
+			
+		} else {
+			return false;
+		}
 	}
 	
 	#funcCall() {
@@ -252,10 +366,7 @@ class Interpreter {
 			case SYS_FUNC.BOOL:
 			case SYS_FUNC.STRING:
 			case SYS_FUNC.INT:
-				if(this.console.value.length > 0) {
-					this.console.value += "\n";
-				}
-				this.console.value += funcRef.context.vars.msg.value;			
+				this.#displayMsg(funcRef.context.vars.msg.value);		
 				return [];
 				
 			default:	//Undefined
@@ -285,13 +396,14 @@ class Interpreter {
 			case AST_NODE.ID:
 			
 				//Check if var has any value
-				if(typeof node.ref.value === "undefined") {
-					node.ref.value = this.#getDefaultValue(node.ref.type);
+				let varRef = this.#locateVar(node.ref.content, this.context);
+				if(typeof varRef.value === "undefined") {
+					varRef.value = this.#getDefaultValue(varRef.type);
 				}
 				
 				//Get value
-				if(node.ref.value != null) {
-					value.push(node.ref.value);
+				if(varRef.value != null) {
+					value.push(varRef.value);
 				} else {
 					value = [null];
 				}
@@ -304,7 +416,7 @@ class Interpreter {
 				
 			default:	//Undefined case
 				value = [null];
-				console.value += "Unexpected struct";
+				this.#displayMsg("[Error] Unexpected struct");
 				break;
 				
 		}
@@ -407,7 +519,7 @@ class Interpreter {
 			case OPERATION.DIV:
 				//Check 0-div
 				if(exps[1] == 0) {
-					console.value += "Division by 0";
+					this.#displayMsg("[Error] Division by 0");
 					return [null];
 				}
 				return [exps[0] / exps[1]];
@@ -415,13 +527,13 @@ class Interpreter {
 			case OPERATION.MOD:
 				//Check 0-div
 				if(exps[1] == 0) {
-					console.value += "Division by 0";
+					this.#displayMsg("[Error] Division by 0");
 					return [null];
 				}
 				return [exps[0] % exps[1]];
 				
 			default:
-				console.value += "Unexpected operation";
+				this.#displayMsg("[Error] Unexpected operation");
 				return [null];
 				
 		}
@@ -439,7 +551,7 @@ class Interpreter {
 			case DATA_TYPES.STRING:
 				return node.value.content;
 			default:
-				console.value += "Unexpected const";
+				this.#displayMsg("[Error] Unexpected const");
 				return null;
 		}
 	}
@@ -455,9 +567,17 @@ class Interpreter {
 			case DATA_TYPES.STRING:
 				return "";
 			default:
-				console.value += "Unexpected data type";
+				this.#displayMsg("[Error] Unexpected data type");
 				return null;
 		}
+	}
+	
+	#displayMsg(msg) {
+		if(this.console.value.length > 0) {
+			this.console.value += "\n";
+		}
+		this.console.value += msg;
+		this.console.scrollTop = this.console.scrollHeight;
 	}
 	
 	#locateVar(varName, context) {

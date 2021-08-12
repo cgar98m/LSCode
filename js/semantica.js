@@ -303,7 +303,14 @@ class Semantica {
 		for(let i = 0; i < parseNode.children.length; i++) {
 			let prod = parseNode.children[i];
 			if(semantica[ifNode.semantica].cases.find(item => item == prod.production_id)) {
+				
+				//Create context
 				this.#contextExtraction(prod, casesNode, astNodeParent.context);
+				
+				//Assign case type
+				let caseContext = casesNode.children[casesNode.children.length - 1];
+				caseContext.conditionCase = semantica[ifNode.semantica].cases.indexOf(prod.production_id);
+				
 			}
 		}
 		
@@ -1260,12 +1267,12 @@ class Semantica {
 		}
 		
 		//Get condition first terminal (error related info)
-		let firstTerm = this.#expressionFirst(exp);
+		let firstTerm = this.#terminalFirst(expNode);
 		
 		//Check expressions type
 		let typeMatch = this.#unaryExpMatch(exp, operator != null, semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].typeOptions);
 		if(typeMatch == null) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return null;
 		}
 		
@@ -1304,12 +1311,12 @@ class Semantica {
 		}
 		
 		//Get condition first terminal (error related info)
-		let firstTerm = this.#expressionFirst(mainExp);
+		let firstTerm = this.#terminalFirst(mainNode);
 		
 		//Check expressions type
 		let typeMatch = this.#expMatch(mainExp, operation == null ? null : operation.exp, semantica[SEMANTICA_KEYS.EXPRESSION].typeOptions);
 		if(typeMatch == null) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return null;
 		}
 		
@@ -1804,9 +1811,13 @@ class Semantica {
 		
 		//Get condition data
 		let conditionData = [];
+		let firstTerm;
+		let lastTerm;
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FORK].condition) {
-				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));	
+				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));
+				firstTerm = this.#terminalFirst(parseNode.children[i]);
+				lastTerm = this.#terminalLast(parseNode.children[i]);
 			}
 		}
 		
@@ -1815,30 +1826,26 @@ class Semantica {
 			return;	//Already notified error
 		}
 		
-		//Get condition first terminal (error related info)
-		let firstTerm = this.#expressionFirst(conditionData[0]);
-		let lastTerm = this.#expressionLast(conditionData[0]);
-		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match if requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition arguments length missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition arguments length missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return;
 		}
 		
 		//Update condition data
-		conditionData[0].lineStart = firstTerm.line;
-		conditionData[0].lineEnd = lastTerm.line;
-		conditionData[0].offsetStart = firstTerm.offset;
-		conditionData[0].offsetEnd = lastTerm.offset + lastTerm.content.length - 1;
+		conditionData[0].lineStart = firstTerm.info.line;
+		conditionData[0].lineEnd = lastTerm.info.line;
+		conditionData[0].offsetStart = firstTerm.info.offset;
+		conditionData[0].offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
 		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
@@ -1858,9 +1865,13 @@ class Semantica {
 		
 		//Get condition data
 		let conditionData = [];
+		let firstTerm;
+		let lastTerm;
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.LOOP].condition) {
-				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));	
+				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));
+				firstTerm = this.#terminalFirst(parseNode.children[i]);
+				lastTerm = this.#terminalLast(parseNode.children[i]);
 			}
 		}
 		
@@ -1869,30 +1880,26 @@ class Semantica {
 			return;	//Already notified error
 		}
 		
-		//Get condition first terminal (error related info)
-		let firstTerm = this.#expressionFirst(conditionData[0]);
-		let lastTerm = this.#expressionLast(conditionData[0]);
-		
 		//Check if data has expected length (1)
 		let expTypes = this.#expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match while requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition arguments length missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition arguments length missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch in line " + firstTerm.line + ", col " + firstTerm.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
 			return;
 		}
 		
 		//Update condition data
-		conditionData[0].lineStart = firstTerm.line;
-		conditionData[0].lineEnd = lastTerm.line;
-		conditionData[0].offsetStart = firstTerm.offset;
-		conditionData[0].offsetEnd = lastTerm.offset + lastTerm.content.length - 1;
+		conditionData[0].lineStart = firstTerm.info.line;
+		conditionData[0].lineEnd = lastTerm.info.line;
+		conditionData[0].offsetStart = firstTerm.info.offset;
+		conditionData[0].offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
 		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
@@ -1904,40 +1911,6 @@ class Semantica {
 			}
 		}
 		
-	}
-	
-	#expressionFirst(expression) {
-		//Check if is last item
-		if(expression.type != EXP_SPECIAL_KEYS.EXP) {
-			//Check data origin
-			switch(expression.type) {
-				case AST_NODE.ID:
-					return expression.ref;
-				case AST_NODE.FUNC_EXP:
-					return expression.call;
-				default:
-					return expression.value;
-			}
-		} else {
-			return this.#expressionFirst(expression.children[0]);
-		}
-	}
-	
-	#expressionLast(expression) {
-		//Check if is last item
-		if(expression.type != EXP_SPECIAL_KEYS.EXP) {
-			//Check data origin
-			switch(expression.type) {
-				case AST_NODE.ID:
-					return expression.ref;
-				case AST_NODE.FUNC_EXP:
-					return expression.call;
-				default:
-					return expression.value;
-			}
-		} else {
-			return this.#expressionFirst(expression.children[expression.children.length - 1]);
-		}
 	}
 	
 	#terminalFirst(node) {
@@ -1952,7 +1925,7 @@ class Semantica {
 	#terminalLast(node) {
 		//Check if is a production
 		if(node.type == NODE_TYPE.PRODUCTION) {
-			return this.#terminalFirst(node.children[node.children.length - 1]);
+			return this.#terminalLast(node.children[node.children.length - 1]);
 		} else {
 			return node;
 		}

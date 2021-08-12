@@ -32,8 +32,9 @@ const HIDE_BUTTON_ID = "collapseButton";
 
 const EXECUTION_BUTTON_GROUP_ID = "executionButtons";
 const PLAY_BUTTON_ID = "playButton";
-const PAUSE_BUTTON_ID = "pauseButton";
 const SKIP_BUTTON_ID = "skipButton";
+const PAUSE_BUTTON_ID = "pauseButton";
+const RELOAD_BUTTON_ID = "reloadButton";
 
 const ACTIVE_CLASS = "active";
 const DISABLED_CLASS = "disabled";
@@ -65,6 +66,8 @@ const MARGIN_NONE_CLASS = "m-0";
 
 const LANG_PATH = "lang/";
 const JSON_TRAIL = ".json";
+
+const EXECUTION_RATE = 1000;
 
 var inputTextArea;
 var errorTextArea;
@@ -99,9 +102,12 @@ var executionButtons;
 var playButton;
 var skipButton;
 var pauseButton;
+var reloadButton;
 
 var codeDisplay;
 var costDisplay;
+
+var executionQueue;
 
 var viewMode;
 
@@ -109,7 +115,7 @@ var lang;
 
 var errorHandler;
 var frontEnd;
-var lexer;
+var backEnd;
 
 var debugMode;
 
@@ -124,6 +130,9 @@ var dropdownList;
 
 //Main
 window.onload = function() {
+	
+	//Disable execution
+	executionQueue = null;
 	
 	//Set default view mode
 	viewMode = VIEW_MODE.TOKENS;
@@ -160,8 +169,15 @@ window.onload = function() {
 	interpreteButton = document.getElementById(INTERPRETE_BUTTON_ID);
 	interpreteButton.onclick = function() {
 
-		//Disable button
+		//Disable all buttons
 		interpreteButton.disabled = true;
+		playButton.disabled = true;
+		skipButton.disabled = true;
+		pauseButton.disabled = true;
+		reloadButton.disabled = true;
+		
+		//Disable interval
+		clearInterval(executionQueue);
 
 		//Clear previous errors
 		errorHandler.clear();
@@ -202,27 +218,33 @@ window.onload = function() {
 			errorTextArea.value += ("[" + error.type + " - " + error.font + "] " + error.msg + "\n");
 		}
 		
-		//Check if no critical error was found (valid code)
-		if(errorHandler.criticalErrors == 0) {
-			errorTextArea.value += "[Info] No critical errors found";
-		}
-		
-		//Display code in execution and cost windows
-		codeDisplay.setContent(inputTextArea.value);
-		costDisplay.setContent(inputTextArea.value);
-		
 		//Clear previous execution output
 		outputTextArea.value = "";
 		
-		//Config execution buttons depending on code state
+		//Check if no critical error was found (valid code)
 		if(errorHandler.criticalErrors == 0) {
-			playButton.disabled = false;
-			skipButton.disabled = false;
-			pauseButton.disabled = true;
+			
+			//Update views
+			errorTextArea.value += "[Info] No critical errors found";
+			codeDisplay.setContent(inputTextArea.value);
+			costDisplay.setContent(inputTextArea.value);
+			
+			//Prepare back end and code execution
+			backEnd.updateInfo(frontEnd.semantica.astTree, frontEnd.semantica.funcAstTree, frontEnd.semantica.sysFunc);
+			prepareCodeRun();		
+			
 		} else {
+			
+			//Clear views
+			codeDisplay.clear();
+			costDisplay.clear();
+			
+			//Update buttons
 			playButton.disabled = true;
 			skipButton.disabled = true;
 			pauseButton.disabled = true;
+			reloadButton.disabled = true;
+			
 		}
 		
 		//Enable button
@@ -234,12 +256,24 @@ window.onload = function() {
 	playButton = document.getElementById(PLAY_BUTTON_ID);
 	playButton.onclick = function() {
 		
-		//TODO
-		
 		//Disable button
 		playButton.disabled = true;
-		//Enable button
-		playButton.disabled = false;
+		skipButton.disabled = true;
+		
+		//Execute code
+		backEnd.runNext();
+		
+		//Update marked code
+		codeDisplay.unmarkContent();
+		let nextExe = backEnd.nextRunnable();
+		if(nextExe != null) {
+			codeDisplay.markContent(nextExe.lineStart, nextExe.lineEnd, nextExe.offsetStart, nextExe.offsetEnd, BG_COLOR_CLASSES[4], null);
+			playButton.disabled = false;
+			skipButton.disabled = false;
+		} else {
+			playButton.disabled = true;
+			skipButton.disabled = true;
+		}
 		
 	}
 	
@@ -247,12 +281,12 @@ window.onload = function() {
 	skipButton = document.getElementById(SKIP_BUTTON_ID);
 	skipButton.onclick = function() {
 		
-		//TODO
-		
-		//Disable button
+		//Disable button and enable pause
 		skipButton.disabled = true;
-		//Enable button
-		skipButton.disabled = false;
+		pauseButton.disabled = false;		
+		
+		//Create execution queue
+		executionQueue = setInterval(codeRun, EXECUTION_RATE);
 		
 	}
 	
@@ -260,12 +294,40 @@ window.onload = function() {
 	pauseButton = document.getElementById(PAUSE_BUTTON_ID);
 	pauseButton.onclick = function() {
 		
-		//TODO
+		//Disable button and enable play & skip
+		pauseButton.disabled = true;
+		playButton.disabled = false;
+		skipButton.disabled = false;
+		
+		//Disable pause and update others
+		pauseButton.disabled = true;
+		if(backEnd.nextRunnable() == null) {
+			playButton.disabled = true;
+			skipButton.disabled = true;
+		} else {
+			playButton.disabled = false;
+			skipButton.disabled = false;
+		}
+		
+		//Stop execution
+		clearInterval(executionQueue);
+		
+	}
+	
+	reloadButton = document.getElementById(RELOAD_BUTTON_ID);
+	reloadButton.onclick = function() {
 		
 		//Disable button
-		pauseButton.disabled = true;
-		//Enable button
-		pauseButton.disabled = false;
+		reloadButton.disabled = true;
+		
+		//Reset code status
+		backEnd.resetRun();
+		
+		//Clear previous execution output
+		outputTextArea.value = "";
+		
+		//Stop execution
+		prepareCodeRun();
 		
 	}
 	
@@ -617,6 +679,7 @@ window.onload = function() {
 				
 				//Create front end
 				frontEnd = new FrontEnd(data, errorHandler);
+				backEnd = new BackEnd(outputTextArea);
 				
 				//TODO: Create back end
 				
@@ -926,7 +989,7 @@ function createIfCasesPath(domElement, node) {
 	//Create as context item as required
 	for(let i = 0; i < node.children.length; i++) {
 		//Create case item
-		let caseItem = createArrowElement(domElement, "case " + i);
+		let caseItem = createArrowElement(domElement, "case " + node.children[i].conditionCase);
 		createAstTreePath(createSubListElement(caseItem), node.children[i]);
 	}
 	
@@ -1121,4 +1184,54 @@ function createSubListElement(listItem) {
 	subListItem.classList.add(TREE_LIST);
 	listItem.appendChild(subListItem);
 	return subListItem;
+}
+
+function prepareCodeRun() {
+	
+	//Stop execution
+	clearInterval(executionQueue);
+	
+	//Unmark code
+	codeDisplay.unmarkContent();
+	
+	//Mark first execution item
+	let firstExe = backEnd.nextRunnable();
+	if(firstExe != null) {
+		codeDisplay.markContent(firstExe.lineStart, firstExe.lineEnd, firstExe.offsetStart, firstExe.offsetEnd, BG_COLOR_CLASSES[4], null);
+		playButton.disabled = false;
+		skipButton.disabled = false;
+		pauseButton.disabled = true;
+		reloadButton.disabled = false;
+	} else {
+		playButton.disabled = true;
+		skipButton.disabled = true;
+		pauseButton.disabled = true;
+		reloadButton.disabled = true;
+	}
+	
+}
+
+function codeRun() {
+	
+	//Execute code
+	backEnd.runNext();
+	
+	//Update marked code
+	codeDisplay.unmarkContent();
+	let nextExe = backEnd.nextRunnable();
+	if(nextExe != null) {
+		codeDisplay.markContent(nextExe.lineStart, nextExe.lineEnd, nextExe.offsetStart, nextExe.offsetEnd, BG_COLOR_CLASSES[4], null);
+	} else {
+			
+		//Disable all buttons
+		playButton.disabled = true;
+		skipButton.disabled = true;
+		pauseButton.disabled = true;
+		reloadButton.disabled = false;
+		
+		//Stop execution
+		clearInterval(executionQueue);
+		
+	}
+	
 }
