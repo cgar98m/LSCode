@@ -20,6 +20,8 @@ const BOOL = {
 	FALSE: "KW_BOOL_FALSE"
 }
 
+const LOOP_TIMEOUT = 5000;
+
 class Interpreter {
 
 	constructor(console) {
@@ -48,8 +50,6 @@ class Interpreter {
 			
 			this.nodePath = [this.astTree];
 			this.indexPath = [0];
-			
-			this.context = this.#contextCopy(this.curNode.context);
 			
 		} else {
 			this.curNode = null;
@@ -98,63 +98,67 @@ class Interpreter {
 	}
 	
 	runNext() {
+		try {
 		
-		//Check end of program
-		if(!this.isRunnable()) {
-			return;
-		}
-		
-		//Check action
-		switch(this.curNode.semantica) {
+			//Check end of program
+			if(!this.isRunnable()) {
+				return;
+			}
 			
-			case SEMANTICA_KEYS.VAR_ASSIGN:
-				if(this.#varAssign()) {
-					this.#prepareNext();
-				} else {
-					this.curNode = null;
-				}
-				break;
+			//Check action
+			switch(this.curNode.semantica) {
 				
-			case SEMANTICA_KEYS.FORK:
-				let forkResp = this.#fork();
-				if(forkResp == null) {
-					this.curNode = null;
-				} else if(forkResp) {
-					this.#prepareNext();
-				}
-				break;
-				
-			case SEMANTICA_KEYS.LOOP:
-				let loopResp = this.#loop();
-				if(loopResp == null) {
-					this.curNode = null;
-				} else if(loopResp) {
-					this.#prepareNext();
-				}
-				break;
-				
-			case SEMANTICA_KEYS.FUNC_CALL:
-				let returnValue = this.#funcCall();
-				for(let i = 0; i < returnValue.length; i++) {
-					if(returnValue[i] == null) {
+				case SEMANTICA_KEYS.VAR_ASSIGN:
+					if(this.#varAssign(this.curNode)) {
+						this.#prepareNext();
+					} else {
 						this.curNode = null;
-						return;
 					}
-				}
-				this.#prepareNext();
-				break;
-				
-			default:	//Undefined case
-				this.curNode = null;
-				break;
-				
-		}
+					break;
+					
+				case SEMANTICA_KEYS.FORK:
+					let forkResp = this.#fork();
+					if(forkResp == null) {
+						this.curNode = null;
+					} else if(forkResp) {
+						this.#prepareNext();
+					}
+					break;
+					
+				case SEMANTICA_KEYS.LOOP:
+					let loopResp = this.#loop();
+					if(loopResp == null) {
+						this.curNode = null;
+					} else if(loopResp) {
+						this.#prepareNext();
+					}
+					break;
+					
+				case SEMANTICA_KEYS.FUNC_CALL:
+					let returnValue = this.#funcCall(this.curNode, this.curNode.context);
+					for(let i = 0; i < returnValue.length; i++) {
+						if(returnValue[i] == null) {
+							this.curNode = null;
+							return;
+						}
+					}
+					this.#prepareNext();
+					break;
+					
+				default:	//Undefined case
+					this.curNode = null;
+					break;
+					
+			}
 		
-	}
-	
-	#contextCopy(context) {
-		//TODO
-		return context;
+		} catch(e) {
+			if(e instanceof RangeError) {
+				this.#displayMsg("[Error] Stack overflow - Check for endless loops/recurssion");
+			} else {
+				this.#displayMsg("[Error] Undefined error");	//May not happen, ever
+			}
+			this.curNode = null;
+		}
 	}
 	
 	#prepareNext() {
@@ -180,7 +184,6 @@ class Interpreter {
 				let nextNode = this.nodePath[this.nodePath.length - 1].children[this.indexPath[this.indexPath.length - 1]];
 				if(nextNode.semantica == SEMANTICA_KEYS.LOOP) {
 					this.curNode = nextNode;
-					this.context = this.#contextCopy(this.curNode.context);
 					return;
 				}
 				
@@ -194,18 +197,18 @@ class Interpreter {
 		
 	}
 	
-	#varAssign() {
+	#varAssign(node) {
 		
 		//Get vars and expressions
-		let vars = this.curNode.children[0];
-		let exps = this.curNode.children[1];
+		let vars = node.children[0];
+		let exps = node.children[1];
 		
 		//Evaluate expressions to assign to correspondant vars
 		let curVar = 0;
 		for(let i = 0; i < exps.children.length; i++) {
 			
 			//Eval expression
-			let results = this.#evalExp(exps.children[i]);
+			let results = this.#evalExp(exps.children[i], node.context);
 			
 			//Assign result
 			for(let j = 0; j < results.length; j++) {
@@ -217,7 +220,7 @@ class Interpreter {
 				
 				//Assign value to vars
 				for(let k = 0; k < vars.children[curVar].children.length; k++) {
-					let varRef = this.#locateVar(vars.children[curVar].children[k].content, this.context);
+					let varRef = this.#locateVar(vars.children[curVar].children[k].content, node.context);
 					varRef.value = results[j];
 				}
 				
@@ -240,7 +243,7 @@ class Interpreter {
 		let cases = this.curNode.children[1];
 		
 		//Eval condition
-		let results = this.#evalExp(condition);
+		let results = this.#evalExp(condition, this.curNode.context);
 		if(results[0] == null) {
 			return null;
 		}
@@ -267,7 +270,7 @@ class Interpreter {
 		let code = this.curNode.children[1];
 		
 		//Eval condition
-		let results = this.#evalExp(condition);
+		let results = this.#evalExp(condition, this.curNode.context);
 		if(results[0] == null) {
 			return null;
 		}
@@ -299,8 +302,6 @@ class Interpreter {
 			this.nodePath.push(caseNode);
 			this.indexPath.push(0);
 			
-			this.context = this.#contextCopy(this.curNode.context);
-			
 			return true;
 			
 		} else {
@@ -308,21 +309,27 @@ class Interpreter {
 		}
 	}
 	
-	#funcCall() {
+	#funcCall(node, context) {
+		
+		//Get function name
+		let funcName = node.ref.funcName;
+		if(typeof funcName === "undefined") {
+			funcName = node.ref;
+		}
 		
 		//Get func ref and expression params
-		let funcRef = this.astFunc[this.curNode.ref];
+		let funcRef = this.astFunc[funcName];
 		if(typeof funcRef === "undefined") {
-			funcRef = this.astSys[this.curNode.ref];
+			funcRef = this.astSys[funcName];
 		}
-		let exps = this.curNode.children;
+		let exps = node.children;
 		
 		//Evaluate expressions to use them as params
 		let curParam = 0;
 		for(let i = 0; i < exps.length; i++) {
 			
 			//Eval expression
-			let results = this.#evalExp(exps[i]);
+			let results = this.#evalExp(exps[i], context);
 			
 			//Assign result
 			for(let j = 0; j < results.length; j++) {
@@ -353,9 +360,146 @@ class Interpreter {
 			return this.#runSysFunction(funcRef);
 		}
 		
-		//TODO: Run function
-		return [null];
+		//Run non-return actions
+		let funcActions = funcRef.children[2].children;
+		if(funcActions.length > 0) {
+			if(!this.#runFuncCode(funcActions[0])) {
+				return [null];
+			}
+		}
 		
+		//Evaluate return expressions
+		let returnParams = [];
+		let exps = funcRef.children[3].children;
+		for(let i = 0; i < exps.length; i++) {
+			
+			//Eval expression
+			let results = this.#evalExp(exps[i], funcRef.context);
+			
+			//Assign result
+			for(let j = 0; j < results.length; j++) {
+				//Check invalid result
+				if(results[j] == null) {
+					return [null];
+				} else {
+					returnParams.push(results[j]);
+				}
+			}
+			
+		}
+		return returnParams;
+		
+	}
+	
+	#runFuncCode(node) {
+		
+		//Run every action
+		for(let i = 0; i < node.children.length; i++) {
+			//Check action
+			switch(node.children[i].semantica) {
+		
+				case SEMANTICA_KEYS.VAR_ASSIGN:
+					if(!this.#varAssign(node.children[i])) {
+						return false;
+					}
+					break;
+					
+				case SEMANTICA_KEYS.FORK:
+					if(!this.#funcFork(node.children[i])) {
+						return false;
+					}
+					break;
+					
+				case SEMANTICA_KEYS.LOOP:
+					if(!this.#funcLoop(node.children[i])) {
+						return false;
+					}
+					break;
+					
+				case SEMANTICA_KEYS.FUNC_CALL:
+					let returnValue = this.#funcCall(node.children[i], node.children[i].context);
+					for(let i = 0; i < returnValue.length; i++) {
+						if(returnValue[i] == null) {
+							return false;
+						}
+					}
+					break;
+					
+				default:	//Undefined case
+					return false;
+					
+			}
+		}
+		
+		//All ok
+		return true;
+		
+	}
+	
+	#funcFork(node) {
+		
+		//Get condition and cases
+		let condition = node.children[0].children[0];
+		let cases = node.children[1];
+		
+		//Eval condition
+		let results = this.#evalExp(condition, node.context);
+		if(results[0] == null) {
+			return false;
+		}
+		
+		//Load correspondant case
+		let expectedCase = results[0] ? 0 : 1;
+		for(let i = 0; i < cases.children.length; i++) {
+			if(cases.children[i].conditionCase == expectedCase) {
+				return this.#runFuncCode(cases.children[i]);
+			}
+		}
+		
+		//No match found: empty/inexistant case
+		return true;
+		
+	}
+	
+	#funcLoop(node) {
+		//Loop
+		let startTime = Date.now();
+		while(true) {
+			
+			//Get condition and run code
+			let condition = node.children[0].children[0];
+			let code = node.children[1];
+			
+			//Eval condition
+			let results = this.#evalExp(condition, node.context);
+			if(results[0] == null) {
+				return false;
+			}
+			
+			//Load code
+			if(results[0]) {
+				if(code.children.length > 0) {
+					if(!this.#runFuncCode(code.children[0])) {
+						return false;
+					}
+				} else {
+					//Empty/inexistant code (endless loop)
+					this.#displayMsg("[Error] Endless loop");
+					return false;
+				}
+			} else {
+				//End of loop
+				return true;
+			}
+			
+			//Check loop time duration
+			if(Date.now() - startTime > LOOP_TIMEOUT) {
+				//Too long loop
+				this.#displayMsg("[Error] Too long loop - It may be an endless loop");
+				return false;
+			}
+			
+		}
 	}
 	
 	#runSysFunction(funcRef) {
@@ -364,9 +508,13 @@ class Interpreter {
 			
 			case SYS_FUNC.INT:
 			case SYS_FUNC.BOOL:
-			case SYS_FUNC.STRING:
 			case SYS_FUNC.INT:
 				this.#displayMsg(funcRef.context.vars.msg.value);		
+				return [];
+				
+			case SYS_FUNC.STRING:
+				let string = funcRef.context.vars.msg.value;
+				this.#displayMsg(string.substring(1, string.length - 1));	//Remove ""	
 				return [];
 				
 			default:	//Undefined
@@ -375,7 +523,7 @@ class Interpreter {
 		}
 	}
 	
-	#evalExp(node) {
+	#evalExp(node, context) {
 		
 		//Check node type
 		let value = [];
@@ -383,9 +531,9 @@ class Interpreter {
 			case AST_NODE.EXPRESSION:
 				//Check if has any operation assigned
 				if(typeof node.operation === "undefined") {
-					value = this.#evalExp(node.children[0]);
+					value = this.#evalExp(node.children[0], context);
 				} else {
-					value = this.#operate(node);
+					value = this.#operate(node, context);
 				}
 				break;
 			
@@ -396,7 +544,7 @@ class Interpreter {
 			case AST_NODE.ID:
 			
 				//Check if var has any value
-				let varRef = this.#locateVar(node.ref.content, this.context);
+				let varRef = this.#locateVar(node.ref.content, context);
 				if(typeof varRef.value === "undefined") {
 					varRef.value = this.#getDefaultValue(varRef.type);
 				}
@@ -411,7 +559,7 @@ class Interpreter {
 				break;
 				
 			case AST_NODE.FUNC_EXP:
-				value.push(...this.#expFuncCall(node));
+				value.push(...this.#funcCall(node, context));
 				break;
 				
 			default:	//Undefined case
@@ -425,49 +573,12 @@ class Interpreter {
 		
 	}
 	
-	#expFuncCall(node) {
-		
-		//Get func ref and expression params
-		let funcRef = node.funcRef;
-		let exps = node.children;
-		
-		//Evaluate expressions to use them as params
-		let curParam = 0;
-		for(let i = 0; i < exps.length; i++) {
-			
-			//Eval expression
-			let results = this.#evalExp(exps[i]);
-			
-			//Assign result
-			for(let j = 0; j < results.length; j++) {
-				
-				//Check invalid result
-				if(results[j] == null) {
-					return [null];
-				}
-				
-				//Assign value to param
-				funcRef.children[0].children[curParam].varRef.value = results[j];
-				
-				//Next param
-				curParam++;
-				
-			}
-			
-		}
-		
-		//TODO: Run function
-		//TODO: Get return value
-		return [];
-		
-	}
-	
-	#operate(node) {
+	#operate(node, context) {
 		
 		//Eval expressions before operation occurs
 		let exps = [];
 		for(let i = 0; i < node.children.length; i++) {
-			exps.push(...this.#evalExp(node.children[i]));
+			exps.push(...this.#evalExp(node.children[i], context));
 		}
 		
 		//Check valid exps
@@ -522,7 +633,7 @@ class Interpreter {
 					this.#displayMsg("[Error] Division by 0");
 					return [null];
 				}
-				return [exps[0] / exps[1]];
+				return [Math.round(exps[0] / exps[1])];
 				
 			case OPERATION.MOD:
 				//Check 0-div
@@ -530,7 +641,7 @@ class Interpreter {
 					this.#displayMsg("[Error] Division by 0");
 					return [null];
 				}
-				return [exps[0] % exps[1]];
+				return [Math.round(exps[0] % exps[1])];
 				
 			default:
 				this.#displayMsg("[Error] Unexpected operation");

@@ -67,7 +67,7 @@ const MARGIN_NONE_CLASS = "m-0";
 const LANG_PATH = "lang/";
 const JSON_TRAIL = ".json";
 
-const EXECUTION_RATE = 1000;
+const EXECUTION_RATE = 500;
 
 var inputTextArea;
 var errorTextArea;

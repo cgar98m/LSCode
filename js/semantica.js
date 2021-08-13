@@ -103,14 +103,14 @@ class Semantica {
 		//Context & AST struct (stop on critical error)
 		this.#astSkell(parseTree, this.astTree);
 		
-		//Var definition (stop on critical error)
-		if(this.errorHandler.criticalErrors == 0) {
-			this.#astVarsAlloc(parseTree, this.astTree);
-		}
-		
 		//Func definition (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
 			this.#astFuncAlloc(parseTree, this.astTree);
+		}
+		
+		//Var definition (stop on critical error)
+		if(this.errorHandler.criticalErrors == 0) {
+			this.#astVarsAlloc(parseTree, this.astTree);
 		}
 		
 		//Vars/func calls existance check (stop on critical error)
@@ -534,6 +534,11 @@ class Semantica {
 						continueSearch = true;
 						break;
 						
+					case SEMANTICA_KEYS.FUNC_DEFINE:
+						astNodeParent = parseNode.linkAst;
+						continueSearch = true;
+						break;
+						
 					case SEMANTICA_KEYS.VAR_DEFINE:
 						this.#varDefineAlloc(parseNode, astNodeParent, semantica);
 						break;
@@ -777,7 +782,7 @@ class Semantica {
 			//Get var info
 			let varInfo = funcParams[i];
 			
-			//Check if var already exists
+			//Check if var already exists (may not happen, ever)
 			if(this.#existsVar(varInfo.content, astNodeParent.context)) {
 				//Check if is located in same context
 				if(typeof astNodeParent.context.vars[varInfo.content] === "undefined") {
@@ -1544,7 +1549,7 @@ class Semantica {
 							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 							dataType: funcType,
 							multiType: this.#funcReturnType(funcRef, true),
-							funcRef: funcRef,
+							ref: funcRef,
 							call: funcNodeName.info,
 							children: paramsData
 						};
