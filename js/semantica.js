@@ -182,7 +182,6 @@ class Semantica {
 			]
 		}
 		this.sysFunc[printName].children[0].children[0].info = this.sysFunc[printName].context.vars.msg;
-		this.sysFunc[printName].children[0].children[0].varRef = this.sysFunc[printName].context.vars.msg;
 	}
 	
 	/*******
@@ -801,8 +800,7 @@ class Semantica {
 			//Create var node
 			let funcVarDef = {
 				type: AST_NODE.INFO,
-				info: varInfo,
-				varRef: astNodeParent.context.vars[varInfo.content]
+				info: varInfo
 			};
 			funcVarDefineNode.children.push(funcVarDef);
 			
@@ -1549,7 +1547,7 @@ class Semantica {
 							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 							dataType: funcType,
 							multiType: this.#funcReturnType(funcRef, true),
-							ref: funcRef,
+							ref: funcRef.funcName,
 							call: funcNodeName.info,
 							children: paramsData
 						};

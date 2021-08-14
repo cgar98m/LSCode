@@ -32,9 +32,9 @@ class Interpreter {
 	setCode(astTree, astFunc, astSys) {
 		
 		//Get required data
-		this.astTree = astTree;
-		this.astFunc = astFunc;
-		this.astSys = astSys;
+		this.astTreeSrc = astTree;
+		this.astFuncSrc = astFunc;
+		this.astSysSrc = astSys;
 		
 		//Reset console
 		this.resetStatus();
@@ -44,8 +44,26 @@ class Interpreter {
 	resetStatus() {
 		
 		//Check if any action exists
-		if(this.astTree.children.length > 0) {
+		if(this.astTreeSrc.children.length > 0) {
 			
+			//Copy ast tree
+			this.astTree = astCopy(this.astTreeSrc, null);
+			
+			//Copy ast funcs
+			this.astFunc = [];
+			let funcs = Object.keys(this.astFuncSrc);
+			for(let i = 0; i < funcs.length; i++) {
+				this.astFunc[funcs[i]] = astCopy(this.astFuncSrc[funcs[i]], this.astTree.context);
+			}
+			
+			//Copy sys funcs
+			this.astSys = [];
+			let sysFuncs = Object.keys(this.astSysSrc);
+			for(let i = 0; i < sysFuncs.length; i++) {
+				this.astSys[sysFuncs[i]] = astCopy(this.astSysSrc[sysFuncs[i]], this.astTree.context);
+			}
+			
+			//Prepare code execution
 			this.curNode = this.astTree.children[0];
 			
 			this.nodePath = [this.astTree];
@@ -156,6 +174,7 @@ class Interpreter {
 				this.#displayMsg("[Error] Stack overflow - Check for endless loops/recurssion");
 			} else {
 				this.#displayMsg("[Error] Undefined error");	//May not happen, ever
+				console.error(e);
 			}
 			this.curNode = null;
 		}
@@ -312,15 +331,14 @@ class Interpreter {
 	#funcCall(node, context) {
 		
 		//Get function name
-		let funcName = node.ref.funcName;
-		if(typeof funcName === "undefined") {
-			funcName = node.ref;
-		}
+		let funcName = node.ref;
 		
 		//Get func ref and expression params
 		let funcRef = this.astFunc[funcName];
 		if(typeof funcRef === "undefined") {
-			funcRef = this.astSys[funcName];
+			funcRef = astCopy(this.astSys[funcName], this.astTree.context);
+		} else {
+			funcRef = astCopy(this.astFunc[funcName], this.astTree.context);
 		}
 		let exps = node.children;
 		
@@ -340,7 +358,7 @@ class Interpreter {
 				}
 				
 				//Assign value to param
-				funcRef.children[0].children[curParam].varRef.value = results[j];
+				funcRef.children[0].children[curParam].info.value = results[j];
 				
 				//Next param
 				curParam++;
