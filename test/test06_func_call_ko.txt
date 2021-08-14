@@ -3,9 +3,8 @@ hola()
 c = suma(a, b)
 d = suma(a,b) % 2
 /*
-c declaració implícita (warning)
-d declaració implícita (warning)
+c, d declaració implícita (warning)
 hola() no definit (error)
 suma() no definit (error)
-a,b no definits (error)
+a, b no definits (error)
 */

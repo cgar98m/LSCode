@@ -11,5 +11,4 @@ mentre cert
 fimentre
 /*
 c declaració implícita (warning)
-a declaració implícita (warning)
 */

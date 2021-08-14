@@ -222,32 +222,30 @@ class Interpreter {
 		let vars = node.children[0];
 		let exps = node.children[1];
 		
-		//Evaluate expressions to assign to correspondant vars
-		let curVar = 0;
+		//Evaluate expressions
+		let results = [];
 		for(let i = 0; i < exps.children.length; i++) {
-			
-			//Eval expression
-			let results = this.#evalExp(exps.children[i], node.context);
-			
-			//Assign result
-			for(let j = 0; j < results.length; j++) {
+			results.push(...this.#evalExp(exps.children[i], node.context));
+		}
+		
+		//Assign expressions to correspondant var
+		let curVar = 0;
+		for(let i = 0; i < results.length; i++) {
 				
-				//Check invalid result
-				if(results[j] == null) {
-					return false;
-				}
-				
-				//Assign value to vars
-				for(let k = 0; k < vars.children[curVar].children.length; k++) {
-					let varRef = this.#locateVar(vars.children[curVar].children[k].content, node.context);
-					varRef.value = results[j];
-				}
-				
-				//Next var
-				curVar++;
-				
+			//Check invalid result
+			if(results[i] == null) {
+				return false;
 			}
 			
+			//Assign value to vars
+			for(let j = 0; j < vars.children[curVar].children.length; j++) {
+				let varRef = this.#locateVar(vars.children[curVar].children[j].content, node.context);
+				varRef.value = results[i];
+			}
+			
+			//Next var
+			curVar++;
+		
 		}
 		
 		//All ok
@@ -531,8 +529,7 @@ class Interpreter {
 				return [];
 				
 			case SYS_FUNC.STRING:
-				let string = funcRef.context.vars.msg.value;
-				this.#displayMsg(string.substring(1, string.length - 1));	//Remove ""	
+				this.#displayMsg(funcRef.context.vars.msg.value);
 				return [];
 				
 			default:	//Undefined
@@ -678,7 +675,8 @@ class Interpreter {
 			case DATA_TYPES.BOOL:
 				return node.value.token_id == BOOL.TRUE ? true : false;
 			case DATA_TYPES.STRING:
-				return node.value.content;
+				let string = node.value.content;
+				return string.substring(1, string.length - 1);
 			default:
 				this.#displayMsg("[Error] Unexpected const");
 				return null;

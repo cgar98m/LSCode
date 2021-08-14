@@ -9,6 +9,5 @@ sino
    c: enter
 fisi
 /*
-a := 2 declaració implicita (warning)
-b := cert declaració implicita (warning)
+a, b declaració implicita (warning)
 */

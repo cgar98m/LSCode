@@ -2,6 +2,6 @@
 a, b = divisioAmbResidu(c, d)
 /*
 a, b declaració implícita (warning)
-c, d no declarats (error)
-divisioAmbResidu() no definit (error)
+divisioAmbResidu no definit (error)
+c, d no declarats (error fantasma)
 */

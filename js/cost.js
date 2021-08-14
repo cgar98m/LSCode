@@ -1,0 +1,6 @@
+class Cost {
+
+	constructor() {
+	}
+
+}

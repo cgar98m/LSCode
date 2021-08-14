@@ -3,7 +3,7 @@ mentre 1
    si 1
 /*
 S'espera un fisi (error)
-S'espera un fimentre (error)
-mentre 1 usa enter, no booleà (error)
-si 1 usa enter, no booleà (error)
+S'espera un fimentre (error fantasma)
+mentre 1 usa enter, no booleà (error fantasma)
+si 1 usa enter, no booleà (error fantasma)
 */

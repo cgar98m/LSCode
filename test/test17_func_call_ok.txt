@@ -9,8 +9,5 @@ func suma(a:enter,b:enter):enter
    retorna a+b
 fifunc
 /*
-c declaració implícita (warning)
-d declaració implícita (warning)
-a re-definit en funció (warning)
-b re-definit en funció (warning)
+c, d declaració implícita (warning)
 */
