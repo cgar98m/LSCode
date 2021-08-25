@@ -9,5 +9,5 @@ func hola(num1: enter, num2: enter):enter,cadena
 fifunc
 /*
 a,b declaració implícita (warning)
-printaInt i printaString no definits (cal definir al sistema o error)
+printaEnter i printaCadena no definits (cal definir al sistema o error)
 */

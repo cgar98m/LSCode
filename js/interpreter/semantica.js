@@ -1,15 +1,3 @@
-const AST_NODE = {
-	STRUCT: "struct",
-	ACTION: "action",
-	FUNC: "func",
-	INFO_HEADER: "infoHeader",
-	INFO: "info",
-	EXPRESSION: "expression",
-	VALUE: "value",
-	ID: "id",
-	FUNC_EXP: "funcExp"
-}
-
 const SEMANTICA_KEYS = {
 	NEW_CONTEXT: "newContext",
 	VAR_DEFINE: "varDefine",
@@ -52,6 +40,28 @@ const SYS_FUNC = {
 	STRING: "printaCadena"
 }
 
+const OPERATION = {
+	NOT: "not",
+	OR: "or",
+	AND: "and",
+	EQ: "equal",
+	NOT_EQ: "notEqual",
+	LOW: "lower",
+	LOW_EQ: "lowerEqual",
+	GREAT: "greater",
+	GREAT_EQ: "greaterEqual",
+	PLUS: "plus",
+	MINUS: "minus",
+	MULT: "mult",
+	DIV: "div",
+	MOD: "mod"
+}
+
+const BOOL = {
+	TRUE: "KW_BOOL_TRUE",
+	FALSE: "KW_BOOL_FALSE"
+}
+
 class Semantica {
 	
 	constructor(grammarMap, errorHandler) {
@@ -64,7 +74,7 @@ class Semantica {
 		
 		//Clear strcuts
 		this.clear();
-		this.#sysFuncClear();
+		this.sysFuncClear();
 		
 	}
 	
@@ -101,31 +111,31 @@ class Semantica {
 		}
 		
 		//Context & AST struct (stop on critical error)
-		this.#astSkell(parseTree, this.astTree);
+		this.astSkell(parseTree, this.astTree);
 		
 		//Func definition (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
-			this.#astFuncAlloc(parseTree, this.astTree);
+			this.astFuncAlloc(parseTree, this.astTree);
 		}
 		
 		//Var definition (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
-			this.#astVarsAlloc(parseTree, this.astTree);
+			this.astVarsAlloc(parseTree, this.astTree);
 		}
 		
 		//Vars/func calls existance check (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
-			this.#astAccessCheck(parseTree, this.astTree);
+			this.astAccessCheck(parseTree, this.astTree);
 		}
 		
 		//Expressions validation: if, while, var assign & func call (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
-			this.#astExpressionCheck(parseTree, this.astTree);
+			this.astExpressionCheck(parseTree, this.astTree);
 		}
 		
 		//Func return validation (stop on critical error)
 		if(this.errorHandler.criticalErrors == 0) {
-			this.#astFuncReturnCheck(parseTree, this.astTree);
+			this.astFuncReturnCheck(parseTree, this.astTree);
 		}
 		
 		//Check critical error
@@ -136,7 +146,7 @@ class Semantica {
 	}
 	
 	//Hardcoded func. May improve in the future (sysFunc.json?)
-	#sysFuncClear() {
+	sysFuncClear() {
 		
 		//Reset system funcs
 		this.sysFunc = [];
@@ -144,12 +154,12 @@ class Semantica {
 		//Create all data types print
 		let types = Object.keys(DATA_TYPES);
 		for(let i = 0; i < types.length; i++) {
-			this.#sysPrint(SYS_FUNC[types[i]], DATA_TYPES[types[i]]);
+			this.sysPrint(SYS_FUNC[types[i]], DATA_TYPES[types[i]]);
 		}
 		
 	}
 	
-	#sysPrint(printName, printType) {
+	sysPrint(printName, printType) {
 		this.sysFunc[printName] = {
 			type: AST_NODE.FUNC,
 			funcName: printName,
@@ -188,7 +198,7 @@ class Semantica {
 	AST CORE
 	*******/
 	
-	#astSkell(parseNode, astNodeParent) {
+	astSkell(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -201,23 +211,23 @@ class Semantica {
 				switch(key) {
 						
 					case SEMANTICA_KEYS.VAR_ASSIGN:
-						this.#varAssignSkell(parseNode, astNodeParent, semantica);
+						this.varAssignSkell(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FORK:
-						this.#forkSkell(parseNode, astNodeParent, semantica);
+						this.forkSkell(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.LOOP:
-						this.#loopSkell(parseNode, astNodeParent, semantica);
+						this.loopSkell(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FUNC_DEFINE:
-						this.#funcDefineSkell(parseNode, astNodeParent, semantica);
+						this.funcDefineSkell(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FUNC_CALL:
-						this.#funcCallSkell(parseNode, astNodeParent, semantica);
+						this.funcCallSkell(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -231,18 +241,18 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astSkell(parseNode.children[i], astNodeParent);
+					this.astSkell(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#varAssignSkell(parseNode, astNodeParent, semantica) {
+	varAssignSkell(parseNode, astNodeParent, semantica) {
 	
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 	
 		//Create var assign node
 		let varAssignNode = {
@@ -262,11 +272,11 @@ class Semantica {
 	
 	}
 	
-	#forkSkell(parseNode, astNodeParent, semantica) {
+	forkSkell(parseNode, astNodeParent, semantica) {
 		
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create if node
 		let ifNode = {
@@ -304,7 +314,7 @@ class Semantica {
 			if(semantica[ifNode.semantica].cases.find(item => item == prod.production_id)) {
 				
 				//Create context
-				this.#contextExtraction(prod, casesNode, astNodeParent.context);
+				this.contextExtraction(prod, casesNode, astNodeParent.context);
 				
 				//Assign case type
 				let caseContext = casesNode.children[casesNode.children.length - 1];
@@ -315,11 +325,11 @@ class Semantica {
 		
 	}
 	
-	#loopSkell(parseNode, astNodeParent, semantica) {
+	loopSkell(parseNode, astNodeParent, semantica) {
 		
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create loop node
 		let loopNode = {
@@ -354,30 +364,30 @@ class Semantica {
 		//Fill code node
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[loopNode.semantica].code) {
-				this.#contextExtraction(parseNode.children[i], codeNode, astNodeParent.context);
+				this.contextExtraction(parseNode.children[i], codeNode, astNodeParent.context);
 			}
 		}
 		
 	}
 	
-	#funcDefineSkell(parseNode, astNodeParent, semantica) {
+	funcDefineSkell(parseNode, astNodeParent, semantica) {
 		
 		//Get function name node
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].funcName);
 		
 		//Check if function exists
-		if(this.#existsFunc(funcNodeName.info.content)) {
-			if(this.#isSysFunc(funcNodeName.info.content)) {
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "System function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+		if(this.existsFunc(funcNodeName.info.content)) {
+			if(this.isSysFunc(funcNodeName.info.content)) {
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_SYS_FUNC_REDEFINE.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset));
 			} else {
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" re-defined in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_FUNC_REDEFINE.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset));
 			}
 			return;
 		}
 		
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create function
 		let funcNode = {
@@ -422,7 +432,7 @@ class Semantica {
 		//Fill code node
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].code) {
-				this.#contextExtraction(parseNode.children[i], codeNode, funcNode.context);
+				this.contextExtraction(parseNode.children[i], codeNode, funcNode.context);
 			}
 		}
 		
@@ -441,9 +451,26 @@ class Semantica {
 		};
 		funcNode.children.push(returnNode);
 		
+		//Check if exists return statement
+		for(let i = 0; i < parseNode.children.length; i++) {
+			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].returnData) {
+				
+				//Get first and last terminals
+				firstTerm = this.terminalFirst(parseNode.children[i]);
+				lastTerm = this.terminalLast(parseNode.children[i]);
+				
+				//Update info
+				returnNode.lineStart = firstTerm.info.line;
+				returnNode.lineEnd = lastTerm.info.line;
+				returnNode.offsetStart = firstTerm.info.offset;
+				returnNode.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
+				
+			}
+		}
+		
 	}
 	
-	#contextExtraction(parseNode, astNodeParent, context) {
+	contextExtraction(parseNode, astNodeParent, context) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -451,10 +478,10 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Check if contains new context key
-			if(typeof semantica[SEMANTICA_KEYS.NEW_CONTEXT] === "undefined") {
+			if(typeof semantica[SEMANTICA_KEYS.NEW_CONTEXT] === UNDEFINED) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#contextExtraction(parseNode.children[i], astNodeParent, context);
+					this.contextExtraction(parseNode.children[i], astNodeParent, context);
 				}
 			} else {
 				
@@ -476,7 +503,7 @@ class Semantica {
 				
 				//Sub-context extraction
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astSkell(parseNode.children[i], parseNode.linkAst);
+					this.astSkell(parseNode.children[i], parseNode.linkAst);
 				}
 				
 			}
@@ -484,14 +511,14 @@ class Semantica {
 		}
 	}
 	
-	#funcCallSkell(parseNode, astNodeParent, semantica) {
+	funcCallSkell(parseNode, astNodeParent, semantica) {
 		
 		//Get function name node
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 		
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create func call node
 		let funcCallNode = {
@@ -516,7 +543,7 @@ class Semantica {
 	VAR DEFINITION
 	*************/
 	
-	#astVarsAlloc(parseNode, astNodeParent) {
+	astVarsAlloc(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -539,11 +566,11 @@ class Semantica {
 						break;
 						
 					case SEMANTICA_KEYS.VAR_DEFINE:
-						this.#varDefineAlloc(parseNode, astNodeParent, semantica);
+						this.varDefineAlloc(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.VAR_ASSIGN:
-						this.#varAssignAlloc(parseNode, astNodeParent, semantica);
+						this.varAssignAlloc(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -557,20 +584,20 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astVarsAlloc(parseNode.children[i], astNodeParent);
+					this.astVarsAlloc(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#varDefineAlloc(parseNode, astNodeParent, semantica) {
+	varDefineAlloc(parseNode, astNodeParent, semantica) {
 		
 		//Extract vars
-		let varList = this.#varExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_DEFINE].vars));
+		let varList = this.varExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_DEFINE].vars));
 		
 		//Extract type
-		let typeInfo = this.#typeExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_DEFINE].type));
+		let typeInfo = this.typeExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_DEFINE].type));
 		
 		//Create vars in symbolic table
 		for(let i = 0; i < varList.length; i++) {
@@ -580,14 +607,14 @@ class Semantica {
 			varInfo.type = typeInfo.type;
 			
 			//Check if var already exists
-			if(this.#existsVar(varInfo.content, astNodeParent.context)) {
+			if(astExistsVar(varInfo.content, astNodeParent.context)) {
 				//Check if is located in same context
-				if(typeof astNodeParent.context.vars[varInfo.content] === "undefined") {
+				if(typeof astNodeParent.context.vars[varInfo.content] === UNDEFINED) {
 					//Var re-definition in different context accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" re-definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, WARN_VAR_REDEFINE.format(varInfo.content, varInfo.line, varInfo.offset));
 				} else {
 					//Var re-definition in same context not accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var \"" + varInfo.content + "\" re-definition in line " + varInfo.line + ", col " + varInfo.offset);
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_VAR_REDEFINE.format(varInfo.content, varInfo.line, varInfo.offset));
 					return;
 				}
 			}
@@ -599,10 +626,10 @@ class Semantica {
 		
 	}
 	
-	#varAssignAlloc(parseNode, astNodeParent, semantica) {
+	varAssignAlloc(parseNode, astNodeParent, semantica) {
 		
 		//Extract var groups
-		let varConcat = this.#varConcatExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].varConcat));
+		let varConcat = this.varConcatExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].varConcat));
 		
 		//Get var assign node
 		let varAssignNode = parseNode.linkAst;
@@ -615,17 +642,17 @@ class Semantica {
 				let varInfo = varConcat[i][j];
 				
 				//Check if var already exists
-				if(!this.#existsVar(varInfo.content, astNodeParent.context)) {
+				if(!astExistsVar(varInfo.content, astNodeParent.context)) {
 					
 					//Var creation notification
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" implicit definition in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, WARN_IMPLICIT_VAR_DEFINE.format(varInfo.content, varInfo.line, varInfo.offset));
 					
 					//Update sym table
 					varInfo.type = null;	//Undefined value (depends on expression, which can contain itself --> mimics neighbour type)
 					astNodeParent.context.vars[varInfo.content] = varInfo;
 					
 				} else {
-					let varRef = this.#locateVar(varInfo.content, astNodeParent.context);
+					let varRef = astLocateVar(varInfo.content, astNodeParent.context);
 					varInfo.type = varRef.type;
 				}
 				
@@ -636,7 +663,7 @@ class Semantica {
 		for(let i = 0; i < varConcat.length - 1; i++) {
 			if(varConcat[i].length != varConcat[i + 1].length) {
 				//Different var amount
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Different var amounts between assigns in line " + varConcat[0][0].line + ", col " + varConcat[0][0].offset);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_VAR_AMOUNT_MISSMATCH.format(varConcat[0][0].line, varConcat[0][0].offset));
 				return;
 			}
 		}
@@ -664,7 +691,7 @@ class Semantica {
 		
 	}
 	
-	#varConcatExtraction(parseNode) {
+	varConcatExtraction(parseNode) {
 	
 		//Check if is a production
 		let varConcat = [];
@@ -674,12 +701,12 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Process all children
-			let existsVarGroup = typeof semantica[SEMANTICA_KEYS.VAR_SEPARATION] !== "undefined";
+			let existsVarGroup = typeof semantica[SEMANTICA_KEYS.VAR_SEPARATION] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsVarGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR_SEPARATION].varGroup) {
-					varConcat.push(this.#varExtraction(parseNode.children[i]));
+					varConcat.push(this.varExtraction(parseNode.children[i]));
 				} else {
-					varConcat.push(...this.#varConcatExtraction(parseNode.children[i]));
+					varConcat.push(...this.varConcatExtraction(parseNode.children[i]));
 				}
 			}
 		
@@ -689,7 +716,7 @@ class Semantica {
 		
 	}
 	
-	#varExtraction(parseNode) {
+	varExtraction(parseNode) {
 		
 		//Check if is a production
 		let varList = [];
@@ -699,12 +726,12 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Process all children
-			let existsVar = typeof semantica[SEMANTICA_KEYS.VAR] !== "undefined";
+			let existsVar = typeof semantica[SEMANTICA_KEYS.VAR] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsVar && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR].varName) {
 					varList.push(parseNode.children[i].info);
 				} else {
-					varList.push(...this.#varExtraction(parseNode.children[i]));
+					varList.push(...this.varExtraction(parseNode.children[i]));
 				}
 			}
 			
@@ -718,7 +745,7 @@ class Semantica {
 	FUNC DEFINITION
 	**************/
 	
-	#astFuncAlloc(parseNode, astNodeParent) {
+	astFuncAlloc(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -732,7 +759,7 @@ class Semantica {
 						
 					case SEMANTICA_KEYS.FUNC_DEFINE:
 						astNodeParent = parseNode.linkAst;
-						this.#funcDefineAlloc(parseNode, astNodeParent, semantica);
+						this.funcDefineAlloc(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -746,14 +773,14 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astFuncAlloc(parseNode.children[i], astNodeParent);
+					this.astFuncAlloc(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#funcDefineAlloc(parseNode, astNodeParent, semantica) {
+	funcDefineAlloc(parseNode, astNodeParent, semantica) {
 		
 		//Get function data
 		let funcParams = [];
@@ -762,11 +789,11 @@ class Semantica {
 			switch(parseNode.children[i].production_id) {
 				
 				case semantica[SEMANTICA_KEYS.FUNC_DEFINE].params:
-					funcParams = this.#funcParamsExtraction(parseNode.children[i]);
+					funcParams = this.funcParamsExtraction(parseNode.children[i]);
 					break;
 					
 				case semantica[SEMANTICA_KEYS.FUNC_DEFINE].returnType:
-					funcTypes = this.#typeConcatExtraction(parseNode.children[i]);
+					funcTypes = this.typeConcatExtraction(parseNode.children[i]);
 					break;
 					
 			}
@@ -782,14 +809,14 @@ class Semantica {
 			let varInfo = funcParams[i];
 			
 			//Check if var already exists (may not happen, ever)
-			if(this.#existsVar(varInfo.content, astNodeParent.context)) {
+			if(astExistsVar(varInfo.content, astNodeParent.context)) {
 				//Check if is located in same context
-				if(typeof astNodeParent.context.vars[varInfo.content] === "undefined") {
+				if(typeof astNodeParent.context.vars[varInfo.content] === UNDEFINED) {
 					//Var re-definition in different context accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, "Var \"" + varInfo.content + "\" definition in sub-context in line " + varInfo.line + ", col " + varInfo.offset + " - Program may not work as expected");
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.WARNING, WARN_VAR_REDEFINE.format(varInfo.content, varInfo.line, varInfo.offset));
 				} else {
 					//Var re-definition in same context not accepted
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var \"" + varInfo.content + "\" re-definition in line " + varInfo.line + ", col " + varInfo.offset);
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_VAR_REDEFINE.format(varInfo.content, varInfo.line, varInfo.offset));
 					return;
 				}
 			}
@@ -819,7 +846,7 @@ class Semantica {
 		
 	}
 	
-	#funcParamsExtraction(parseNode) {
+	funcParamsExtraction(parseNode) {
 		
 		//Check if is a production
 		let funcParams = [];
@@ -830,17 +857,17 @@ class Semantica {
 			
 			//Process all children
 			let param;
-			let existsFuncVar = typeof semantica[SEMANTICA_KEYS.FUNC_VAR] !== "undefined";
+			let existsFuncVar = typeof semantica[SEMANTICA_KEYS.FUNC_VAR] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsFuncVar) {
 					if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_VAR].varName) {
 						param = parseNode.children[i].info;
 					} else if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_VAR].type) {
-						let typeInfo = this.#typeExtraction(parseNode.children[i]);
+						let typeInfo = this.typeExtraction(parseNode.children[i]);
 						param.type = typeInfo.type;
 					}
 				} else {
-					funcParams.push(...this.#funcParamsExtraction(parseNode.children[i]));
+					funcParams.push(...this.funcParamsExtraction(parseNode.children[i]));
 				}
 			}
 			
@@ -855,7 +882,7 @@ class Semantica {
 		
 	}
 	
-	#typeConcatExtraction(parseNode) {
+	typeConcatExtraction(parseNode) {
 	
 		//Check if is a production
 		let typeConcat = [];
@@ -865,12 +892,12 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Process all children
-			let existsTypeGroup = typeof semantica[SEMANTICA_KEYS.TYPE_SEPARATION] !== "undefined";
+			let existsTypeGroup = typeof semantica[SEMANTICA_KEYS.TYPE_SEPARATION] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsTypeGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.TYPE_SEPARATION].typeGroup) {
-					typeConcat.push(this.#typeExtraction(parseNode.children[i]));
+					typeConcat.push(this.typeExtraction(parseNode.children[i]));
 				} else {
-					typeConcat.push(...this.#typeConcatExtraction(parseNode.children[i]));
+					typeConcat.push(...this.typeConcatExtraction(parseNode.children[i]));
 				}
 			}
 		
@@ -880,7 +907,7 @@ class Semantica {
 		
 	}
 	
-	#typeExtraction(parseNode) {
+	typeExtraction(parseNode) {
 		
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
@@ -889,7 +916,7 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Process type child
-			if(typeof semantica[SEMANTICA_KEYS.TYPE] !== "undefined") {
+			if(typeof semantica[SEMANTICA_KEYS.TYPE] !== UNDEFINED) {
 				//Find type pair
 				let typePairs = semantica[SEMANTICA_KEYS.TYPE].typePairs;
 				for(let i = 0; i < parseNode.children.length; i++) {
@@ -917,7 +944,7 @@ class Semantica {
 	EXISTANCE CALLS
 	**************/
 	
-	#astAccessCheck(parseNode, astNodeParent) {
+	astAccessCheck(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -940,11 +967,11 @@ class Semantica {
 						break;
 					
 					case SEMANTICA_KEYS.VALUE:
-						this.#valueExists(parseNode, astNodeParent, semantica);
+						this.valueAccessCheck(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FUNC_CALL:
-						this.#funcExists(parseNode, astNodeParent, semantica);
+						this.funcAccessCheck(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -958,14 +985,14 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astAccessCheck(parseNode.children[i], astNodeParent);
+					this.astAccessCheck(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#valueExists(parseNode, astNodeParent, semantica) {
+	valueAccessCheck(parseNode, astNodeParent, semantica) {
 		
 		//Get all possible value list
 		let posValues = semantica[SEMANTICA_KEYS.VALUE].typePairs;
@@ -974,14 +1001,14 @@ class Semantica {
 		for(let i = 0; i < parseNode.children.length; i++) {
 			let posNode = parseNode.children[i];
 			for(let j = 0; j < posValues.length; j++) {
-				if(typeof posValues[j][posNode.production_id] !== "undefined") {
+				if(typeof posValues[j][posNode.production_id] !== UNDEFINED) {
 					//Check what kind of value is
 					if(posValues[j][posNode.production_id] == EXP_SPECIAL_KEYS.EXP) {
-						this.#astAccessCheck(posNode, astNodeParent);
+						this.astAccessCheck(posNode, astNodeParent);
 					} else if(posValues[j][posNode.production_id] == EXP_SPECIAL_KEYS.FUNC) {
-						this.#astAccessCheck(posNode, astNodeParent);
+						this.astAccessCheck(posNode, astNodeParent);
 					} else if(posValues[j][posNode.production_id] == EXP_SPECIAL_KEYS.ID) {
-						this.#varAccesCheck(posNode, astNodeParent);
+						this.varAccesCheck(posNode, astNodeParent);
 					}
 				}
 			}
@@ -989,72 +1016,38 @@ class Semantica {
 		
 	}
 	
-	#varAccesCheck(posNode, astNodeParent) {
+	varAccesCheck(posNode, astNodeParent) {
 		//Check var existance
-		if(!this.#existsVar(posNode.info.content, astNodeParent.context)) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
+		if(!astExistsVar(posNode.info.content, astNodeParent.context)) {
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_UNDEFINED_VAR.format(posNode.info.content, posNode.info.line, posNode.info.offset));
 		} else {
 			//Check if was previosuly defined
-			let varRef = this.#locateVar(posNode.info.content, astNodeParent.context);
+			let varRef = astLocateVar(posNode.info.content, astNodeParent.context);
 			if(posNode.info.line < varRef.line) {
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_UNDEFINED_VAR.format(posNode.info.content, posNode.info.line, posNode.info.offset));
 			} else if(posNode.info.line == varRef.line) {
 				if(posNode.info.offset < varRef.offset) {
-					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Access to undefined var \"" + posNode.info.content + "\" in line " + posNode.info.line + ", col " + posNode.info.offset);
+					this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_UNDEFINED_VAR.format(posNode.info.content, posNode.info.line, posNode.info.offset));
 				}
 			}
 		}
 	}
 	
-	#existsVar(varName, context) {
-		
-		//Check if var exists in current context
-		if(typeof context.vars[varName] !== "undefined") {
-			return true;
-		}
-		
-		//Check parent contexts
-		if(context.parentContext != null) {
-			return this.#existsVar(varName, context.parentContext);
-		}
-		
-		//Var not found
-		return false;
-		
-	}
-	
-	#locateVar(varName, context) {
-		
-		//Check if var exists in current context
-		if(typeof context.vars[varName] !== "undefined") {
-			return context.vars[varName];
-		}
-		
-		//Check parent contexts
-		if(context.parentContext != null) {
-			return this.#locateVar(varName, context.parentContext);
-		}
-		
-		//Var not found
-		return null;
-		
-	}
-	
-	#funcExists(parseNode, astNodeParent, semantica) {
+	funcAccessCheck(parseNode, astNodeParent, semantica) {
 		
 		//Get function name node
 		let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 		
 		//Check if function exists
-		if(!this.#existsFunc(funcNodeName.info.content)) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Call to undefined function \"" + funcNodeName.info.content + "\" in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+		if(!this.existsFunc(funcNodeName.info.content)) {
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_UNDEFINED_FUNC.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset));
 			return;
 		}
 		
 		//Check params if exist
 		let paramsNode = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].params);
-		if(typeof paramsNode !== "undefined") {
-			this.#astAccessCheck(paramsNode, astNodeParent);
+		if(typeof paramsNode !== UNDEFINED) {
+			this.astAccessCheck(paramsNode, astNodeParent);
 		}
 		
 	}
@@ -1063,7 +1056,7 @@ class Semantica {
 	FUNC RETURN CHECK
 	****************/
 	
-	#astFuncReturnCheck(parseNode, astNodeParent) {
+	astFuncReturnCheck(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -1077,7 +1070,7 @@ class Semantica {
 						
 					case SEMANTICA_KEYS.FUNC_DEFINE:
 						astNodeParent = parseNode.linkAst;
-						this.#funcReturnCheck(parseNode, astNodeParent, semantica);
+						this.funcReturnCheck(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -1091,20 +1084,20 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astFuncReturnCheck(parseNode.children[i], astNodeParent);
+					this.astFuncReturnCheck(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#funcReturnCheck(parseNode, astNodeParent, semantica) {
+	funcReturnCheck(parseNode, astNodeParent, semantica) {
 		
 		//Get function data
 		let funcData = [];
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].returnData) {
-				funcData = this.#expConcatExtraction(parseNode.children[i], astNodeParent.context);	
+				funcData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);	
 			}
 		}
 		
@@ -1113,10 +1106,10 @@ class Semantica {
 		
 		//Check if return data has expected length
 		let funcTypeNode = astNodeParent.children[1];
-		let expTypes = this.#expConcatTypes(funcData);
+		let expTypes = this.expConcatTypes(funcData);
 		if(expTypes.length != funcTypeNode.children.length) {
 			//New error: return arguments total must match function requriements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return total arguments missmatch in function \"" + funcNodeName.info.content);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_RETURN_AMOUNT_MISSMATCH.format(funcNodeName.info.content));
 			return;
 		}
 		
@@ -1124,7 +1117,7 @@ class Semantica {
 		for(let i = 0; i < funcData.length; i++) {
 			if(expTypes[i] != funcTypeNode.children[i].info.type) {
 				//New error: return arguments must match function return type requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Return type missmatch in function \"" + funcNodeName.info.content + ", return value " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_RETURN_TYPE_MISSMATCH.format(funcNodeName.info.content, i));
 				return;
 			}
 		}
@@ -1134,14 +1127,14 @@ class Semantica {
 		
 	}
 	
-	#expConcatTypes(expConcat) {
+	expConcatTypes(expConcat) {
 	
 		//Get real length
 		let expTypes = [];
 		for(let i = 0; i < expConcat.length; i++) {
 			//Check if is a group of expressions
 			if(expConcat[i].dataType == EXP_SPECIAL_KEYS.GROUP) {
-				let funcCallNode = this.#locateExpFunc(expConcat[i]);
+				let funcCallNode = locateExpFunc(expConcat[i]);
 				expTypes.push(...funcCallNode.multiType);
 			} else {
 				expTypes.push(expConcat[i].dataType);
@@ -1152,17 +1145,7 @@ class Semantica {
 	
 	}
 	
-	#locateExpFunc(expNode) {
-		//Check current node
-		if(expNode.type == AST_NODE.FUNC_EXP) {
-			return expNode;
-		} else {
-			//Visit children (must be 1!)
-			return this.#locateExpFunc(expNode.children[0]);
-		}
-	}
-	
-	#expConcatExtraction(parseNode, context) {
+	expConcatExtraction(parseNode, context) {
 		
 		//Check if is a production
 		let expConcat = [];
@@ -1172,28 +1155,12 @@ class Semantica {
 			let semantica = this.grammarMap[parseNode.production_id].semantica;
 			
 			//Process all children
-			let existsExpGroup = typeof semantica[SEMANTICA_KEYS.EXP_SEPARATION] !== "undefined";
+			let existsExpGroup = typeof semantica[SEMANTICA_KEYS.EXP_SEPARATION] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsExpGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.EXP_SEPARATION].expGroup) {
-					
-					//Get expression
-					let expression = this.#expExtraction(parseNode.children[i], context);
-					
-					//Get first and last terminals
-					let firstTerm = this.#terminalFirst(parseNode.children[i]);
-					let lastTerm = this.#terminalLast(parseNode.children[i]);
-					
-					//Append expression
-					if(expression != null) {
-						expression.lineStart = firstTerm.info.line;
-						expression.lineEnd = lastTerm.info.line;
-						expression.offsetStart = firstTerm.info.offset;
-						expression.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
-						expConcat.push(expression);
-					}
-					
+					expConcat.push(this.expExtraction(parseNode.children[i], context));
 				} else {
-					expConcat.push(...this.#expConcatExtraction(parseNode.children[i], context));
+					expConcat.push(...this.expConcatExtraction(parseNode.children[i], context));
 				}
 			}
 		
@@ -1203,7 +1170,7 @@ class Semantica {
 	
 	}
 	
-	#expExtraction(parseNode, context) {
+	expExtraction(parseNode, context) {
 		
 		//Check if is a production
 		let exp = null;
@@ -1218,15 +1185,15 @@ class Semantica {
 				switch(key) {
 						
 					case SEMANTICA_KEYS.UNARY_EXPRESSION:
-						exp = this.#expUnaryExpression(parseNode, semantica, context);
+						exp = this.expUnaryExpression(parseNode, semantica, context);
 						break;
 						
 					case SEMANTICA_KEYS.EXPRESSION:
-						exp = this.#expExpression(parseNode, semantica, context);
+						exp = this.expExpression(parseNode, semantica, context);
 						break;
 						
 					case SEMANTICA_KEYS.VALUE:
-						exp = this.#expValue(parseNode, semantica, context);
+						exp = this.expValue(parseNode, semantica, context);
 						break;
 						
 					default:
@@ -1240,7 +1207,7 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					exp = this.#expExtraction(parseNode.children[i], context);	//Only 1 valid child, always
+					exp = this.expExtraction(parseNode.children[i], context);	//Only 1 valid child, always
 				}
 			}
 		
@@ -1250,17 +1217,17 @@ class Semantica {
 		
 	}
 	
-	#expUnaryExpression(parseNode, semantica, context) {
+	expUnaryExpression(parseNode, semantica, context) {
 		
 		//Get info nodes
 		let expNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].exp);
 		let opNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].operator);
 		
 		//Process expression and operator
-		let exp = this.#expExtraction(expNode, context);
+		let exp = this.expExtraction(expNode, context);
 		let operator = null;
-		if(typeof opNode !== "undefined") {
-			operator = this.#operatorExtraction(opNode);
+		if(typeof opNode !== UNDEFINED) {
+			operator = this.operatorExtraction(opNode);
 		}
 		
 		//Check if went ok
@@ -1269,13 +1236,20 @@ class Semantica {
 			return null;
 		}
 		
-		//Get condition first terminal (error related info)
-		let firstTerm = this.#terminalFirst(expNode);
+		//Get first and last terminals
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
+		
+		//Append expression
+		exp.lineStart = firstTerm.info.line;
+		exp.lineEnd = lastTerm.info.line;
+		exp.offsetStart = firstTerm.info.offset;
+		exp.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
 		
 		//Check expressions type
-		let typeMatch = this.#unaryExpMatch(exp, operator != null, semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].typeOptions);
+		let typeMatch = this.unaryExpMatch(exp, operator != null, semantica[SEMANTICA_KEYS.UNARY_EXPRESSION].typeOptions);
 		if(typeMatch == null) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_EXP_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return null;
 		}
 		
@@ -1294,17 +1268,17 @@ class Semantica {
 		
 	}
 	
-	#expExpression(parseNode, semantica, context) {
+	expExpression(parseNode, semantica, context) {
 		
 		//Get expressions
 		let mainNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.EXPRESSION].mainExp);
 		let subNode = parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.EXPRESSION].subExp);
 		
 		//Process expressions if exists
-		let mainExp = this.#expExtraction(mainNode, context);
+		let mainExp = this.expExtraction(mainNode, context);
 		let operation = null;
-		if(typeof subNode !== "undefined") {
-			operation = this.#operationExtraction(subNode, context);
+		if(typeof subNode !== UNDEFINED) {
+			operation = this.operationExtraction(subNode, context);
 		}
 		
 		//Check if went ok
@@ -1313,13 +1287,14 @@ class Semantica {
 			return null;
 		}
 		
-		//Get condition first terminal (error related info)
-		let firstTerm = this.#terminalFirst(mainNode);
+		//Get first and last terminal (error related info)
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Check expressions type
-		let typeMatch = this.#expMatch(mainExp, operation == null ? null : operation.exp, semantica[SEMANTICA_KEYS.EXPRESSION].typeOptions);
+		let typeMatch = this.expMatch(mainExp, operation == null ? null : operation.exp, semantica[SEMANTICA_KEYS.EXPRESSION].typeOptions);
 		if(typeMatch == null) {
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Expression type/arguments missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_EXP_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return null;
 		}
 		
@@ -1329,7 +1304,11 @@ class Semantica {
 			dataType: typeMatch,
 			children: [
 				mainExp
-			]
+			],
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
 		};
 		if(operation != null) {
 			expNode.operation = operation.op;
@@ -1339,7 +1318,7 @@ class Semantica {
 		
 	}
 	
-	#unaryExpMatch(exp, opExists, rules) {
+	unaryExpMatch(exp, opExists, rules) {
 		
 		//Get data types
 		let expType = exp.dataType;
@@ -1357,7 +1336,7 @@ class Semantica {
 		
 	}
 	
-	#expMatch(mainExp, subExp, rules) {
+	expMatch(mainExp, subExp, rules) {
 		
 		//Get data types
 		let mainType = [mainExp.dataType];
@@ -1376,7 +1355,7 @@ class Semantica {
 		
 	}
 	
-	#operationExtraction(parseNode, context) {
+	operationExtraction(parseNode, context) {
 		
 		//Check if is a production
 		let operation = null;
@@ -1391,7 +1370,7 @@ class Semantica {
 				switch(key) {
 						
 					case SEMANTICA_KEYS.OPERATION:
-						operation = this.#expOperation(parseNode, semantica, context);
+						operation = this.expOperation(parseNode, semantica, context);
 						break;
 						
 					default:
@@ -1405,7 +1384,7 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					operation = this.#operationExtraction(parseNode.children[i], context);	//Only 1 valid child, always
+					operation = this.operationExtraction(parseNode.children[i], context);	//Only 1 valid child, always
 				}
 			}
 		
@@ -1415,10 +1394,10 @@ class Semantica {
 		
 	}
 	
-	#expOperation(parseNode, semantica, context) {
+	expOperation(parseNode, semantica, context) {
 		
 		//Get expression
-		let expression = this.#expExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.OPERATION].expression), context);
+		let expression = this.expExtraction(parseNode.children.find(child => child.production_id == semantica[SEMANTICA_KEYS.OPERATION].expression), context);
 		
 		//Check if went ok
 		if(expression == null) {
@@ -1430,7 +1409,7 @@ class Semantica {
 		let opKey = Object.keys(semantica[SEMANTICA_KEYS.OPERATION].operatorPair)[0];
 		let operation = semantica[SEMANTICA_KEYS.OPERATION].operatorPair[opKey];
 		if(operation == null) {
-			operation = this.#operatorExtraction(parseNode.children.find(child => child.production_id == opKey));
+			operation = this.operatorExtraction(parseNode.children.find(child => child.production_id == opKey));
 		}
 		
 		//Return obtained data
@@ -1441,7 +1420,7 @@ class Semantica {
 		
 	}
 	
-	#operatorExtraction(parseNode) {
+	operatorExtraction(parseNode) {
 		
 		//Check if is a production
 		let operator = null;
@@ -1456,7 +1435,7 @@ class Semantica {
 				switch(key) {
 						
 					case SEMANTICA_KEYS.OPERATOR:
-						operator = this.#expOperator(parseNode, semantica);
+						operator = this.expOperator(parseNode, semantica);
 						break;
 						
 					default:
@@ -1470,7 +1449,7 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					operator = this.#operatorExtraction(parseNode.children[i]);	//Only 1 valid child, always
+					operator = this.operatorExtraction(parseNode.children[i]);	//Only 1 valid child, always
 				}
 			}
 		
@@ -1480,14 +1459,14 @@ class Semantica {
 		
 	}
 	
-	#expOperator(parseNode, semantica) {
+	expOperator(parseNode, semantica) {
 		
 		//Get operator pairs
 		let opPairs = semantica[SEMANTICA_KEYS.OPERATOR].operatorPairs;
 		
 		//Get operator
 		for(let i = 0; i < opPairs.length; i++) {
-			if(typeof parseNode.children.find(child => child.production_id == Object.keys(opPairs[i])[0]) !== "undefined") {
+			if(typeof parseNode.children.find(child => child.production_id == Object.keys(opPairs[i])[0]) !== UNDEFINED) {
 				return opPairs[i][Object.keys(opPairs[i])[0]];
 			}
 		}
@@ -1497,7 +1476,7 @@ class Semantica {
 		
 	}
 	
-	#expValue(parseNode, semantica, context) {
+	expValue(parseNode, semantica, context) {
 		
 		//Get value pairs
 		let valuePairs = semantica[SEMANTICA_KEYS.VALUE].typePairs;
@@ -1506,37 +1485,38 @@ class Semantica {
 		for(let i = 0; i < valuePairs.length; i++) {
 			let key = Object.keys(valuePairs[i])[0];
 			let foundNode = parseNode.children.find(child => child.production_id == key);
-			if(typeof foundNode !== "undefined") {
+			if(typeof foundNode !== UNDEFINED) {
+				
+				//Get first and last terminals
+				let firstTerm = this.terminalFirst(foundNode);
+				let lastTerm = this.terminalLast(foundNode);
+				
 				//Process value
 				switch(valuePairs[i][key]) {
 					
 					case EXP_SPECIAL_KEYS.EXP:
-						return this.#expExtraction(foundNode, context);
+						return this.expExtraction(foundNode, context);
 						
 					case EXP_SPECIAL_KEYS.FUNC:
 					
 						//Get func info (existance previously checked)
-						let funcRef = this.#funcCallExtraction(foundNode, context);
-						let funcType = this.#funcReturnType(funcRef, false);
+						let funcRef = this.funcCallExtraction(foundNode, context);
+						let funcType = this.funcReturnType(funcRef, false);
 						let semantica = this.grammarMap[foundNode.production_id].semantica;
 						let funcNodeName = foundNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
 						
 						//Check null return
 						if(funcType == null) {
 							//Null function return used on expression
-							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Null return function \"" + funcNodeName.info.content + "\" used on expression in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_EXP_CALL_NULL.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset));
 							return null;
 						}
 						
 						//Check function params
-						let paramsData = this.#funcCallParamsCheck(foundNode, context);
+						let paramsData = this.funcCallParamsCheck(foundNode, context);
 						if(paramsData == null) {
 							return null;	//Error already registered
 						}
-						
-						//Get first and last terminals
-						let firstTerm = this.#terminalFirst(foundNode);
-						let lastTerm = this.#terminalLast(foundNode);
 						
 						//Return info
 						return {
@@ -1546,7 +1526,7 @@ class Semantica {
 							offsetStart: firstTerm.info.offset,
 							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
 							dataType: funcType,
-							multiType: this.#funcReturnType(funcRef, true),
+							multiType: this.funcReturnType(funcRef, true),
 							ref: funcRef.funcName,
 							call: funcNodeName.info,
 							children: paramsData
@@ -1555,27 +1535,35 @@ class Semantica {
 					case EXP_SPECIAL_KEYS.ID:
 					
 						//Get var info (existance previously checked)
-						let varRef = this.#locateVar(foundNode.info.content, context);
+						let varRef = astLocateVar(foundNode.info.content, context);
 						
 						//Check data type
 						if(varRef.type == null) {
 							//Undefined var type (implicit declaration in same assign)
 							let varInfo = foundNode.info;
-							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Undefined var \"" + varInfo.content + "\" type used on expression in line " + varInfo.line + ", col " + varInfo.offset);
+							this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_EXP_NULL_VAR.format(varInfo.content, varInfo.line, varInfo.offset));
 							return null;
 						}
 						
 						return {
 							type: AST_NODE.ID,
 							dataType: varRef.type,
-							ref: varRef
+							ref: varRef,
+							lineStart: firstTerm.info.line,
+							lineEnd: lastTerm.info.line,
+							offsetStart: firstTerm.info.offset,
+							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
 						};
 						
 					default:
 						return {
 							type: AST_NODE.VALUE,
 							dataType: valuePairs[i][foundNode.production_id],
-							value: foundNode.info
+							value: foundNode.info,
+							lineStart: firstTerm.info.line,
+							lineEnd: lastTerm.info.line,
+							offsetStart: firstTerm.info.offset,
+							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
 						};
 						
 				}
@@ -1584,7 +1572,7 @@ class Semantica {
 		
 	}
 	
-	#funcCallExtraction(parseNode, context) {
+	funcCallExtraction(parseNode, context) {
 		
 		//Check if is a production
 		let funcRef = null;
@@ -1601,7 +1589,7 @@ class Semantica {
 					case SEMANTICA_KEYS.FUNC_CALL:
 						//Get function reference
 						let funcNodeName = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].funcName);
-						funcRef = this.#referenceToFunc(funcNodeName.info.content);
+						funcRef = this.referenceToFunc(funcNodeName.info.content);
 						break;
 						
 					default:
@@ -1615,7 +1603,7 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					funcRef = this.#funcCallExtraction(parseNode.children[i], context);	//Only 1 valid child, always
+					funcRef = this.funcCallExtraction(parseNode.children[i], context);	//Only 1 valid child, always
 				}
 			}
 			
@@ -1625,7 +1613,7 @@ class Semantica {
 		
 	}
 	
-	#funcReturnType(funcRef, complete) {
+	funcReturnType(funcRef, complete) {
 		
 		//Get return types
 		let funcTypes = funcRef.children[1].children;
@@ -1653,7 +1641,7 @@ class Semantica {
 		
 	}
 	
-	#funcCallParamsCheck(parseNode, context) {
+	funcCallParamsCheck(parseNode, context) {
 		
 		//Get production semantica
 		let semantica = this.grammarMap[parseNode.production_id].semantica;
@@ -1664,19 +1652,19 @@ class Semantica {
 		//Get function params
 		let paramsNode = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].params);
 		let paramsData = [];
-		if(typeof paramsNode !== "undefined") {
-			paramsData = this.#expConcatExtraction(paramsNode, context);
+		if(typeof paramsNode !== UNDEFINED) {
+			paramsData = this.expConcatExtraction(paramsNode, context);
 		}
 		
 		//Get function params type
-		let funcRef = this.#referenceToFunc(funcNodeName.info.content);
-		let funcParamTypes = this.#funcParamsType(funcRef);
+		let funcRef = this.referenceToFunc(funcNodeName.info.content);
+		let funcParamTypes = this.funcParamsType(funcRef);
 		
 		//Check if params has expected length
-		let expTypes = this.#expConcatTypes(paramsData);
+		let expTypes = this.expConcatTypes(paramsData);
 		if(expTypes.length != funcParamTypes.length) {
 			//New error: arguments total must match function requriements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" total arguments missmatch in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_CALL_ARG_AMOUNT_MISSMATCH.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset));
 			return null;
 		}
 		
@@ -1684,7 +1672,7 @@ class Semantica {
 		for(let i = 0; i < expTypes.length; i++) {
 			if(expTypes[i] != funcParamTypes[i]) {
 				//New error: argument types must match function requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Function \"" + funcNodeName.info.content + "\" type missmatch in line " + funcNodeName.info.line + ", col " + funcNodeName.info.offset + ", param " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_CALL_ARG_TYPE_MISSMATCH.format(funcNodeName.info.content, funcNodeName.info.line, funcNodeName.info.offset, i));
 				return null;
 			}
 		}
@@ -1697,7 +1685,7 @@ class Semantica {
 	EXPRESSIONS CHECK
 	****************/
 
-	#astExpressionCheck(parseNode, astNodeParent) {
+	astExpressionCheck(parseNode, astNodeParent) {
 		//Check if is a production
 		if(parseNode.type == NODE_TYPE.PRODUCTION) {
 			
@@ -1711,22 +1699,22 @@ class Semantica {
 						
 					case SEMANTICA_KEYS.VAR_ASSIGN:
 						astNodeParent = parseNode.linkAst;
-						this.#varAssignExp(parseNode, astNodeParent, semantica);
+						this.varAssignExp(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FORK:
 						astNodeParent = parseNode.linkAst;
-						this.#forkExp(parseNode, astNodeParent, semantica);
+						this.forkExp(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.LOOP:
 						astNodeParent = parseNode.linkAst;
-						this.#loopExp(parseNode, astNodeParent, semantica);
+						this.loopExp(parseNode, astNodeParent, semantica);
 						break;
 						
 					case SEMANTICA_KEYS.FUNC_CALL:
 						astNodeParent = parseNode.linkAst;
-						this.#funcCallExp(parseNode, astNodeParent, semantica);
+						this.funcCallExp(parseNode, astNodeParent, semantica);
 						break;
 						
 					default:
@@ -1740,29 +1728,29 @@ class Semantica {
 			if(Object.keys(semantica).length == 0 || continueSearch) {
 				//Process all children
 				for(let i = 0; i < parseNode.children.length; i++) {
-					this.#astExpressionCheck(parseNode.children[i], astNodeParent);
+					this.astExpressionCheck(parseNode.children[i], astNodeParent);
 				}
 			}
 			
 		}
 	}
 	
-	#varAssignExp(parseNode, astNodeParent, semantica) {
+	varAssignExp(parseNode, astNodeParent, semantica) {
 		
 		//Get value data
 		let valueData = [];
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].values) {
-				valueData = this.#expConcatExtraction(parseNode.children[i], astNodeParent.context);
+				valueData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);
 			}
 		}
 		
 		//Check if data has expected length
 		let singleVarGroupNode = astNodeParent.children[0];
-		let expTypes = this.#expConcatTypes(valueData);
+		let expTypes = this.expConcatTypes(valueData);
 		if(expTypes.length != singleVarGroupNode.children.length) {
 			//New error: arguments total must match var assign requriements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var assign total arguments missmatch in line " + singleVarGroupNode.children[0].children[0].line + ", col " + singleVarGroupNode.children[0].children[0].offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_ASSIGN_AMOUNT_MISSMATCH.format(singleVarGroupNode.children[0].children[0].line, singleVarGroupNode.children[0].children[0].offset));
 			return;
 		}
 		
@@ -1771,7 +1759,7 @@ class Semantica {
 			let iVarList = singleVarGroupNode.children[i];
 			for(let j = 0; j < iVarList.children.length; j++) {
 				//Get var ref
-				let varRef = this.#locateVar(iVarList.children[j].content, astNodeParent.context);
+				let varRef = astLocateVar(iVarList.children[j].content, astNodeParent.context);
 				if(varRef.type == null) {
 					varRef.type = expTypes[i];
 				}
@@ -1782,17 +1770,17 @@ class Semantica {
 		//Check every data type
 		for(let i = 0; i < valueData.length; i++) {
 			//Check null type (implicit var define)
-			let varRef = this.#locateVar(singleVarGroupNode.children[i].children[0].content, astNodeParent.context);
+			let varRef = astLocateVar(singleVarGroupNode.children[i].children[0].content, astNodeParent.context);
 			if(expTypes[i] != varRef.type) {
 				//New error: var assign arguments must match var type requriements
-				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Var assign type missmatch in line " + singleVarGroupNode.children[0].children[0].line + ", col " + singleVarGroupNode.children[0].children[0].offset + ", var " + i);
+				this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_ASSIGN_TYPE_MISSMATCH.format(singleVarGroupNode.children[0].children[0].line, singleVarGroupNode.children[0].children[0].offset, i));
 				return;
 			}
 		}
 		
 		//Get first and last terminals
-		let firstTerm = this.#terminalFirst(parseNode);
-		let lastTerm = this.#terminalLast(parseNode);
+		let firstTerm = this.terminalFirst(parseNode);
+		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create value assign node
 		let valueAssignNode = {
@@ -1810,7 +1798,7 @@ class Semantica {
 		
 	}
 	
-	#forkExp(parseNode, astNodeParent, semantica) {
+	forkExp(parseNode, astNodeParent, semantica) {
 		
 		//Get condition data
 		let conditionData = [];
@@ -1818,9 +1806,9 @@ class Semantica {
 		let lastTerm;
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FORK].condition) {
-				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));
-				firstTerm = this.#terminalFirst(parseNode.children[i]);
-				lastTerm = this.#terminalLast(parseNode.children[i]);
+				conditionData.push(this.expExtraction(parseNode.children[i], astNodeParent.context));
+				firstTerm = this.terminalFirst(parseNode.children[i]);
+				lastTerm = this.terminalLast(parseNode.children[i]);
 			}
 		}
 		
@@ -1830,17 +1818,17 @@ class Semantica {
 		}
 		
 		//Check if data has expected length (1)
-		let expTypes = this.#expConcatTypes(conditionData);
+		let expTypes = this.expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match if requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition arguments length missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_FORK_ARG_AMOUNT_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "If condition type missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_FORK_ARG_TYPE_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return;
 		}
 		
@@ -1857,14 +1845,14 @@ class Semantica {
 		for(let i = 0; i < parseNode.children.length; i++) {
 			for(let j = 0; j < semantica[SEMANTICA_KEYS.FORK].cases.length; j++) {
 				if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FORK].cases[j]) {
-					this.#astExpressionCheck(parseNode.children[i], astNodeParent);
+					this.astExpressionCheck(parseNode.children[i], astNodeParent);
 				}
 			}
 		}
 		
 	}
 	
-	#loopExp(parseNode, astNodeParent, semantica) {
+	loopExp(parseNode, astNodeParent, semantica) {
 		
 		//Get condition data
 		let conditionData = [];
@@ -1872,9 +1860,9 @@ class Semantica {
 		let lastTerm;
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.LOOP].condition) {
-				conditionData.push(this.#expExtraction(parseNode.children[i], astNodeParent.context));
-				firstTerm = this.#terminalFirst(parseNode.children[i]);
-				lastTerm = this.#terminalLast(parseNode.children[i]);
+				conditionData.push(this.expExtraction(parseNode.children[i], astNodeParent.context));
+				firstTerm = this.terminalFirst(parseNode.children[i]);
+				lastTerm = this.terminalLast(parseNode.children[i]);
 			}
 		}
 		
@@ -1884,17 +1872,17 @@ class Semantica {
 		}
 		
 		//Check if data has expected length (1)
-		let expTypes = this.#expConcatTypes(conditionData);
+		let expTypes = this.expConcatTypes(conditionData);
 		if(expTypes.length != 1) {
 			//New error: arguments total must match while requirements
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition arguments length missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_LOOP_ARG_AMOUNT_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return;
 		}
 		
 		//Check data type
 		if(expTypes[0] != DATA_TYPES.BOOL) {
 			//New error: argument must be boolean
-			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, "Loop condition type missmatch in line " + firstTerm.info.line + ", col " + firstTerm.info.offset);
+			this.errorHandler.newError(ERROR_FONT.SEMANTICA, ERROR_TYPE.ERROR, ERROR_LOOP_ARG_TYPE_MISSMATCH.format(firstTerm.info.line, firstTerm.info.offset));
 			return;
 		}
 		
@@ -1910,39 +1898,39 @@ class Semantica {
 		//Continue analyzing content
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.LOOP].code) {
-				this.#astExpressionCheck(parseNode.children[i], astNodeParent);
+				this.astExpressionCheck(parseNode.children[i], astNodeParent);
 			}
 		}
 		
 	}
 	
-	#terminalFirst(node) {
+	terminalFirst(node) {
 		//Check if is a production
 		if(node.type == NODE_TYPE.PRODUCTION) {
-			return this.#terminalFirst(node.children[0]);
+			return this.terminalFirst(node.children[0]);
 		} else {
 			return node;
 		}
 	}
 	
-	#terminalLast(node) {
+	terminalLast(node) {
 		//Check if is a production
 		if(node.type == NODE_TYPE.PRODUCTION) {
-			return this.#terminalLast(node.children[node.children.length - 1]);
+			return this.terminalLast(node.children[node.children.length - 1]);
 		} else {
 			return node;
 		}
 	}
 	
-	#funcCallExp(parseNode, astNodeParent, semantica) {
+	funcCallExp(parseNode, astNodeParent, semantica) {
 		
 		//Check if is part of an expression
-		if(this.#isExpFunc(parseNode)) {
+		if(this.isExpFunc(parseNode)) {
 			return;
 		}
 		
 		//Get function params
-		let paramsData = this.#funcCallParamsCheck(parseNode, astNodeParent.context);
+		let paramsData = this.funcCallParamsCheck(parseNode, astNodeParent.context);
 		
 		//Append params if valid
 		if(paramsData != null) {
@@ -1951,17 +1939,17 @@ class Semantica {
 		
 	}
 	
-	#isExpFunc(parseNode) {
+	isExpFunc(parseNode) {
 		
 		//Check current node semantica
 		let semantica = this.grammarMap[parseNode.production_id].semantica;
-		if(typeof semantica[SEMANTICA_KEYS.EXPRESSION] !== "undefined") {
+		if(typeof semantica[SEMANTICA_KEYS.EXPRESSION] !== UNDEFINED) {
 			return true;
 		}
 		
 		//Check if has parent node
 		if(parseNode.parentNode != null) {
-			return this.#isExpFunc(parseNode.parentNode);
+			return this.isExpFunc(parseNode.parentNode);
 		}
 		
 		//It isn't part of an expression
@@ -1969,15 +1957,15 @@ class Semantica {
 		
 	}
 	
-	#existsFunc(funcName) {
-		if(this.#isSysFunc(funcName)) {
+	existsFunc(funcName) {
+		if(this.isSysFunc(funcName)) {
 			return true;
 		} else {
-			return typeof this.funcAstTree[funcName] !== "undefined";
+			return typeof this.funcAstTree[funcName] !== UNDEFINED;
 		}
 	}
 	
-	#funcParamsType(funcRef) {
+	funcParamsType(funcRef) {
 		
 		//Get param node
 		let paramNode = funcRef.children[0];
@@ -1992,16 +1980,16 @@ class Semantica {
 		
 	}
 	
-	#referenceToFunc(funcName) {
-		if(this.#isSysFunc(funcName)) {
+	referenceToFunc(funcName) {
+		if(this.isSysFunc(funcName)) {
 			return this.sysFunc[funcName];
 		} else {
 			return this.funcAstTree[funcName];
 		}
 	}
 	
-	#isSysFunc(funcName) {
-		return typeof this.sysFunc[funcName] !== "undefined";
+	isSysFunc(funcName) {
+		return typeof this.sysFunc[funcName] !== UNDEFINED;
 	}
 	
 }

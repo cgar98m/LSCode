@@ -1,39 +1,33 @@
-.userText {
-	height: 100%;
-	width: 100%;
-	resize: none;
-}
-
-.treeList {
+.treeNode {
 	list-style-type: none;
 }
 
-.treeListRoot {
+.treeNodeRoot {
 	margin: 0;
 	padding: 0;
 }
 
-.treeListArrow {
+.treeNodeArrow {
 	cursor: pointer;
 	user-select: none;
 }
 
-.treeListArrow::before {
+.treeNodeArrow::before {
 	content: "\25B6";
 	color: black;
 	margin-right: 6px;
 	display: inline-block;
 }
 
-.treeListArrowDown::before {
+.treeNodeArrowDown::before {
 	transform: rotate(90deg);
 }
 
-.nestedTreeList {
+.nestedTreeNode {
 	display: none;
 }
 
-.activeTreeList {
+.activeTreeNode {
 	display: block;
 	white-space: nowrap;
 	overflow-x: auto;

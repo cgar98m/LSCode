@@ -12,7 +12,7 @@ class Lexer {
 		
 		//Pre-build regex
 		for(let i = 0; i < lexic.length; i++) {
-			lexic[i].builtRegex = new RegExp(lexic[i].regex, 'i');
+			lexic[i].builtRegex = new RegExp(lexic[i].regex, CASE_INSENSITIVE_REGEXP);
 		}
 		this.lexic = lexic;
 		
@@ -27,7 +27,7 @@ class Lexer {
 		this.tokens = [];
 		
 		//Split text in lines
-		let lines = naturalText.split("\n");
+		let lines = naturalText.split(LINE_BREAK);
 		
 		//Look for tokens in every line
 		let ignoreTokens = false;
@@ -85,7 +85,7 @@ class Lexer {
 								bestMatch = j;
 							} else if(matches[j].content.length == matches[bestMatch].content.length) {
 								//Check reserved token
-								if(matches[j].token_id != TOKEN_KW_ID) {
+								if(matches[j].token_id != TOKEN_ID) {
 									bestMatch = j;
 								}
 							}
@@ -121,7 +121,7 @@ class Lexer {
 						//Check if error should not be ignored
 						if(!ignoreTokens) {
 							//Unexpected token warning
-							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token \"" + unexpectedContent + "\" in line " + i + ", char " + charOffset + " - Program may not work as expected");
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, WARN_UNDEFINED_TOKEN.format(unexpectedContent, i, charOffset));
 						}
 					}
 					
@@ -137,7 +137,7 @@ class Lexer {
 						//Check if error should not be ignored
 						if(!ignoreTokens) {
 							//Unexpected token warning
-							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, "Undefined token \"" + unexpectedContent + "\" in line " + i + ", char " + charOffset + " - Program may not work as expected");
+							this.errorHandler.newError(ERROR_FONT.LEXER, ERROR_TYPE.WARNING, WARN_UNDEFINED_TOKEN.format(unexpectedContent, i, charOffset));
 						}
 					}
 					

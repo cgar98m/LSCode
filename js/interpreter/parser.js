@@ -2,14 +2,13 @@ const RULE_ITEM_TYPE = {
 	TERMINAL: 'T',
 	PRODUCTION: 'P'
 }
+
 const NODE_TYPE = {
 	PRODUCTION: 'P',
 	FORK: 'F',
 	TERMINAL: 'T',
 	EPSILON: 'E'
 }
-const EPSILON = "EPSILON";
-const GHOST_INFO = "GHOST TOKEN";
 
 class Parser {
 	
@@ -62,7 +61,7 @@ class Parser {
 		this.predNodes = [[]];
 		
 		//Predict first tokens
-		this.#predict(this.predTree[0], this.predNodes[0], null);
+		this.predict(this.predTree[0], this.predNodes[0], null);
 		
 		//Process input tokens
 		let newParseTreeList = [];
@@ -77,7 +76,7 @@ class Parser {
 			newParseTreeList = [];
 			for(let j = 0; j < this.predNodes.length; j++) {
 				//Match token to predicted nodes
-				let match = this.#matchToken(token, this.predNodes[j]);
+				let match = this.matchToken(token, this.predNodes[j]);
 				if(match.ok.length > 0) {
 					
 					//Prune invalid predictions
@@ -98,7 +97,7 @@ class Parser {
 						linkCopy(predTreeCopy, this.predTree[j]);
 						
 						//Find matches on new tree
-						let matchOkCopy = this.#matchLocate(match.ok, predTreeCopy);
+						let matchOkCopy = this.matchLocate(match.ok, predTreeCopy);
 						
 						//Prune other valid predictions
 						for(let l = 0; l < matchOkCopy.length; l++) {
@@ -114,7 +113,7 @@ class Parser {
 						
 						//Predict new tokens
 						let tmpPredict = [];
-						this.#predictNext(matchOkCopy[k].parentNode, tmpPredict, matchOkCopy[k]);
+						this.predictNext(matchOkCopy[k].parentNode, tmpPredict, matchOkCopy[k]);
 						
 						//Store new prediction (ndoes + tree)
 						newPredNodes.push(tmpPredict);
@@ -133,14 +132,14 @@ class Parser {
 			//Check null predictions
 			if(newPredNodes.length == 0) {
 				//Unexpected token
-				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected " + this.#expectedTokensFromPred(oldPredNodes) + " instead of \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
+				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, ERROR_UNEXPECTED_TOKEN.format(this.expectedTokensFromPred(oldPredNodes)), token.content, token.line, token.offset);
 				break;
 			}
 			
 		}
 		
 		//Clean parse trees
-		let blockCount = [];
+		let bCount = [];
 		let tmpParseTree = [];
 		let okErrorHandlers = [];
 		let koErrorHandlers = [];
@@ -151,10 +150,10 @@ class Parser {
 			
 			//Prune incomplete predictions
 			let treeErrorHandler = new ErrorHandler();
-			this.#pruneIncompleteProductions(predTreeCopy, null, treeErrorHandler);
+			this.pruneIncompleteProductions(predTreeCopy, null, treeErrorHandler);
 			
 			//Prune predictions
-			this.#prunePredictions(predTreeCopy);
+			this.prunePredictions(predTreeCopy);
 			
 			//Update parse tree list if new parse tree has content and no errors
 			if(predTreeCopy.children.length > 0 && treeErrorHandler.criticalErrors == 0) {
@@ -171,7 +170,7 @@ class Parser {
 				//New parse tree
 				if(!foundEqualTree) {
 					tmpParseTree.push(predTreeCopy);
-					blockCount.push(this.#blockCount(predTreeCopy));
+					bCount.push(this.blockCount(predTreeCopy));
 					okErrorHandlers.push(treeErrorHandler);
 				}
 				
@@ -186,11 +185,11 @@ class Parser {
 		let finalErrorHandlers = [];
 		for(let i = 0; i < tmpParseTree.length; i++) {
 			//Get largest code
-			if(blockCount[i] > maxBlockCount) {
+			if(bCount[i] > maxBlockCount) {
 				this.parseTree = [tmpParseTree[i]];
 				finalErrorHandlers = [okErrorHandlers[i]];
-				maxBlockCount = blockCount[i];
-			} else if(blockCount[i] == maxBlockCount) {
+				maxBlockCount = bCount[i];
+			} else if(bCount[i] == maxBlockCount) {
 				this.parseTree.push(tmpParseTree[i]);
 				finalErrorHandlers.push(okErrorHandlers[i]);
 			}
@@ -200,18 +199,18 @@ class Parser {
 		if(finalErrorHandlers.length == 0) {
 			//Dump error handlers
 			for(let i = 0; i < koErrorHandlers.length; i++) {
-				this.errorHandler.newErrorPack(koErrorHandlers[i].errors.slice(), "TREE " + i);
+				this.errorHandler.newErrorPack(koErrorHandlers[i].errors.slice(), MSG_TREE.format(i));
 			}
 		} else {
 			
 			//Dump error handlers
 			for(let i = 0; i < finalErrorHandlers.length; i++) {
-				this.errorHandler.newErrorPack(finalErrorHandlers[i].errors.slice(), "TREE " + i);
+				this.errorHandler.newErrorPack(finalErrorHandlers[i].errors.slice(), MSG_TREE.format(i));
 			}
 			
 			//Prune FORK nodes (redundant)
 			for(let i = 0; i < this.parseTree.length; i++) {
-				this.#pruneForkNodes(this.parseTree[i]);
+				this.pruneForkNodes(this.parseTree[i]);
 			}
 			
 		}
@@ -222,7 +221,7 @@ class Parser {
 		this.parseTree = [];
 	}
 	
-	#matchToken(token, list) {
+	matchToken(token, list) {
 		
 		//Search token
 		let matches = {
@@ -241,7 +240,7 @@ class Parser {
 		
 	}
 	
-	#matchLocate(matchList, tree) {
+	matchLocate(matchList, tree) {
 		
 		//Get paths from matches node tree and locate on new node tree
 		let newMatchList = [];
@@ -253,7 +252,7 @@ class Parser {
 		
 	}
 	
-	#predictNext(node, prediction, linkNode) {
+	predictNext(node, prediction, linkNode) {
 		//Check valid node
 		if(node != null) {
 		
@@ -294,7 +293,7 @@ class Parser {
 						//Complete predict
 						break;
 						
-					} else if(rule[i] == EPSILON) {
+					} else if(rule[i] == TOKEN_EPSILON) {
 						
 						//Add EPSILON node
 						let epsilonNode = {
@@ -333,7 +332,7 @@ class Parser {
 						node.children.push(productionNode);
 						
 						//Expand production and check if is a complete predict
-						let tmpLinkNode = this.#predict(productionNode, prediction, newLinkNode);
+						let tmpLinkNode = this.predict(productionNode, prediction, newLinkNode);
 						if(tmpLinkNode == null) {
 							//Complete predict
 							break;
@@ -355,12 +354,12 @@ class Parser {
 				//Check if parent visit is required
 				if(visitParent) {
 					//Incomplete prediction: visit parent
-					this.#predictNext(node.parentNode, prediction, newLinkNode);
+					this.predictNext(node.parentNode, prediction, newLinkNode);
 				}
 			
 			} else {
 				//Visit parent
-				this.#predictNext(node.parentNode, prediction, linkNode);
+				this.predictNext(node.parentNode, prediction, linkNode);
 			}
 		
 		} else {
@@ -369,7 +368,7 @@ class Parser {
 		}
 	}
 	
-	#predict(node, prediction, linkNode) {
+	predict(node, prediction, linkNode) {
 		
 		//Undefined new link node
 		let newLinkNode = null;
@@ -421,7 +420,7 @@ class Parser {
 					newLinkNode = null;
 					break;
 					
-				} else if(ruleItem == EPSILON) {
+				} else if(ruleItem == TOKEN_EPSILON) {
 					
 					//Add EPSILON node
 					let epsilonNode = {
@@ -456,7 +455,7 @@ class Parser {
 					forkNode.children.push(productionNode);
 					
 					//Expand production
-					newLinkNode = this.#predict(productionNode, prediction, newLinkNode == null ? linkNode : newLinkNode);
+					newLinkNode = this.predict(productionNode, prediction, newLinkNode == null ? linkNode : newLinkNode);
 					
 					//Check if prediction is complete
 					if(newLinkNode == null) {
@@ -474,7 +473,7 @@ class Parser {
 		
 	}
 	
-	#prunePredictions(rootNode) {
+	prunePredictions(rootNode) {
 		
 		//Check null node
 		if(rootNode == null) {
@@ -484,22 +483,22 @@ class Parser {
 		//Prune leaves that has no info at all
 		let leafList = leafes(rootNode);
 		for(let i = 0; i < leafList.length; i++) {
-			if(typeof leafList[i].info === "undefined") {
+			if(typeof leafList[i].info === UNDEFINED) {
 				prune(leafList[i]);
 			}
 		}
 		
 	}
 	
-	#pruneIncompleteProductions(node, token, errorHandler) {
+	pruneIncompleteProductions(node, token, errorHandler) {
 		
 		//Check non-leaf node
-		if(typeof node.children !== "undefined") {
+		if(typeof node.children !== UNDEFINED) {
 			
 			//Expand node tree
 			let children = node.children.slice();
 			for(let i = 0; i < children.length; i++) {
-				token = this.#pruneIncompleteProductions(children[i], token, errorHandler);
+				token = this.pruneIncompleteProductions(children[i], token, errorHandler);
 			}
 			
 			//Check fork children
@@ -517,16 +516,16 @@ class Parser {
 					//Check rule item type
 					if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.TERMINAL) {
 						//TERMINAL: Cannot fill missing rule items
-						this.#incompleteError(token, ruleItem, errorHandler);
+						this.incompleteError(token, ruleItem, errorHandler);
 						break;
 					} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
 						//PRODUCTION: Check if first contains an EPSILON
 						let ruleItemFirst = this.firstFollow.productions[ruleItem].first;
-						if(ruleItemFirst.find(item => item == EPSILON)) {
+						if(ruleItemFirst.find(item => item == TOKEN_EPSILON)) {
 							//Create EPSILON node
 							node.children.push({
 								type: NODE_TYPE.EPSILON,
-								production_id: EPSILON,
+								production_id: TOKEN_EPSILON,
 								production_idx: node.children.length,
 								parentNode: node,
 								linkNode: null,
@@ -534,7 +533,7 @@ class Parser {
 							});
 						} else {
 							//Cannot fill missing rule items
-							this.#incompleteError(token, ruleItem, errorHandler);
+							this.incompleteError(token, ruleItem, errorHandler);
 							break;
 						}
 					} else {
@@ -566,7 +565,7 @@ class Parser {
 			}
 			
 		} else {
-			if(typeof node.info !== "undefined") {
+			if(typeof node.info !== UNDEFINED) {
 				token = node.info;
 			}
 		}
@@ -575,21 +574,21 @@ class Parser {
 		
 	}
 	
-	#incompleteError(token, ruleItem, errorHandler) {
+	incompleteError(token, ruleItem, errorHandler) {
 		if(token != null && errorHandler.errors.length == 0) {
-			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, "Expected " + this.#expectedTokensFromProd(ruleItem) + " after \"" + token.content + "\" in line " + token.line + ", char " + token.offset);
+			errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, ERROR_EXPECTED_TOKEN.format(this.expectedTokensFromProd(ruleItem), token.content, token.line, token.offset));
 		}
 	}
 	
-	#blockCount(node) {
+	blockCount(node) {
 		
 		//Check children if possible
 		let count = 0;
-		if(typeof node.children !== "undefined") {
+		if(typeof node.children !== UNDEFINED) {
 			
 			//Post-order tree navigation
 			for(let i = 0; i < node.children.length; i++) {
-				count += this.#blockCount(node.children[i]);
+				count += this.blockCount(node.children[i]);
 			}
 			
 			//Check if is a block node
@@ -603,9 +602,9 @@ class Parser {
 		
 	}
 	
-	#pruneForkNodes(node) {
+	pruneForkNodes(node) {
 		//Check non-leaf node
-		if(typeof node.children !== "undefined") {
+		if(typeof node.children !== UNDEFINED) {
 			
 			//Check if is a FORK node
 			if(node.type == NODE_TYPE.FORK) {
@@ -622,29 +621,30 @@ class Parser {
 			
 			//Visit children
 			for(let i = 0; i < node.children.length; i++) {
-				this.#pruneForkNodes(node.children[i]);
+				this.pruneForkNodes(node.children[i]);
 			}
 			
 		}
 	}
 	
-	#expectedTokensFromPred(predNodes) {
+	expectedTokensFromPred(predNodes) {
 	
 		//Prepare msg
-		let msg = "";
+		let msg = EMPTY;
 	
 		//Check every predicted production
 		let visitedPred = [];
 		for(let i = 0; i < predNodes.length; i++) {
 			for(let j = 0; j < predNodes[i].length; j++) {
 				//Append production if wasn't visited
-				if(typeof visitedPred.find(item => item == predNodes[i][j].production_id) === "undefined") {
+				if(typeof visitedPred.find(item => item == predNodes[i][j].production_id) === UNDEFINED) {
 					visitedPred.push(predNodes[i][j].production_id);
-					let extraMsg = "\"" + predNodes[i][j].production_id + "\"";
+					let extraMsg = MSG_QUOTED_WORD.format(predNodes[i][j].production_id);
 					if(msg.length > 0) {
-						msg += " / "
+						msg = MSG_SLASH_CONCAT.format(msg, extraMsg);
+					} else {
+						msg += extraMsg;
 					}
-					msg += extraMsg;
 				}
 			}
 		}
@@ -653,23 +653,24 @@ class Parser {
 	
 	}
 	
-	#expectedTokensFromProd(prodId) {
+	expectedTokensFromProd(prodId) {
 	
 		//Prepare msg
-		let msg = "";
+		let msg = EMPTY;
 	
 		//Check if is terminal
 		let production = this.firstFollow.productions[prodId];
-		if(typeof production !== "undefined") {
+		if(typeof production !== UNDEFINED) {
 			for(let i = 0; i < production.first.length; i++) {
-				let extraMsg = "\"" + production.first[i] + "\"";
+				let extraMsg = MSG_QUOTED_WORD.format(production.first[i]);
 				if(msg.length > 0) {
-					msg += " / "
+					msg = MSG_SLASH_CONCAT.format(msg, extraMsg);
+				} else {
+					msg += extraMsg;
 				}
-				msg += extraMsg;
 			}
 		} else {
-			msg += ("\"" + prodId + "\"");
+			msg += MSG_QUOTED_WORD.format(prodId);
 		}
 		
 		return msg;

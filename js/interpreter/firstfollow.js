@@ -2,16 +2,12 @@ const END_MARKER = "$"
 
 const BASE_PRODUCTION = "CODE";
 
-const TOKEN_KW_ID = "KW_ID";
+const TOKEN_ID = "KW_ID";
+const TOKEN_EPSILON = "EPSILON";
+
 const PROD_CODE_BLOCK = "CODE_BLOCK";
 
 class FirstFollow {
-
-	/* Available variables:
-	 * grammarMap
-	 * ruleItemTypes
-	 * productions
-	 */
 
 	constructor(ruleItemTypes, grammarMap) {
 		
@@ -25,16 +21,16 @@ class FirstFollow {
 		this.productions = [];
 		for(let prodId in this.grammarMap) {
 			this.productions[prodId] = {
-				first: [...new Set(this.#first(this.grammarMap[prodId]))]
+				first: [...new Set(this.first(this.grammarMap[prodId]))]
 			};
 		}
 		for(let prodId in this.grammarMap) {
-			this.productions[prodId].follow = [...new Set(this.#follow(prodId, [prodId]))];
+			this.productions[prodId].follow = [...new Set(this.follow(prodId, [prodId]))];
 		}
 		
 	}
 	
-	#first(prodItem) {
+	first(prodItem) {
 		
 		//Check every rule from production
 		let firstList = [];
@@ -53,17 +49,17 @@ class FirstFollow {
 				} else if(this.ruleItemTypes[ruleItem] == RULE_ITEM_TYPE.PRODUCTION) {
 					
 					//Get sub-production first
-					ruleFirstList.push(...this.#first(this.grammarMap[ruleItem]));
+					ruleFirstList.push(...this.first(this.grammarMap[ruleItem]));
 					
 					//Check if production contains epsilon
-					if(ruleFirstList.includes(EPSILON)) {
+					if(ruleFirstList.includes(TOKEN_EPSILON)) {
 						//Check if is last rule item
 						if(j == prodItem.rules[i].length - 1) {
 							//First found (end of rule)
 							break;
 						} else {
 							//Partial first found (more production exists) --> Remove epsilon
-							ruleFirstList = ruleFirstList.filter(prodId => prodId != EPSILON);
+							ruleFirstList = ruleFirstList.filter(prodId => prodId != TOKEN_EPSILON);
 						}
 					} else {
 						//First found
@@ -72,7 +68,7 @@ class FirstFollow {
 						
 				} else {
 					//Partial first found (end of rule)
-					ruleFirstList.push(EPSILON);
+					ruleFirstList.push(TOKEN_EPSILON);
 					break;
 				}
 			}
@@ -86,7 +82,7 @@ class FirstFollow {
 		
 	}
 	
-	#follow(targetProdId, visitedProd) {
+	follow(targetProdId, visitedProd) {
 		
 		//Check if is base production
 		let followList = [];
@@ -110,7 +106,7 @@ class FirstFollow {
 							if(!visitedProd.includes(prodId)) {
 								//Partial follow (end of rule)
 								visitedProd.push(prodId);
-								followList.push(...this.#follow(prodId, visitedProd));
+								followList.push(...this.follow(prodId, visitedProd));
 							}
 						} else {
 							
@@ -131,10 +127,10 @@ class FirstFollow {
 									let nextItemFollowList = this.productions[nextItem].first.slice();
 									
 									//Check if contains epsilon
-									if(nextItemFollowList.includes(EPSILON)) {
+									if(nextItemFollowList.includes(TOKEN_EPSILON)) {
 										
 										//Remove epsilon and store in follow
-										nextItemFollowList = nextItemFollowList.filter(item => item != EPSILON);
+										nextItemFollowList = nextItemFollowList.filter(item => item != TOKEN_EPSILON);
 										followList.push(...nextItemFollowList);
 										
 										//Check if is last rule item (if not continue loop)
@@ -143,7 +139,7 @@ class FirstFollow {
 											if(!visitedProd.includes(prodId)) {
 												//Partial follow (end of rule)
 												visitedProd.push(prodId);
-												followList.push(...this.#follow(prodId, visitedProd));
+												followList.push(...this.follow(prodId, visitedProd));
 											}
 										}
 										

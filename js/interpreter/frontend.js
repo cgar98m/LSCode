@@ -40,16 +40,28 @@ class FrontEnd {
 		
 	}
 	
-	get intermidiateCode() {
-		return [];
+	tokens() {
+		return this.lexer.tokens;
 	}
 	
-	get symbolicTable() {
-		return [];
+	predTree() {
+		return this.parser.predTree;
 	}
 	
-	get errors() {
-		return [];
+	parseTree() {
+		return this.parser.parseTree;
+	}
+	
+	astTree() {
+		return this.semantica.astTree;
+	}
+	
+	funcAstTree() {
+		return this.semantica.funcAstTree;
+	}
+	
+	sysAstTree() {
+		return this.semantica.sysFunc;
 	}
 
 }

@@ -1,58 +1,77 @@
 <!DOCTYPE html>
 <html class="h-100">
 	<head>
+	
 		<meta charset="utf-8"/>
-		<title>LSCode</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<title>LSCode</title>
+		
+		<!-- External srcs -->
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
-		<link rel="stylesheet" href="css/styles.css"/>
-		<link rel="stylesheet" href="css/tooltip.css"/>
+		
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="favicon/favicon.ico">
+		<link rel="icon" href="favicon/favicon.ico">
+		
+		<!-- Inherent css -->
 		<link rel="stylesheet" href="css/color.css"/>
-		<script src="js/tooltip.js"></script>
+		<link rel="stylesheet" href="css/textarea.css"/>
+		<link rel="stylesheet" href="css/tooltip.css"/>
+		<link rel="stylesheet" href="css/tree.css"/>
+		
+		<!-- Inherent js -->
+		<script src="js/utils/ast.js"></script>
+		<script src="js/utils/class.js"></script>
+		<script src="js/utils/generic.js"></script>
+		<script src="js/utils/id.js"></script>
+		<script src="js/utils/msg.js"></script>
+		<script src="js/utils/tree.js"></script>
+		<script src="js/view/treeview.js"></script>
+		<script src="js/view/astview.js"></script>
+		<script src="js/view/console.js"></script>
+		<script src="js/view/display.js"></script>
+		<script src="js/view/parseview.js"></script>
+		<script src="js/view/windowview.js"></script>
+		<script src="js/interpreter/errorhandler.js"></script>
+		<script src="js/interpreter/firstfollow.js"></script>
+		<script src="js/interpreter/lexer.js"></script>
+		<script src="js/interpreter/parser.js"></script>
+		<script src="js/interpreter/semantica.js"></script>
+		<script src="js/interpreter/coderunner.js"></script>
+		<script src="js/interpreter/interpreter.js"></script>
+		<!--<script src="js/cost.js"></script>-->
+		<script src="js/interpreter/backend.js"></script>
+		<script src="js/interpreter/frontend.js"></script>
 		<script src="js/main.js"></script>
-		<script src="js/display.js"></script>
-		<script src="js/color.js"></script>
-		<script src="js/errorhandler.js"></script>
-		<script src="js/frontend.js"></script>
-		<script src="js/backend.js"></script>
-		<script src="js/lexer.js"></script>
-		<script src="js/parser.js"></script>
-		<script src="js/semantica.js"></script>
-		<script src="js/interpreter.js"></script>
-		<script src="js/cost.js"></script>
-		<script src="js/firstfollow.js"></script>
-		<script src="js/tree.js"></script>
+		
 	</head>
 	<body class="h-100">
-		<div class="container h-100 d-flex flex-column">
+		<div class="container d-flex flex-column h-100">
 			<div class="row">
 				<h1>
-					LSCode v0.6.0
+					LSCode v0.6.1
 				</h1>
 			</div>
 			<div class="row">
-				<div class="col"/>
-				</div>
+				<div class="col"></div>
 				<div class="col">
 					<div class="nav nav-tabs">
 						<div class="nav-item">
-							<a id="tabError" class="nav-link active">Errors</a>
+							<a id="executionTab" class="nav-link active">Execution</a>
 						</div>
 						<div class="nav-item">
-							<a id="tabExecution" class="nav-link">Execution</a>
+							<a id="costTab" class="nav-link">Cost</a>
 						</div>
-						<div class="nav-item">
-							<a id="tabCost" class="nav-link">Cost</a>
-						</div>
-						<div id="tabDebugContainer" class="nav-item dropdown">
-							<a id="tabDebug" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Debug</a>
+						<div id="debugContainerTab" class="nav-item dropdown">
+							<a id="debugTab" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Debug</a>
 							<div class="dropdown-menu">
-								<div><a id="tabTokens" class="dropdown-item">Tokens</a></div>
-								<div><a id="tabPredParseTree" class="dropdown-item">Predict tree</a></div>
-								<div><a id="tabParseTree" class="dropdown-item">Parse tree</a></div>
-								<div><a id="tabAstTree" class="dropdown-item">AST tree</a></div>
+								<div><a id="tokensTab" class="dropdown-item">Tokens</a></div>
+								<div><a id="predictionTab" class="dropdown-item">Predict tree</a></div>
+								<div><a id="parseTab" class="dropdown-item">Parse tree</a></div>
+								<div><a id="astTab" class="dropdown-item">AST tree</a></div>
 							</div>
 						</div>
 					</div>
@@ -60,30 +79,32 @@
 			</div>
 			<div class="row flex-grow-1 h-50">
 				<div class="col-6 h-100">
-					<textarea id="inputTextArea" class="userText" placeholder="Code here"></textarea>
+					<div class="col h-100 overflow-auto border border-secondary">
+						<textarea id="codeTextArea" class="d-flex h-75 overflow-auto border-0" placeholder="Code here"></textarea>
+						<textarea id="codeConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
+					</div>
 				</div>
 				<div class="col-6 h-100">
-					<div class="col overflow-auto h-100 border border-secondary">
-						<textarea readonly id="errorTextArea" class="userText d-flex border-0"></textarea>
-						<div id="executionContainer" class="h-100 d-none flex-column m-0">
-							<div id="codeContainer" class="h-75 d-block m-0 py-1 overflow-auto"></div>
-							<textarea readonly id="outputTextArea" class="userText d-flex sticky-bottom h-25 overflow-auto"></textarea>
+					<div class="col h-100 overflow-auto border border-secondary">
+						<div id="executionWindow" class="d-flex flex-column h-100 m-0">
+							<div id="executionContainer" class="d-block h-75 overflow-auto m-0 py-1"></div>
+							<textarea id="executionConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
 						</div>
-						<div id="costContainer" class="h-100 d-none flex-column m-0">
-							<div id="costTextContainer" class="h-100 d-block m-0 py-1 overflow-auto"></div>
+						<div id="costWindow" class="d-none flex-column h-100 m-0">
+							<div id="costCodeContainer" class="d-block h-75 overflow-auto m-0 py-1"></div>
+							<textarea id="costConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
 						</div>
-						<textarea readonly id="tokensTextArea" class="userText d-none border-0"></textarea>
-						<div id="predParseTreeContainer" class="h-100 py-1 d-none">
-							<ul id="predParseTreeList" class="treeListRoot treeList">
-							</ul>
+						<div id="tokensWindow" class="d-none flex-column h-100 m-0">
+							<textarea id="tokensConsoleTextArea" class="border-0" readonly></textarea>
 						</div>
-						<div id="parseTreeContainer" class="h-100 py-1 d-none">
-							<ul id="parseTreeList" class="treeListRoot treeList">
-							</ul>
+						<div id="predictionWindow" class="d-none h-100 py-1">
+							<ul id="predictionRootList" class="treeNodeRoot treeNode"></ul>
 						</div>
-						<div id="astTreeContainer" class="h-100 py-1 d-none">
-							<ul id="astTreeList" class="treeListRoot treeList">
-							</ul>
+						<div id="parseWindow" class="d-none h-100 py-1">
+							<ul id="parseRootList" class="treeNodeRoot treeNode"></ul>
+						</div>
+						<div id="astWindow" class="d-none h-100 py-1">
+							<ul id="astRootList" class="treeNodeRoot treeNode"></ul>
 						</div>
 					</div>
 				</div>
@@ -91,36 +112,44 @@
 			<div class="row mb-3">
 				<div class="col">
 					<div class="btn-group w-100" role="group">
-						<button id="interpreteButton" class="w-100 btn btn-outline-primary" type="button" disabled>Run</button>
+						<button id="codeInterpreteButton" class="btn btn-outline-primary w-100" type="button" disabled>Run</button>
 					</div>
 				</div>
 				<div class="col">
-					<div id="treeButtons" class="btn-group w-100 d-none" role="group">
-						<button id="expandButton" class="w-100 btn btn-outline-primary" type="button">Expand</button>
-						<button id="collapseButton" class="w-100 btn btn-outline-primary" type="button">Collapse</button>
-					</div>
-					<div id="executionButtons" class="btn-group w-100 d-none" role="group">
-						<button id="playButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+					<div id="executionButtonGroup" class="btn-group w-100" role="group">
+						<button id="executionPlayButton" class="btn btn-outline-primary w-100" type="button" disabled>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
 								<path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/>
 							</svg>
 						</button>
-						<button id="skipButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+						<button id="executionSkipButton" class="btn btn-outline-primary w-100" type="button" disabled>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-skip-forward" viewBox="0 0 16 16">
 								<path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5zM1 4.633v6.734L6.804 8 1 4.633zm7.5 0v6.734L14.304 8 8.5 4.633z"/>
 							</svg>
 						</button>
-						<button id="pauseButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+						<button id="executionPauseButton" class="btn btn-outline-primary w-100" type="button" disabled>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
 								<path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z"/>
 							</svg>
 						</button>
-						<button id="reloadButton" class="w-100 btn btn-outline-primary" type="button" disabled>
+						<button id="executionReplayButton" class="btn btn-outline-primary w-100" type="button" disabled>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
 								<path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
 								<path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
 							</svg>
 						</button>
+					</div>
+					<div id="predictionButtonGroup" class="d-none btn-group w-100" role="group">
+						<button id="predictionExpandButton" class="btn btn-outline-primary w-100" type="button">Expand</button>
+						<button id="predictionCollapseButton" class="btn btn-outline-primary w-100" type="button">Collapse</button>
+					</div>
+					<div id="parseButtonGroup" class="d-none btn-group w-100" role="group">
+						<button id="parseExpandButton" class="btn btn-outline-primary w-100" type="button">Expand</button>
+						<button id="parseCollapseButton" class="btn btn-outline-primary w-100" type="button">Collapse</button>
+					</div>
+					<div id="astButtonGroup" class="d-none btn-group w-100" role="group">
+						<button id="astExpandButton" class="btn btn-outline-primary w-100" type="button">Expand</button>
+						<button id="astCollapseButton" class="btn btn-outline-primary w-100" type="button">Collapse</button>
 					</div>
 				</div>
 			</div>

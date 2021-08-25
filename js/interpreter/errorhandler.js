@@ -3,6 +3,7 @@ const ERROR_FONT = {
 	PARSER: "Parser",
 	SEMANTICA: "Semantica"
 };
+
 const ERROR_TYPE = {
 	WARNING: "Warning",
 	ERROR: "Error"
@@ -29,7 +30,7 @@ class ErrorHandler {
 	newErrorPack(errorList, msgHeader) {
 		for(let i = 0; i < errorList.length; i++) {
 			let error = errorList[i];
-			this.newError(error.font, error.type, "[" + msgHeader + "] " + error.msg);
+			this.newError(error.font, error.type, ERROR_PARSE.format(msgHeader, error.msg));
 			if(error.type == ERROR_TYPE.ERROR) {
 				this.criticalErrors++;
 			}

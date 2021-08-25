@@ -800,6 +800,16 @@
 							"type": "char"
 						},
 						{
+							"mainExp": "char",
+							"subExp": "int",
+							"type": "char"
+						},
+						{
+							"mainExp": "int",
+							"subExp": "char",
+							"type": "char"
+						},
+						{
 							"mainExp": "string",
 							"subExp": null,
 							"type": "string"
@@ -875,6 +885,16 @@
 						{
 							"mainExp": "char",
 							"subExp": null,
+							"type": "char"
+						},
+						{
+							"mainExp": "char",
+							"subExp": "int",
+							"type": "char"
+						},
+						{
+							"mainExp": "int",
+							"subExp": "char",
 							"type": "char"
 						},
 						{
@@ -969,6 +989,16 @@
 							"type": "char"
 						},
 						{
+							"mainExp": "char",
+							"subExp": "int",
+							"type": "char"
+						},
+						{
+							"mainExp": "int",
+							"subExp": "char",
+							"type": "char"
+						},
+						{
 							"mainExp": "bool",
 							"subExp": null,
 							"type": "bool"
@@ -1049,6 +1079,16 @@
 						{
 							"mainExp": "char",
 							"subExp": null,
+							"type": "char"
+						},
+						{
+							"mainExp": "char",
+							"subExp": "int",
+							"type": "char"
+						},
+						{
+							"mainExp": "int",
+							"subExp": "char",
 							"type": "char"
 						},
 						{
