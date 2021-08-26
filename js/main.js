@@ -266,7 +266,7 @@ function linkButtons() {
 				//Check if code can be cost analyzed
 				if(astTree != null || funcAstTree != null) {
 					costDisplay.setContent(codeInTextArea.value);
-					backEnd.updateCost(astTree, funcAstTree, sysAstTree);
+					//backEnd.updateCost(astTree, funcAstTree, sysAstTree);
 				}
 				
 			}
@@ -365,7 +365,7 @@ function linkInterpreter() {
 				
 				//Create interpreter components
 				frontEnd = new FrontEnd(data, errorHandler);
-				backEnd = new BackEnd(executionConsole, costDisplay, costConsole);
+				backEnd = new BackEnd(executionConsole/*, costDisplay, costConsole*/);
 				
 				//Enable button
 				codeInterpreteButton.disabled = false;

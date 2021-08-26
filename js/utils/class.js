@@ -1,6 +1,5 @@
 //Bootstrap classes
 const ACTIVE_CLASS = "active";
-const DISABLED_CLASS = "disabled";
 const DISP_NONE_CLASS = "d-none";
 const DISP_FLEX_CLASS = "d-flex";
 

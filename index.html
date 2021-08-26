@@ -23,28 +23,28 @@
 		<link rel="stylesheet" href="css/tree.css"/>
 		
 		<!-- Inherent js -->
-		<script src="js/utils/ast.js"></script>
 		<script src="js/utils/class.js"></script>
 		<script src="js/utils/generic.js"></script>
 		<script src="js/utils/id.js"></script>
 		<script src="js/utils/msg.js"></script>
-		<script src="js/utils/tree.js"></script>
 		<script src="js/view/treeview.js"></script>
 		<script src="js/view/astview.js"></script>
 		<script src="js/view/console.js"></script>
 		<script src="js/view/display.js"></script>
 		<script src="js/view/parseview.js"></script>
 		<script src="js/view/windowview.js"></script>
-		<script src="js/interpreter/errorhandler.js"></script>
-		<script src="js/interpreter/firstfollow.js"></script>
-		<script src="js/interpreter/lexer.js"></script>
-		<script src="js/interpreter/parser.js"></script>
-		<script src="js/interpreter/semantica.js"></script>
-		<script src="js/interpreter/coderunner.js"></script>
-		<script src="js/interpreter/interpreter.js"></script>
-		<!--<script src="js/cost.js"></script>-->
-		<script src="js/interpreter/backend.js"></script>
-		<script src="js/interpreter/frontend.js"></script>
+		<script src="js/interpreter/utils/ast.js"></script>
+		<script src="js/interpreter/utils/errorhandler.js"></script>
+		<script src="js/interpreter/utils/firstfollow.js"></script>
+		<script src="js/interpreter/utils/tree.js"></script>
+		<script src="js/interpreter/front/lexer.js"></script>
+		<script src="js/interpreter/front/parser.js"></script>
+		<script src="js/interpreter/front/semantica.js"></script>
+		<script src="js/interpreter/front/frontend.js"></script>
+		<script src="js/interpreter/back/coderunner.js"></script>
+		<script src="js/interpreter/back/interpreter.js"></script>
+		<!--<script src="js/interpreter/back/cost.js"></script>-->
+		<script src="js/interpreter/back/backend.js"></script>
 		<script src="js/main.js"></script>
 		
 	</head>
@@ -52,7 +52,7 @@
 		<div class="container d-flex flex-column h-100">
 			<div class="row">
 				<h1>
-					LSCode v0.6.1
+					LSCode v1.0.0
 				</h1>
 			</div>
 			<div class="row">
@@ -62,7 +62,7 @@
 						<div class="nav-item">
 							<a id="executionTab" class="nav-link active">Execution</a>
 						</div>
-						<div class="nav-item">
+						<div class="nav-item d-none">
 							<a id="costTab" class="nav-link">Cost</a>
 						</div>
 						<div id="debugContainerTab" class="nav-item dropdown">

@@ -86,14 +86,10 @@ class Semantica {
 			parentContext: null
 		};
 		
-		//Empty global and funcs context
-		this.globalContext = {
-			vars: {},
-			parentContext: null
-		};
+		//Empty funcs
 		this.funcAstTree = [];
 		
-		//Create root AST node
+		//Empty root AST node
 		this.astTree = null;
 		
 	}

@@ -47,7 +47,6 @@ class Parser {
 	parse(tokens) {
 		
 		//Empty parse tree
-		this.error = false;
 		this.predTree = [{
 			type: NODE_TYPE.PRODUCTION,
 			production_id: BASE_PRODUCTION,
@@ -58,10 +57,10 @@ class Parser {
 		this.parseTree = [];
 		
 		//Empty predicted nodes
-		this.predNodes = [[]];
+		let predNodes = [[]];
 		
 		//Predict first tokens
-		this.predict(this.predTree[0], this.predNodes[0], null);
+		this.predict(this.predTree[0], predNodes[0], null);
 		
 		//Process input tokens
 		let newParseTreeList = [];
@@ -74,9 +73,9 @@ class Parser {
 			let newPredNodes = [];
 			let newPredTrees = [];
 			newParseTreeList = [];
-			for(let j = 0; j < this.predNodes.length; j++) {
+			for(let j = 0; j < predNodes.length; j++) {
 				//Match token to predicted nodes
-				let match = this.matchToken(token, this.predNodes[j]);
+				let match = this.matchToken(token, predNodes[j]);
 				if(match.ok.length > 0) {
 					
 					//Prune invalid predictions
@@ -125,8 +124,8 @@ class Parser {
 			}
 			
 			//Update predictions (tree + nodes)
-			let oldPredNodes = this.predNodes;
-			this.predNodes = newPredNodes;
+			let oldPredNodes = predNodes;
+			predNodes = newPredNodes;
 			this.predTree = newPredTrees;
 			
 			//Check null predictions
