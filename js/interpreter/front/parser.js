@@ -131,7 +131,7 @@ class Parser {
 			//Check null predictions
 			if(newPredNodes.length == 0) {
 				//Unexpected token
-				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, ERROR_UNEXPECTED_TOKEN.format(this.expectedTokensFromPred(oldPredNodes)), token.content, token.line, token.offset);
+				this.errorHandler.newError(ERROR_FONT.PARSER, ERROR_TYPE.ERROR, ERROR_UNEXPECTED_TOKEN.format(this.expectedTokensFromPred(oldPredNodes), token.content, token.line, token.offset));
 				break;
 			}
 			
