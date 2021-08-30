@@ -1,0 +1,13 @@
+//Divisió entre 0
+b = 0
+a = 20
+si b == 0
+   a = 0
+sino
+   a = a / b
+fisi
+printaEnter(a)
+printaBoolea(a > 0)
+/*
+a declaració implícita (warning)
+*/

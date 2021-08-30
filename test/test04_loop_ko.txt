@@ -9,5 +9,6 @@ mentre cert
 fimentre
 /*
 c, a declaració implícita (warning)
+a, b no definits (error)
 si 1 condició no booleana (error)
 */

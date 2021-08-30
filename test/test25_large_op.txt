@@ -1,0 +1,7 @@
+//Operacions múltiples
+a: boolea
+a = 1 * 2 + 4 < 2 == fals ^ cert | fals
+printaBoolea(a)
+/*
+Sense errors
+*/

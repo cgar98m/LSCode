@@ -1,0 +1,7 @@
+//Divisió entre 0
+a = 2 / 0
+printaEnter(a)
+/*
+a declaració implícita (warning)
+a = 2 / 0 divisió entre 0 (error execució)
+*/

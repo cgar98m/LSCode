@@ -1,0 +1,21 @@
+//Printat de dades
+a: enter
+b: caracter
+c: boolea
+d: cadena
+
+a, b, c, d = multiFunc(b)
+printaEnter(a)
+printaCaracter(b)
+printaBoolea(c)
+printaCadena(d)
+printaCadena("FI DEL PROGRAMA")
+
+func multiFunc(base: caracter): enter, caracter, boolea, cadena
+   tmp: enter
+   tmp = 4 / 2 % 2
+   retorna tmp, b + 'f', tmp == 0, "hola"
+fifunc
+/*
+Sense errors
+*/

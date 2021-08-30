@@ -57,6 +57,23 @@ const OPERATION = {
 	MOD: "mod"
 }
 
+const OP_LVL = {
+	NOT: 0,
+	OR: 1,
+	AND: 2,
+	EQ: 3,
+	NOT_EQ: 3,
+	LOW: 4,
+	LOW_EQ: 4,
+	GREAT: 4,
+	GREAT_EQ: 4,
+	PLUS: 5,
+	MINUS: 5,
+	MULT: 6,
+	DIV: 6,
+	MOD: 6
+};
+
 const BOOL = {
 	TRUE: "KW_BOOL_TRUE",
 	FALSE: "KW_BOOL_FALSE"
@@ -1253,12 +1270,15 @@ class Semantica {
 		let unaryExpNode = {
 			type: AST_NODE.EXPRESSION,
 			dataType: typeMatch,
+			prio: false,
 			children: [
 				exp
 			]
 		};
 		if(operator != null) {
 			unaryExpNode.operation = operator;
+		} else {
+			unaryExpNode = exp;
 		}
 		return unaryExpNode;
 		
@@ -1298,6 +1318,7 @@ class Semantica {
 		let expNode = {
 			type: AST_NODE.EXPRESSION,
 			dataType: typeMatch,
+			prio: false,
 			children: [
 				mainExp
 			],
@@ -1309,6 +1330,9 @@ class Semantica {
 		if(operation != null) {
 			expNode.operation = operation.op;
 			expNode.children.push(operation.exp);
+			expNode = this.expLeftify(this.expRightify(expNode));
+		} else {
+			expNode = mainExp;
 		}
 		return expNode;
 		
@@ -1491,7 +1515,11 @@ class Semantica {
 				switch(valuePairs[i][key]) {
 					
 					case EXP_SPECIAL_KEYS.EXP:
-						return this.expExtraction(foundNode, context);
+						let parenthesisExp = this.expExtraction(foundNode, context);
+						if(parenthesisExp != null) {
+							parenthesisExp.prio = true;
+						}
+						return parenthesisExp;
 						
 					case EXP_SPECIAL_KEYS.FUNC:
 					
@@ -1525,6 +1553,7 @@ class Semantica {
 							multiType: this.funcReturnType(funcRef, true),
 							ref: funcRef.funcName,
 							call: funcNodeName.info,
+							prio: false,
 							children: paramsData
 						};
 						
@@ -1548,7 +1577,8 @@ class Semantica {
 							lineStart: firstTerm.info.line,
 							lineEnd: lastTerm.info.line,
 							offsetStart: firstTerm.info.offset,
-							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
+							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
+							prio: false
 						};
 						
 					default:
@@ -1559,7 +1589,8 @@ class Semantica {
 							lineStart: firstTerm.info.line,
 							lineEnd: lastTerm.info.line,
 							offsetStart: firstTerm.info.offset,
-							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
+							offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
+							prio: false
 						};
 						
 				}
@@ -1986,6 +2017,130 @@ class Semantica {
 	
 	isSysFunc(funcName) {
 		return typeof this.sysFunc[funcName] !== UNDEFINED;
+	}
+	
+	expRightify(expNode) {
+		
+		//Check if left expression is final
+		if(expNode.children[0].type == AST_NODE.EXPRESSION) {
+			//Check prio
+			if(!expNode.children[0].prio) {
+				//Check same level operation
+				if(OP_LVL[expNode.operation] == OP_LVL[expNode.children[0].operation]) {
+					
+					//Copy left expression
+					let newExp = this.expRightify(expNode.children[0]);
+					
+					//Find last operation
+					let lastRight = this.expRightifyLast(newExp, expNode.operation);
+					
+					//Create new last operation
+					let newLast = {...expNode};
+					newLast.children[0] = lastRight.children[1];
+					
+					//Replace last operation and base expression
+					lastRight.children[1] = newLast;
+					expNode = newExp;
+					
+				}
+			}
+		}
+		
+		//Check if right expression is final
+		if(expNode.children[1].type == AST_NODE.EXPRESSION) {
+			//Check prio
+			if(!expNode.children[1].prio) {
+				//Check same level operation
+				if(OP_LVL[expNode.operation] == OP_LVL[expNode.children[1].operation]) {
+					expNode.children[1] = this.expRightify(expNode.children[1]);
+				}
+			}
+		}
+		
+		//Rightify right branch
+		return expNode;
+		
+	}
+	
+	expRightifyLast(expNode, prevOp) {
+		if(expNode.type == AST_NODE.EXPRESSION) {
+			if(!expNode.prio) {
+				if(OP_LVL[expNode.operation] == OP_LVL[prevOp]) {
+					let nextExp = this.expRightifyLast(expNode.children[1], expNode.operation);
+					if(nextExp == null) {
+						return expNode;
+					} else {
+						return nextExp;
+					}
+				}
+			} else {
+				return expNode;
+			}
+		} else {
+			return null;
+		}
+	}
+	
+	expLeftify(expNode) {
+		
+		//Check if right expression is final
+		if(expNode.children[1].type == AST_NODE.EXPRESSION) {
+			//Check prio
+			if(!expNode.children[1].prio) {
+				//Check same level operation
+				if(OP_LVL[expNode.operation] == OP_LVL[expNode.children[1].operation]) {
+					
+					//Copy left expression
+					let newExp = this.expLeftify(expNode.children[1]);
+					
+					//Find last operation
+					let lastLeft = this.expLeftifyLast(newExp, expNode.operation);
+					
+					//Create new last operation
+					let newLast = {...expNode};
+					newLast.children[1] = lastLeft.children[0];
+					
+					//Replace last operation and base expression
+					lastLeft.children[0] = newLast;
+					expNode = newExp;
+					
+				}
+			}
+		}
+		
+		//Check if left expression is final
+		if(expNode.children[0].type == AST_NODE.EXPRESSION) {
+			//Check prio
+			if(!expNode.children[0].prio) {
+				//Check same level operation
+				if(OP_LVL[expNode.operation] == OP_LVL[expNode.children[0].operation]) {
+					expNode.children[0] = this.expLeftify(expNode.children[0]);
+				}
+			}
+		}
+		
+		//Rightify right branch
+		return expNode;
+		
+	}
+	
+	expLeftifyLast(expNode, prevOp) {
+		if(expNode.type == AST_NODE.EXPRESSION) {
+			if(!expNode.prio) {
+				if(OP_LVL[expNode.operation] == OP_LVL[prevOp]) {
+					let nextExp = this.expRightifyLast(expNode.children[0], expNode.operation);
+					if(nextExp == null) {
+						return expNode;
+					} else {
+						return nextExp;
+					}
+				}
+			} else {
+				return expNode;
+			}
+		} else {
+			return null;
+		}
 	}
 	
 }
