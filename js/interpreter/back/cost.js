@@ -33,6 +33,8 @@ const COST_TYPE = {
 	}
 }
 
+const BASIC_LOG_BASE = "2";
+
 class Cost {
 
 	constructor(costDisplay, costConsole) {
@@ -47,32 +49,50 @@ class Cost {
 	}
 	
 	setCode(astTree, astFunc, astSys) {
+		//Just in case try-catch (required to test as much as possible)
+		try {
+			
+			//Get required data
+			this.astTree = astCopy(astTree, null);
+			this.astFunc = astCopy(astFunc, this.astTree.context);
+			this.astSys = astCopy(astSys, this.astTree.context);
+			
+			//Clear display tips and global cost
+			this.clear();
+			
+			//Prepare code runner
+			this.codeRunner = new CodeRunner(this.astSys, this.astFunc, this.astTree.context, this.costConsole);
+			
+			//Analyze cost
+			let error = !this.analyzeFuncCost(this.astSys);
+			if(!error) {
+				error = !this.analyzeFuncCost(this.astFunc);
+			}
+			if(!error) {
+				error = !this.analyzeCodeCost(this.astTree, true);
+			}
+			
+			//Display costs
+			if(!error) {
+				
+				//Display main costs
+				this.displayCosts(this.astTree, 0);
+				
+				//Display funcs cost
+				let funcs = Object.keys(this.astFunc);
+				for(let i = 0; i < funcs.length; i++) {
+					this.displayCosts(this.astFunc[funcs[i]], 0);
+				}
+				
+			} else {
+				this.costConsole.displayMsg(MSG_INCOMPLETE_COST);
+			}
 		
-		//Get required data
-		this.astTree = astCopy(astTree, null);
-		this.astFunc = astCopy(astFunc, this.astTree.context);
-		this.astSys = astCopy(astSys, this.astTree.context);
-		
-		//Clear display tips and global cost
-		this.clear();
-		
-		//Prepare code runner
-		this.codeRunner = new CodeRunner(this.astSys, this.astFunc, this.astTree.context, this.costConsole);
-		
-		//Analyze cost
-		let error = !this.analyzeFuncCost(this.astSysSrc);
-		if(!error) {
-			error = !this.analyzeFuncCost(this.astFuncSrc);
+		} catch(e) {
+			this.clear();
+			this.costConsole.displayMsg(ERROR_COST_UNKNOWN);
+			this.costConsole.displayMsg(MSG_INCOMPLETE_COST);
 		}
-		if(!error) {
-			error = !this.analyzeCodeCost(this.astTree);
-		}
-		
-		//Display costs
-		if(!error) {
-			this.displayCosts(this.astTree, 0);
-		}
-		
 	}
 	
 	displayCosts(node, colorIdx) {
@@ -81,7 +101,9 @@ class Cost {
 			
 			//Check if is root node
 			if(node == this.astTree) {
-				this.displayGlobalCost(node.cost);
+				if(typeof node.cost != UNDEFINED) {
+					this.displayGlobalCost(node.cost);
+				}
 			}
 			
 			//Process actions
@@ -90,6 +112,12 @@ class Cost {
 			}
 			
 		} else {
+			
+			//Check if cost exists
+			if(typeof node.cost == UNDEFINED && node.semantica != SEMANTICA_KEYS.FUNC_CALL) {
+				return;
+			}
+			
 			//Check action
 			switch(node.semantica) {
 				
@@ -111,16 +139,27 @@ class Cost {
 					break;
 					
 			}
+			
 		}
 	}
 	
-	displayExpCost(node, colorIdx) {
+	displayExpCost(node, colorIdx, prevRange) {
 		//Check node type
 		switch(node.type) {
 			
+			case AST_NODE.ID:
+			case AST_NODE.VALUE:
+				if(prevRange != null) {
+					this.displayLocalCost(node.cost, prevRange.lineStart, prevRange.lineEnd, prevRange.offsetStart, prevRange.offsetEnd, BG_COLOR_CLASSES[colorIdx]);
+				}
+				break;
+			
 			case AST_NODE.EXPRESSION:
-				for(let i = 0; i < node.children.length; i++) {
-					this.displayExpCost(node.children[i], colorIdx);
+				if(prevRange != null) {
+					this.displayLocalCost(node.cost, prevRange.lineStart, prevRange.lineEnd, prevRange.offsetStart, prevRange.offsetEnd, BG_COLOR_CLASSES[colorIdx]);
+					for(let i = 0; i < node.children.length; i++) {
+						this.displayExpCost(node.children[i], colorIdx + 1, null);
+					}
 				}
 				break;
 				
@@ -138,7 +177,12 @@ class Cost {
 		
 		//Display expressions cost
 		for(let i = 0; i < node.children[1].children.length; i++) {
-			this.displayExpCost(node.children[1].children[i], (colorIdx + 1) % BG_COLOR_CLASSES.length);
+			this.displayExpCost(node.children[1].children[i], (colorIdx + 1) % BG_COLOR_CLASSES.length, {
+				lineStart: node.children[1].lineStart,
+				lineEnd: node.children[1].lineEnd,
+				offsetStart: node.children[1].offsetStart,
+				offsetEnd: node.children[1].offsetEnd
+			});
 		}
 		
 	}
@@ -151,7 +195,12 @@ class Cost {
 		//Display condition cost
 		let cNode = node.children[0].children[0];
 		this.displayLocalCost(cNode.cost, cNode.lineStart, cNode.lineEnd, cNode.offsetStart, cNode.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 1) % BG_COLOR_CLASSES.length]);
-		this.displayExpCost(cNode, (colorIdx + 2) % BG_COLOR_CLASSES.length);
+		this.displayExpCost(cNode, (colorIdx + 2) % BG_COLOR_CLASSES.length, {
+			lineStart: node.children[0].lineStart,
+			lineEnd: node.children[0].lineEnd,
+			offsetStart: node.children[0].offsetStart,
+			offsetEnd: node.children[0].offsetEnd
+		});
 		
 		//Display subcode costs
 		for(let i = 0; i < node.children[1].children.length; i++) {
@@ -162,20 +211,14 @@ class Cost {
 	
 	displayFuncCallCost(node, colorIdx) {
 		
-		//Get func ref
-		let funcRef = this.astFunc[node.ref];
-		if(typeof funcRef === UNDEFINED) {
-			funcRef = this.astSys[node.ref];
-		}
-		
 		//Display call cost
-		this.displayLocalCost(funcRef.cost, funcRef.lineStart, funcRef.lineEnd, funcRef.offsetStart, funcRef.offsetEnd, BG_COLOR_CLASSES[colorIdx]);
+		this.displayLocalCost(node.cost, node.lineStart, node.lineEnd, node.offsetStart, node.offsetEnd, BG_COLOR_CLASSES[colorIdx]);
 		
 		//Display params cost
 		for(i = 0; i < node.children.length; i++) {
 			let exp = node.children[i];
 			this.displayLocalCost(exp.cost, exp.lineStart, exp.lineEnd, exp.offsetStart, exp.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 1) % BG_COLOR_CLASSES.length]);
-			this.displayExpCost(exp, (colorIdx + 2) % BG_COLOR_CLASSES.length);
+			this.displayExpCost(exp, (colorIdx + 2) % BG_COLOR_CLASSES.length, null);
 		}
 		
 	}
@@ -197,26 +240,76 @@ class Cost {
 			for(let i = 0; i < rNode.children.length; i++) {
 				let exp = rNode.children[i];
 				this.displayLocalCost(exp.cost, exp.lineStart, exp.lineEnd, exp.offsetStart, exp.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 2) % BG_COLOR_CLASSES.length]);
-				this.displayExpCost(exp, (colorIdx + 3) % BG_COLOR_CLASSES.length);
+				this.displayExpCost(exp, (colorIdx + 3) % BG_COLOR_CLASSES.length, null);
 			}
 		}
 		
 	}
 	
-	analyzeFuncCost(node) {
+	analyzeFuncCost(funcs) {
 		
 		//Check if any function exists
-		let funcKeys = Object.keys(this.astFunc);
+		let funcKeys = Object.keys(funcs);
 		if(funcKeys.length == 0) {
 			return true;
 		}
 		
-		//TODO
+		//Analyze functions cost
+		for(let i = 0; i < funcKeys.length; i++) {
+			
+			//Get func
+			let funcRef = funcs[funcKeys[i]];
+			
+			//Calculate content cost
+			let funcCosts = [];
+			if(funcRef.children[2].children.length != 0) {
+				if(this.analyzeCodeCost(funcRef.children[2].children[0], false)) {
+					funcCosts.push(funcRef.children[2].children[0].cost);
+				} else {
+					return false;
+				}
+			}
+			
+			//Calculate return cost
+			if(funcRef.children[3].children.length != 0) {
+				let subCosts = [];
+				for(let j = 0; j < funcRef.children[3].children.length; j++) {
+					let returnCosts = this.evalExpCost(funcRef.children[3].children[j], false);
+					if(typeof returnCosts.find(item => item == null) == UNDEFINED) {
+						funcRef.children[3].children[j].cost = this.additiveCost(returnCosts);
+						subCosts.push(funcRef.children[3].children[j].cost);
+					} else {
+						return false;
+					}
+				}
+				funcRef.children[3].cost = this.additiveCost(subCosts);
+				funcCosts.push(funcRef.children[3].cost);
+			}
+			
+			//Calculate final cost
+			if(funcCosts.length == 0) {
+				funcRef.cost = {
+					max: {
+						type: COST_TYPE.CONST,
+						param: 1
+					},
+					min: {
+						type: COST_TYPE.CONST,
+						param: 1
+					}
+				};
+			} else {
+				funcRef.cost = this.additiveCost(funcCosts);
+			}
+			
+		}
+		
+		//All ok
 		return true;
 		
 	}
 	
-	analyzeCodeCost(node) {
+	analyzeCodeCost(node, funcOn) {
 		
 		//Check if any action exists
 		if(node.children.length == 0) {
@@ -226,7 +319,7 @@ class Cost {
 		//Process actions
 		let costs = [];
 		for(let i = 0; i < node.children.length; i++) {
-			let cost = this.analyzeAction(node.children[i]);
+			let cost = this.analyzeAction(node.children[i], funcOn);
 			if(cost == null) {
 				return false;
 			} else {
@@ -240,29 +333,37 @@ class Cost {
 		
 	}
 	
-	analyzeAction(node) {
+	analyzeAction(node, funcOn) {
 		//Check action
 		switch(node.semantica) {
 			
 			case SEMANTICA_KEYS.VAR_ASSIGN:
-				return this.varAssignCost(node);
+				return this.varAssignCost(node, funcOn);
 				
 			case SEMANTICA_KEYS.FORK:
-				return this.forkCost(node);
+				return this.forkCost(node, funcOn);
 				
 			case SEMANTICA_KEYS.LOOP:
-				return this.loopCost(node);
+				return this.loopCost(node, funcOn);
 				
 			case SEMANTICA_KEYS.FUNC_CALL:
-				return this.funcCallCost(node);
 				
-			default:	//Undefined case
+				//Check if func calls are available
+				if(funcOn || this.isSysFunc(node.ref)) {
+					return this.funcCallCost(node);
+				}
+				
+				//Funcs not available
+				this.costConsole.displayMsg(ERROR_INVALID_FUNC.format(node.ref, node.lineStart, node.lineEnd));
+				return null;
+				
+			default:	//Undefined case (may not ever happen)
 				return null;
 				
 		}
 	}
 	
-	varAssignCost(node) {
+	varAssignCost(node, funcOn) {
 		
 		//Get expressions
 		let exps = node.children[1];
@@ -270,43 +371,45 @@ class Cost {
 		//Get expressions cost
 		let expCosts = [];
 		for(let i = 0; i < exps.children.length; i++) {
-			let costs = this.evalExpCost(exps.children[i]);
-			for(let i = 0; i < costs.length; i++) {
-				if(costs[i] == null) {
+			let costs = this.evalExpCost(exps.children[i], funcOn);
+			for(let j = 0; j < costs.length; j++) {
+				if(costs[j] == null) {
 					return null;
 				} else {
-					expCosts.push(costs[i]);
+					exps.children[i].cost = costs[j];
+					expCosts.push(costs[j]);
 				}
 			}
 		}
 		
 		//Get cost range
 		node.cost = this.additiveCost(expCosts);
+		exps.cost = node.cost;
 		return node.cost;
 		
 	}
 	
-	this.forkCost(node) {
+	forkCost(node, funcOn) {
 		
 		//Get condition cost
-		let costs = this.evalExpCost(node.children[0].children[0]);
+		let costs = this.evalExpCost(node.children[0].children[0], funcOn);
 		for(let i = 0; i < costs.length; i++) {
 			if(costs[i] == null) {
 				return null;
 			}
 		}
-		node.children[0].children[0].cost = this.additiveCost(costs);
+		let conditionCost = this.additiveCost(costs);
+		node.children[0].children[0].cost = conditionCost;
 		
 		//Get sub-costs
-		let subCosts = [];
 		for(let i = 0; i < node.children[1].children.length; i++) {
-			if(!this.analyzeCodeCost(node.children[1].children[i])) {
+			if(!this.analyzeCodeCost(node.children[1].children[i], funcOn)) {
 				return null;
 			}
 		}
 		
 		//Check branches to assign fork cost
-		node.cost = node.children[0].children[0].cost;
+		node.cost = conditionCost;
 		if(node.children[1].children.length > 0) {
 			//Check condition
 			if(this.isConstantExp(node.children[0].children[0])) {
@@ -317,8 +420,9 @@ class Cost {
 					let conditionIdx = conditionExp ? 0 : 1;
 					for(let i = 0; i < node.children[1].children.length; i++) {
 						if(node.children[1].children[i].conditionCase == conditionIdx) {
-							node.cost = this.productCost([node.cost, node.children[1].children[i].cost]);
-							break;
+							if(node.children[1].children[i].children.length > 0) {
+								node.cost = this.additiveCost([node.cost, node.children[1].children[i].cost]);
+							}
 						}
 					}
 				}
@@ -333,14 +437,24 @@ class Cost {
 				}
 				
 				//Reorder costs (highest --> lowest)
-				this.reorderCosts(maxs);
-				this.reorderCosts(mins);
+				if(this.reorderCosts(maxs, false)) {
+					maxs = [{
+						type: COST_TYPE.MAX,
+						children: [...maxs]
+					}];
+				}
+				if(this.reorderCosts(mins, false)) {
+					mins = [{
+						type: COST_TYPE.MIN,
+						children: [...mins]
+					}];
+				}
 				
 				//Select fork cost (highest max, lowest min --> worst & best case)
-				node.cost = {
+				node.cost = this.additiveCost([node.cost, {
 					max: maxs[0],
 					min: mins[mins.length - 1]
-				};
+				}]);
 			
 			}
 		}
@@ -349,26 +463,27 @@ class Cost {
 		
 	}
 	
-	loopCost(node) {
+	loopCost(node, funcOn) {
 		
 		//Get condition cost
-		let costs = this.evalExpCost(node.children[0].children[0]);
+		let costs = this.evalExpCost(node.children[0].children[0], funcOn);
 		for(let i = 0; i < costs.length; i++) {
 			if(costs[i] == null) {
 				return null;
 			}
 		}
-		node.children[0].children[0].cost = this.additiveCost(costs);
+		let conditionCost = this.additiveCost(costs);
+		node.children[0].children[0].cost = conditionCost;
 		
 		//Analyze loop code cost
 		if(node.children[1].children.length > 0) {
-			if(!this.analyzeCodeCost(node.children[1].children[0])) {
+			if(!this.analyzeCodeCost(node.children[1].children[0], funcOn)) {
 				return null;
 			}
 		}
 		
 		//Check condition
-		node.cost = node.children[0].children[0].cost;
+		node.cost = conditionCost;
 		if(this.isConstantExp(node.children[0].children[0])) {
 			let conditionExp = this.codeRunner.evalExp(node.children[0].children[0], null)[0];
 			if(conditionExp == null) {
@@ -386,12 +501,41 @@ class Cost {
 				}
 			}
 		} else {
-			let itCost = this.getIterationCost(node.children[0].children[0], node.children[1].children.length > 0 ? node.children[1].children[0] : null, node.context);
-			if(itCost == null) {
-				return null;
+			
+			//Check if exists any loop content
+			if(node.children[1].children.length == 0) {
+				node.cost = this.additiveCost([node.cost, {
+					max: {
+						type: COST_TYPE.INF
+					},
+					min: {
+						type: COST_TYPE.CONST,
+						param: 1
+					}
+				}]);
 			} else {
-				node.cost = this.productCost([node.cost, itCost]);
+				//Check not empty loop (var definitions could exist)
+				if(node.children[1].children[0].children.length > 0) {
+					//Get iteration cost
+					let itCost = this.getIterationCost(node);
+						if(itCost == null) {
+							return null;
+						} else {
+							node.cost = this.productCost([itCost, this.additiveCost([node.cost, node.children[1].children[0].cost])]);
+						}
+					} else {
+						node.cost = this.additiveCost([node.cost, {
+						max: {
+							type: COST_TYPE.INF
+						},
+						min: {
+							type: COST_TYPE.CONST,
+							param: 1
+						}
+					}]);
+				}
 			}
+			
 		}
 		
 		return node.cost;
@@ -399,14 +543,37 @@ class Cost {
 	}
 	
 	funcCallCost(node) {
+		
 		//TODO
-		return null;
+		
+		//Analyze params cost
+		let paramsCost = [];
+		for(let i = 0; i < node.children.length; i++) {
+			let costs = this.evalExpCost(node.children[i], true);
+			for(let j = 0; j < costs.length; j++) {
+				if(costs[j] == null) {
+					return null;
+				} else {
+					node.children[i].cost = costs[j];
+					paramsCost.push(costs[j]);
+				}
+			}
+		}
+		
+		if(this.isSysFunc(node.ref)) {
+			node.cost =  this.additiveCost([this.astSys[node.ref].cost, ...paramsCost]);
+		} else {
+			node.cost = this.additiveCost([this.astFunc[node.ref].cost, ...paramsCost]);
+		}
+		
+		return node.cost;
+		
 	}
 	
-	getIterationCost(condition, code, context) {
+	getIterationCost(node) {
 		
 		//Check if has code to run (updates condition dependency)
-		if(code == null) {
+		if(node.children[1].children.length == 0) {
 			return {
 				max: {
 					type: COST_TYPE.INF
@@ -418,467 +585,337 @@ class Cost {
 			};
 		}
 		
-		//Get condition dependency vars (must exist)
-		let vars = this.getDependencies(condition, code, context);
-		let varUpdateCosts = [];
-		for(let i = 0; i < vars.length; i++) {
-			switch(vars[i].type) {
-				
-				case DATA_TYPES.INT:
-				case DATA_TYPES.CHAR:
-					varUpdateCosts.push(this.getIntegerUpdateCost(vars[i], code));
-					if(varUpdateCosts[varUpdateCosts.length - 1] == null) {
-						return null;
-					}
-					break;
-					
-				case DATA_TYPES.BOOL:
-					varUpdateCosts.push(this.getBoolUpdateCost(vars[i], code));
-					if(varUpdateCosts[varUpdateCosts.length - 1] == null) {
-						return null;
-					}
-					break;
-					
-				case DATA_TYPES.STRING:
-				default:
-					return null;
-					
-			}
+		//Get condition var dependencies
+		let deps = this.getCompDependencies(node);
+		if(deps.length != 2) {
+			//No valid comparison found
+			this.costConsole.displayMsg(ERROR_CONDITION_DEP.format(node.lineStart, node.offsetStart));
+			return null;
 		}
 		
-		//Get cost ponderation
-		return this.additiveCost(varUpdateCosts);
-		
-	}
-	
-	getIntegerUpdateCost(varRef, code) {
-		
-		//Analyze code
-		let costs = [];
-		for(let i = 0; i < code.children.length; i++) {
-			let tmpCost = this.analyzeUpdateAction(varRef, code.children[i]);
-			if(tmpCost[0] == null) {
-				return null;
-			} else {
-				costs.push(...tmpCost);
-			}
-		}
-		
-		if(costs.length > 0) {
-			return this.additiveCost(costs);
+		//Check valid dependencies
+		if(!deps[0].update && deps[1].update) {
+			return this.getDepCost(deps[0], deps[1]);
+		} else if(deps[0].update && !deps[1].update) {
+			return this.getDepCost(deps[1], deps[0]);
 		} else {
-			return {
-				max: {
-					type: COST_TYPE.INF
-				},
-				min: {
-					type: COST_TYPE.INF
-				}
-			};
+			//No valid comparison found
+			this.costConsole.displayMsg(ERROR_CONDITION_DEP.format(node.lineStart, node.offsetStart));
+			return null;
 		}
 		
 	}
 	
-	analyzeUpdateAction(varRef, node) {
+	getDepCost(constDep, varDep) {
 		
-		//Check action
-		let costs = [];
-		switch(node.semantica) {
+		//Prepare base cost
+		let cost = {
+			max: {
+				type: varDep.costType
+			},
+			min: {
+				type: varDep.costType
+			}
+		};
+		
+		//Set params
+		if(varDep.costType != COST_TYPE.LIN) {
 			
-			case SEMANTICA_KEYS.VAR_ASSIGN:
-				costs.push(...this.varAssignUpdate(varRef, node));
-				break;
-				
-			case SEMANTICA_KEYS.FORK:
-				costs.push(...this.forkUpdate(varRef, node));
-				break;
-				
-			case SEMANTICA_KEYS.LOOP:
-				costs.push(...this.loopUpdate(varRef, node));
-				break;
-				
-			case SEMANTICA_KEYS.FUNC_CALL:
-				costs.push(...this.funcCallUpdate(varRef, node));
-				break;
-				
-			default:	//Undefined case
-				return [null];
-				
-		}
-		
-		return costs;
-		
-	}
-	
-	varAssignUpdate(varRef, node) {
-		
-		//Check if target var is modified
-		let varPos = null;
-		for(let i = 0; i < node.children[0].children.length && varPos == null; i++) {
-			for(let j = 0; j < node.children[0].children[i].children.length; j++) {
-				if(node.children[0].children[i].children[j].content == varRef.content) {
-					varPos = i;
-					break;
-				}
-			}
-		}
-		
-		//Check if var was found
-		if(varPos == null) {
-			return [];
-		}
-		
-		//Analyze expressions
-		let curParam = 0;
-		let paramCount = 0;
-		for(let i = 0; i < node.children[1].children.length; i++) {
-			paramCount += this.totalExps(node.children[1].children[i]);
-			if(varPos < paramCount) {
-				let costs = this.expUpdateEval(varRef, node.children[1].children[i], varPos - curParam, node.context);
-				if(costs.length == 0) {
-					return [];
-				} else if(costs[0] == null) {
-					return [null];
-				} else {
-					return costs;
-				}
-			} else {
-				curParam += (paramCount - 1);
-			}
-		}
-		
-		//May not ever happen
-		return [null];
-		
-	}
-	
-	totalExps(exp) {
-		//Check if is a group of expressions
-		if(exp.dataType == EXP_SPECIAL_KEYS.GROUP) {
-			let funcCallNode = locateExpFunc(exp);
-			return funcCallNode.multiType.length;
+			//Max
+			cost.max.param = {
+				type: COST_TYPE.LIN,
+				param: constDep.content
+			};
+			cost.max.paramExtra = {
+				type: COST_TYPE.LIN,
+				param: varDep.content
+			};
+			
+			//Min
+			cost.min.param = {
+				type: COST_TYPE.LIN,
+				param: constDep.content
+			};
+			cost.min.paramExtra = {
+				type: COST_TYPE.LIN,
+				param: varDep.content
+			};
+			
 		} else {
-			return 1;
-		}
-	}
-	
-	expUpdateEval(varRef, node, expIdx, context) {
-		
-		//TODO
-		
-		//Check index
-		let cost = [];
-		if(expIdx == 0) {
-			//Check node type
-			switch(node.type) {
-				
-				case AST_NODE.EXPRESSION:
-					//Check if has any operation assigned
-					if(typeof node.operation === UNDEFINED) {
-						cost = this.expUpdateEval(varRef, node.children[0], expIdx, context);
-					} else {
-						let newCost = this.operateCost(varRef, this.decomposeOp(node, context), context);
-						if(newCost.lenth == 0) {
-							cost.push({
-								max: {
-									type: COST_TYPE.INF
-								},
-								min: {
-									type: COST_TYPE.CONST,
-									param: 1
-								}
-							});
-						} else {
-							if(newCost[0] == null) {
-								return [null];
-							} else {
-								cost = newCost;
-							}
-						}
-					}
-					break;
-				
-				case AST_NODE.FUNC_EXP:
-					//Should analyze in the future
-				case AST_NODE.VALUE:
-					cost.push({
-						max: {
-							type: COST_TYPE.INF
-						},
-						min: {
-							type: COST_TYPE.CONST,
-							param: 1
-						}
-					});
-					break;
-					
-				case AST_NODE.ID:
-					//Check if is target var
-					let newVarRef = astLocateVar(node.ref.content, context);
-					if(newVarRef == varRef) {
-						cost.push({
-							max: {
-								type: COST_TYPE.INF
-							},
-							min: {
-								type: COST_TYPE.INF
-							}
-						});
-					} else {
-						cost.push({
-							max: {
-								type: COST_TYPE.INF
-							},
-							min: {
-								type: COST_TYPE.CONST,
-								param: 1
-							}
-						});
-					}
-					break;
-					
-				default:	//Undefined case
-					cost = [null];
-					break;
-					
-			}
-		} else {
-			//TODO
-			cost = [null];
+			cost.max.param = constDep.content;
+			cost.min.param = constDep.content;
 		}
 		
 		return cost;
 		
 	}
 	
-	decomposeExp(exp, context) {
+	getCompDependencies(node) {
 		
-		//Check node type
-		let exps = [];
-		switch(exp.type) {
-			
-			case AST_NODE.EXPRESSION:
-				//Check if has any operation assigned
-				if(typeof exp.operation === UNDEFINED) {
-					exps = this.decomposeExp(exp.children[0], context);
-				} else {
-					exps = [this.decomposeOp(exp, context)];
-				}
-				break;
-				
-			case AST_NODE.VALUE:
-				exps.push(exp);
-				break;
-				
-			case AST_NODE.ID:
-				exps.push(astLocateVar(exp.ref.content, context));
-				break;
-				
-			case AST_NODE.FUNC_EXP:	//Should analyze in the future
-			default:				//Undefined case
-				exps = [null];
-				break;
-				
+		//Get comparison
+		let compExp = this.getComparison(node.children[0].children[0]);
+		
+		//Check comparison existance
+		if(compExp == null) {
+			return [];
 		}
 		
-		return exps;
-		
-	}
-	
-	decomposeOp(exp, context) {
-		
-		//Create op node
-		let opNode = {
-			op: exp.operation,
-			children: []
-		};
-		
-		//Get expressions
-		for(let i = 0; i < exp.children.length; i++) {
-			let newExp = this.decomposeExp(exp.children[i], context);
-			if(newExp == null) {
-				return null;
-			} else {
-				opNode.children.push(...newExp);
-			}
+		//Check integer comparison
+		if(compExp.children[0].dataType != DATA_TYPES.INT || compExp.children[1].dataType != DATA_TYPES.INT) {
+			this.costConsole.displayMsg(ERROR_CONDITION_NOT_INT.format(node.lineStart, node.offsetStart));
+			return [];
 		}
 		
-		return opNode;
-		
-	}
-	
-	operateCost(varRef, op, context) {
-		
-		//Check exps
-		if(op == null) {
-			return [null];
-		}
-		
-		//Check operation (considerating exp lengths is ok)
-		let costs = [];
-		let subCosts = [];
-		switch(op.op) {
-				
-			case OPERATION.PLUS:
-			case OPERATION.MINUS:
-			
-				//Check complex expressions
-				for(let i = 0; i < op.children.length; i++) {
-					if(typeof op.children[i].op !== UNDEFINED) {
-						let newCost = this.operateCost(varRef, op, context);
-						if(newCost[0] == null) {
-							return [null];
-						} else {
-							subCosts.push(newCost[0].max);	//1 cost
-						}
-					}
-				}
-				
-				//Check operation
-				if(subCosts.length == 0) {
-					//Check if exists target var (2 exps at most)
-					for(let i = 0; i < op.children.length; i++) {
-						if(varRef == op.children[i]) {
-							costs.push({
-								max: {
-									type: COST_TYPE.LIN,
-									param: varRef.content
-								},
-								min: {
-									type: COST_TYPE.LIN,
-									param: varRef.content
-								}
-							});
-						}
-					}
-				} else {
-					
-					//Get lowest cost
-					this.reorderCosts(subCosts);
-					let lowCost = subCosts[subCosts.length - 1];
-					
-					//Append to cost list
-					costs.push({
-						max: lowCost,
-						min: lowCost
-					});
-					
-				}
-				
-				break;
-				
-			case OPERATION.MULT:
-			case OPERATION.DIV:
-			case OPERATION.MOD:
-				//TODO
-				break;
-				
-			default:
-				return [null];
-				
-		}
-		
-		return costs;
-		
-	}
-	
-	forkUpdate(varRef, node) {
-		//TODO
-		return [null];
-	}
-				
-	loopUpdate(varRef, node) {
-		//TODO
-		return [null];
-	}
-	
-	funcCallUpdate(varRef, node) {
-		//TODO
-		return [null];
-	}
-	
-	getBoolUpdateCost(varRef, code) {
-		//TODO
-		return [null];
-	}
-	
-	getDependencies(node, code, context) {
-	
-		//Check node type
+		//Get dependencies
 		let deps = [];
-		switch(node.type) {
+		for(let i = 0; i < compExp.children.length; i++) {
 			
-			case AST_NODE.EXPRESSION:
-				if(typeof node.operation === UNDEFINED) {
-					deps.push(...this.getDependencies(node.children[0], code, context));
+			//Get dependency
+			let newDep = this.getComparisonDependency(compExp.children[i]);
+			
+			//Check valid dependency
+			if(newDep == null) {
+				continue;
+			}
+			
+			//Check if is var
+			if(typeof newDep.update != UNDEFINED) {
+				deps.push(newDep);
+			} else {
+				let varUpdate = this.checkVarUpdate(newDep, node.children[1].children[0]);
+				if(varUpdate == null) {
+					continue;
 				} else {
-					deps.push(...this.getDependencyOp(node, code, context));
+					newDep.update = varUpdate;
+					deps.push(newDep);
 				}
-				break;
+			}
 			
-			case AST_NODE.VALUE:
-				deps.push({
-					content: node
-				});
-				break;
-			
-			case AST_NODE.ID:
-				deps.push({
-					content: astLocateVar(node.ref.content, context)
-				});
-				break;
-				
-			case AST_NODE.FUNC_EXP:
-				deps.push(this.getFuncDependencyVars(node));
-				break;
-				
 		}
 		
 		return deps;
-	
+		
 	}
 	
-	getDependencyOp(node, code, context) {
+	getCostFromOp(op) {
+		switch(op) {
 		
-		//Check if is compare operation
-		switch(node.operation) {
+			case OPERATION.PLUS:
+			case OPERATION.MINUS:
+				return COST_TYPE.LIN;
 				
-			case OPERATION.LOW:
-			case OPERATION.LOW_EQ:
-			case OPERATION.GREAT:
-			case OPERATION.GREAT_EQ:
-				break;
-				
-			case OPERATION.EQ:
-			case OPERATION.NOT_EQ:
-			default:
-				//Modify in the future
-				return [];
-				
+			case OPERATION.MULT:
+			case OPERATION.DIV:
+				return COST_TYPE.LOG;
+		
+			default:	//May not ever happen
+				return null;
+		
+		}
+	}
+	
+	checkVarUpdate(varDep, node) {
+		
+		//Locate all var assigns that modify var dependency
+		let varAssigns = this.extractVarAssign(varDep.content, node);
+		if(typeof varAssigns.find(item => item == null) != UNDEFINED) {
+			return null;
 		}
 		
-		//Get children dependencies
-		let deps = [];
-		for(let i = 0; i < node.children.length; i++) {
-			let dep = this.getDependencies(node.children[i], code, context);
-			if(dep.length > 0) {
-				deps.push(dep);
+		//Check if no var assign was found
+		if(varAssigns.length == 0) {
+			return false;
+		}
+		
+		//Analyze assigns
+		let varAssignOps = [];
+		for(let i = 0; i < varAssigns.length; i++) {
+			let varAssignOp = this.extractVarModification(varAssigns[i]);
+			if(varAssignOp == null) {
+				return null;
+			} else {
+				varAssignOps.push(varAssignOp);
 			}
 		}
 		
-		//Check dependencies
-		if() {
+		//Get shortest cost operation
+		let lowestAssign = {
+			costOp: this.getCostFromOp(varAssignOps[0].op),
+			content: varAssignOps[0].content
+		}
+		for(let i = 1; i < varAssignOps.length; i++) {
+			
+			//Get cost from operation
+			let costOp = this.getCostFromOp(varAssignOps[i].op);
+			
+			//Check cost type
+			let costComp = this.emptyCostCompare(lowestAssign.costOp, costOp);
+			if(costComp > 0) {
+				lowestAssign.costOp = costOp;
+				lowestAssign.content = varAssignOps[i].content;
+			} else if(costComp == 0) {
+				if(parseInt(lowestAssign.costOp) - parseInt(varAssignOps[i].content) < 0) {
+					lowestAssign.costOp = costOp;
+					lowestAssign.content = varAssignOps[i].content;
+				}
+			}
+			
 		}
 		
-		return [];
+		//Set cost associated to operation
+		varDep.costType = lowestAssign.costOp;
+		varDep.content = lowestAssign.content;
+		return true;
 		
 	}
 	
-	getFuncDependencyVars(node) {
-		return [];	//Condition modify in functions in the future
+	extractVarModification(varAssign) {
+		
+		//Check if modifies itself
+		let varName = varAssign.children[0].children[0].children[0].content;
+		let exp = varAssign.children[1].children[0];
+		if(!this.isVarSelfUpdated(exp, varName)) {
+			this.costConsole.displayMsg(ERROR_COST_SELF_UPDATE.format(varName, varAssign.lineStart, varAssign.offsetStart));
+			return null;
+		}
+		
+		//Check if modification is simple
+		let values = [];
+		for(let i = 0; i < exp.children.length; i++) {
+			if(this.isSimpleExp(exp.children[i])) {
+				values.push(exp.children[i]);
+			} else {
+				this.costConsole.displayMsg(ERROR_COST_COMPLEX_UPDATE.format(varName, varAssign.lineStart, varAssign.offsetStart));
+				return null;
+			}
+		}
+		
+		//Get var modification
+		let duplicated = false;
+		let opReturn = {
+			op: exp.operation
+		};
+		for(let i = 0; i < values.length; i++) {
+			if(values[i].type == AST_NODE.VALUE) {
+				opReturn.content = values[i].value.content;
+			} else {
+				
+				//Prepare return
+				opReturn.content = values[i].ref.content;
+				
+				if(opReturn.content == varName) {
+					if(duplicated) {
+						opReturn.op = OPERATION.MULT,
+						opReturn.content = BASIC_LOG_BASE;
+					} else {
+						duplicated = true;
+					}
+				}
+				
+			}
+		}
+		
+		return opReturn;
+		
 	}
 	
-	evalExpCost(node) {
+	isSimpleExp(exp) {
+		
+		//Check simple expression
+		if(exp.type == AST_NODE.ID || exp.type == AST_NODE.VALUE) {
+			return true;
+		}
+		
+		return false;
+		
+	}
+	
+	isVarSelfUpdated(exp, varName) {
+		
+		//Find var
+		switch(exp.type) {
+			
+			case AST_NODE.EXPRESSION:
+				for(let i = 0; i < exp.children.length; i++) {
+					if(this.isVarSelfUpdated(exp.children[i], varName)) {
+						return true;
+					}
+				}
+				break;
+				
+			case AST_NODE.ID:
+				return exp.ref.content == varName;
+				
+		}
+		
+		//Not found
+		return false;
+		
+	}
+	
+	extractVarAssign(varName, node) {
+		
+		//Get var assigns where var name is located
+		let assigns = [];
+		for(let i = 0; i < node.children.length; i++) {
+			if(node.children[i].semantica == SEMANTICA_KEYS.VAR_ASSIGN) {
+				let varAssign = node.children[i];
+				for(let j = 0; j < varAssign.children[0].children.length; j++) {
+					for(let k = 0; k < varAssign.children[0].children[j].children.length; k++) {
+						let varNode = varAssign.children[0].children[j].children[k];
+						if(varNode.content == varName) {
+							if(varAssign.children[0].children.length == 1 && varAssign.children[0].children[j].children.length == 1) {
+								assigns.push(varAssign);
+							} else {
+								this.costConsole.displayMsg(ERROR_COST_LOOP_MULTIVAR.format(varName, varAssign.lineStart, varAssign.offsetStart));
+								return [null];
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return assigns;
+		
+	}
+	
+	getComparison(exp) {
+		
+		//Check expression
+		if(exp.type == AST_NODE.EXPRESSION) {
+			//Check operation
+			if(OP_COMPARISSON[exp.operation]) {
+				return exp;
+			} else {
+				for(let i = 0; i < exp.children.length; i++) {
+					let compExp = this.getComparison(exp.children[i]);
+					if(compExp != null) {
+						return compExp;
+					}
+				}
+			}
+		}
+		
+		//Comparisson not found
+		return null;
+		
+	}
+	
+	getComparisonDependency(exp) {
+		if(exp.type == AST_NODE.VALUE) {
+			return {
+				content: exp.value.content,
+				update: false
+			};
+		} else if(exp.type == AST_NODE.ID) {
+			return {
+				content: exp.ref.content
+			};
+		}
+	}
+	
+	evalExpCost(node, funcOn) {
 		
 		//Check node type
 		let cost = [];
@@ -886,7 +923,7 @@ class Cost {
 			
 			case AST_NODE.EXPRESSION:
 				for(let i = 0; i < node.children.length; i++) {
-					cost.push(...this.evalExpCost(node.children[i]));
+					cost.push(...this.evalExpCost(node.children[i], funcOn));
 				}
 				break;
 			
@@ -905,7 +942,14 @@ class Cost {
 				break;
 				
 			case AST_NODE.FUNC_EXP:
-				cost.push(this.funcCallCost(node));
+			
+				//Check if func calls are available
+				if(funcOn) {
+					cost.push(this.funcCallCost(node));
+				} else {
+					this.costConsole.displayMsg(ERROR_INVALID_FUNC.format(node.ref, node.lineStart, node.lineEnd));
+					cost.push(null);
+				}
 				break;
 				
 		}
@@ -917,11 +961,10 @@ class Cost {
 	isConstantExp(exp) {
 		
 		//Check node type
-		let i;
 		switch(exp.type) {
 			
 			case AST_NODE.EXPRESSION:
-				for(i = 0; i < exp.children.length; i++) {
+				for(let i = 0; i < exp.children.length; i++) {
 					if(!this.isConstantExp(exp.children[i])) {
 						return false;
 					}
@@ -932,7 +975,6 @@ class Cost {
 				return false;
 				
 			case AST_NODE.FUNC_EXP:
-				//return this.isConstantFunction(exp);
 				return false;
 				
 		}
@@ -940,51 +982,6 @@ class Cost {
 		//Any dependency found
 		return true;
 		
-	}
-	
-	isConstantFunction(exp) {
-		
-		//Check params
-		for(i = 0; i < exp.children.length; i++) {
-			if(!this.isConstantExp(exp.children[i])) {
-				return false;
-			}
-		}
-		
-		//Get func ref
-		let funcName = exp.ref;
-		let funcRef = this.astFunc[funcName];
-		if(typeof funcRef === UNDEFINED) {
-			return this.isConstantSysFunction(this.astSys[funcName]);
-		}
-		
-		//Check return expressions
-		let exps = funcRef.children[3].children;
-		for(let i = 0; i < exps.length; i++) {
-			if(!this.isConstantExp(exps[i])) {
-				return false;
-			}
-		}
-		
-		//No dependency found
-		return true;
-		
-	}
-	
-	isConstantSysFunction(funcRef) {
-		//All prints: switch useful in the future, useless otherwise
-		switch(funcRef.funcName) {
-			
-			case SYS_FUNC.INT:
-			case SYS_FUNC.BOOL:
-			case SYS_FUNC.INT:
-			case SYS_FUNC.STRING:
-				return true;
-
-			default:
-				return true;	//May not ever happen
-				
-		}
 	}
 	
 	additiveCost(costs) {
@@ -1063,9 +1060,25 @@ class Cost {
 					children: [costs[i].min]
 				};
 			} else {
+				
+				//Concat max costs
+				if(costs[i].max.type == COST_TYPE.PROD) {
+					for(let j = 0; j < costs[i].max.children.length; j++) {
+						this.concatCost(concCost.max.children, costs[i].max.children[j]);
+					}
+				} else {
+					this.concatCost(concCost.max.children, costs[i].max);
+				}
+				
 				//Concat costs
-				this.concatCost(concCost.max.children, costs[i].max);
-				this.concatCost(concCost.min.children, costs[i].min);
+				if(costs[i].min.type == COST_TYPE.PROD) {
+					for(let j = 0; j < costs[i].min.children.length; j++) {
+						this.concatCost(concCost.min.children, costs[i].min.children[j]);
+					}
+				} else {
+					this.concatCost(concCost.min.children, costs[i].min);
+				}
+				
 			}
 		}
 		
@@ -1088,7 +1101,27 @@ class Cost {
 			return;
 		}
 		
-		//Check if cost is polynomic
+		//Check if cost contains infinity
+		if(cost.type == COST_TYPE.INF) {
+			prodCost.splice(0, prodCost.length);
+			prodCost.push(cost);
+			return;
+		}
+		
+		//Check if prodCost is constant
+		if(prodCost[0].type == COST_TYPE.CONST) {
+			prodCost.splice(0, prodCost.length);
+			prodCost.push(cost);
+			return;
+		}
+		
+		//Check if new cost is constant
+		if(cost.type == COST_TYPE.CONST) {
+			this.reorderCosts(prodCost, true);
+			return;
+		}
+		
+		//Transform to polinomic cost
 		let costCopy = {...cost};
 		if(cost.type != COST_TYPE.POL) {
 			costCopy.type = COST_TYPE.POL;
@@ -1099,10 +1132,14 @@ class Cost {
 			};
 		}
 		
+		//Set exponent to 1
+		let tmpCostParamExtra = costCopy.paramExtra.param;
+		costCopy.paramExtra.param = 1;
+		
 		//Check if cost already exists
 		for(let i = 0; i < prodCost.length; i++) {
 			
-			//Check if cost is polynomic
+			//Transform prodCost to polynomic
 			let prodCostCopy = {...prodCost[i]};
 			if(prodCostCopy.type != COST_TYPE.POL) {
 				prodCostCopy.type = COST_TYPE.POL;
@@ -1113,17 +1150,17 @@ class Cost {
 				};
 			}
 			
+			//Set exponent to 1
+			let tmpProdCostParamExtra = prodCostCopy.paramExtra.param;
+			prodCostCopy.paramExtra.param = 1;
+			
 			//Compare costs
 			let compareResult = this.costCompare(costCopy, prodCostCopy);
+			prodCostCopy.paramExtra.param = tmpProdCostParamExtra;
 			if(compareResult != null && compareResult == 0) {
 				
-				//Check if are const type or infinity
-				if(costCopy.param.type == COST_TYPE.CONST || costCopy.param.type == COST_TYPE.INF) {
-					return;
-				}
-				
 				//Same cost --> Increase exponent
-				prodCostCopy.paramExtra.param++;
+				prodCostCopy.paramExtra.param += tmpCostParamExtra;
 				
 				//Check if is requried to be added
 				if(prodCost[i].type != prodCostCopy.type) {
@@ -1132,41 +1169,70 @@ class Cost {
 				}
 				
 				//Reorder costs
-				this.reorderCosts(prodCost);
+				this.reorderCosts(prodCost, true);
 				return;
 				
 			}
 			
 		}
 		
-		//Cost not found: check infinity case
-		if(cost.type == COST_TYPE.INF) {
-			prodCost.splice(0, prodCost.length);
+		//Recover previous param extra if required
+		if(cost.type == costCopy.type) {
+			cost.paramExtra.param = tmpCostParamExtra;
 		}
 		
-		//Append cost
+		//Cost not found
 		prodCost.push(cost);
-		this.reorderCosts(prodCost);
+		this.reorderCosts(prodCost, true);
 		
 	}
 	
-	reorderCosts(costs) {
+	reorderCosts(costs, pruneConst) {
+		
+		//Reorder
+		let koReorder = false;
 		for(let i = 0; i < costs.length - 1; i++) {
 			let maxIdx = i;
 			for(let j = i + 1; j < costs.length; j++) {
 				let compareResult = this.costCompare(costs[j], costs[maxIdx]);
-				if(compareResult != null && compareResult > 0) {
-					maxIdx = j;
+				if(compareResult != null) {
+					if(compareResult > 0) {
+						maxIdx = j;
+					}
+				} else {
+					koReorder = true;
 				}
 			}
 			this.costSwap(costs, maxIdx, i);
 		}
+		
+		//Prune constants
+		if(pruneConst) {
+			for(let i = costs.length - 1; i > 0; i--) {
+				if(costs[i].type == COST_TYPE.CONST) {
+					costs.splice(i, 1);
+				} else {
+					break;
+				}
+			}
+		}
+		
+		return koReorder;
+		
 	}
 	
 	costSwap(costs, i, j) {
 		let tmp = costs[i];
 		costs[i] = costs[j];
 		costs[j] = tmp;
+	}
+	
+	emptyCostCompare(cost1, cost2) {
+		if(cost1 == cost2) {
+			return 0;
+		} else {
+			return cost1.order - cost2.order;
+		}
 	}
 	
 	costCompare(cost1, cost2) {
@@ -1181,6 +1247,12 @@ class Cost {
 				case COST_TYPE.LIN:
 					if(cost1.param == cost2.param) {
 						return 0;
+					} else {
+						//Check if can be parsed to int
+						let toInt = [parseInt(cost1.param), parseInt(cost2.param)];
+						if(!isNaN(toInt[0]) && !isNaN(toInt[1])) {
+							return toInt[0] - toInt[1];
+						}
 					}
 					return null;
 					
@@ -1271,7 +1343,7 @@ class Cost {
 		}
 		
 		//Same results
-		return -compareResults[0];
+		return compareResults[0];
 		
 	}
 	
@@ -1291,7 +1363,7 @@ class Cost {
 		}
 		
 		//Same results
-		return -compareResults[0];
+		return compareResults[0];
 		
 	}
 	
@@ -1404,13 +1476,13 @@ class Cost {
 		switch(cost.type) {
 			
 			case COST_TYPE.CONST:
-				return MSG_COST_CONST;
+				return MSG_COST_CONST.format(cost.param);
 				
 			case COST_TYPE.LIN:
 				return cost.param;
 				
 			case COST_TYPE.LOG:
-				return MSG_COST_LOG.format(this.getHRCost(cost.param));
+				return MSG_COST_LOG.format(this.getHRCost(cost.param), this.getHRCost(cost.paramExtra));
 				
 			case COST_TYPE.POL:
 			case COST_TYPE.EXP:
@@ -1437,6 +1509,10 @@ class Cost {
 				return INFINITE;
 				
 		}
+	}
+
+	isSysFunc(funcName) {
+		return typeof this.astSys[funcName] !== UNDEFINED;
 	}
 
 }

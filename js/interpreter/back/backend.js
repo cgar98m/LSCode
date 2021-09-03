@@ -6,7 +6,7 @@ class BackEnd {
 		this.interpreter = new Interpreter(interpreteConsole);
 		
 		//Create cost analyzer
-		//this.costAnalyzer = new Cost(costDisplay, costConsole);
+		this.costAnalyzer = new Cost(costDisplay, costConsole);
 		
 	}
 	
@@ -14,9 +14,9 @@ class BackEnd {
 		this.interpreter.setCode(astTree, astFunc, astSys);
 	}
 	
-	/*updateCost(astTree, astFunc, astSys) {
+	updateCost(astTree, astFunc, astSys) {
 		this.costAnalyzer.setCode(astTree, astFunc, astSys);
-	}*/
+	}
 	
 	nextRunnable() {
 		return this.interpreter.runnableCode();

@@ -57,21 +57,38 @@ const OPERATION = {
 	MOD: "mod"
 }
 
+const OP_COMPARISSON = {
+	not: false,
+	or: false,
+	and: false,
+	equal: true,
+	notEqual: true,
+	lower: true,
+	lowerEqual: true,
+	greater: true,
+	greaterEqual: true,
+	plus: false,
+	minus: false,
+	mult: false,
+	div: false,
+	mod: false
+};
+
 const OP_LVL = {
-	NOT: 0,
-	OR: 1,
-	AND: 2,
-	EQ: 3,
-	NOT_EQ: 3,
-	LOW: 4,
-	LOW_EQ: 4,
-	GREAT: 4,
-	GREAT_EQ: 4,
-	PLUS: 5,
-	MINUS: 5,
-	MULT: 6,
-	DIV: 6,
-	MOD: 6
+	not: 0,
+	or: 1,
+	and: 2,
+	equal: 3,
+	notEqual: 3,
+	lower: 4,
+	lowerEqual: 4,
+	greater: 4,
+	greaterEqual: 4,
+	plus: 5,
+	minus: 5,
+	mult: 6,
+	div: 6,
+	mod: 6
 };
 
 const BOOL = {
@@ -414,6 +431,7 @@ class Semantica {
 				vars: {},
 				parentContext: this.globalContext
 			},
+			semantica: SEMANTICA_KEYS.FUNC_DEFINE,
 			children: []
 		}
 		this.funcAstTree[funcNodeName.info.content] = funcNode;
@@ -618,6 +636,7 @@ class Semantica {
 			//Get var info
 			let varInfo = varList[i];
 			varInfo.type = typeInfo.type;
+			varInfo.value = null;
 			
 			//Check if var already exists
 			if(astExistsVar(varInfo.content, astNodeParent.context)) {
@@ -653,6 +672,7 @@ class Semantica {
 				
 				//Get var info
 				let varInfo = varConcat[i][j];
+				varInfo.value = null;
 				
 				//Check if var already exists
 				if(!astExistsVar(varInfo.content, astNodeParent.context)) {
@@ -1112,6 +1132,11 @@ class Semantica {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].returnData) {
 				funcData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);	
 			}
+		}
+		
+		//Check valid data
+		if(typeof funcData.find(item => item == null) != UNDEFINED) {
+			return;
 		}
 		
 		//Get function name node
@@ -1683,6 +1708,11 @@ class Semantica {
 			paramsData = this.expConcatExtraction(paramsNode, context);
 		}
 		
+		//Check valid params
+		if(typeof paramsData.find(item => item == null) != UNDEFINED) {
+			return null;
+		}
+		
 		//Get function params type
 		let funcRef = this.referenceToFunc(funcNodeName.info.content);
 		let funcParamTypes = this.funcParamsType(funcRef);
@@ -1764,12 +1794,23 @@ class Semantica {
 	
 	varAssignExp(parseNode, astNodeParent, semantica) {
 		
+		//Prepare first and last terminals
+		let firstTerm;
+		let lastTerm;
+		
 		//Get value data
 		let valueData = [];
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].values) {
 				valueData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);
+				firstTerm = this.terminalFirst(parseNode.children[i]);
+				lastTerm = this.terminalLast(parseNode.children[i]);
 			}
+		}
+		
+		//Check valid data
+		if(typeof valueData.find(item => item == null) != UNDEFINED) {
+			return;
 		}
 		
 		//Check if data has expected length
@@ -1804,10 +1845,6 @@ class Semantica {
 				return;
 			}
 		}
-		
-		//Get first and last terminals
-		let firstTerm = this.terminalFirst(parseNode);
-		let lastTerm = this.terminalLast(parseNode);
 		
 		//Create value assign node
 		let valueAssignNode = {
@@ -1961,7 +1998,18 @@ class Semantica {
 		
 		//Append params if valid
 		if(paramsData != null) {
+			
+			//Get range
+			let firstTerm = this.terminalFirst(parseNode);
+			let lastTerm = this.terminalLast(parseNode);
+			
+			//Update data
 			astNodeParent.children.push(...paramsData);
+			astNodeParent.lineStart = firstTerm.info.line;
+			astNodeParent.lineEnd = lastTerm.info.line;
+			astNodeParent.offsetStart = firstTerm.info.offset;
+			astNodeParent.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
+			
 		}
 		
 	}

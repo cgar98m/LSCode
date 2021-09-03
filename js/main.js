@@ -266,7 +266,7 @@ function linkButtons() {
 				//Check if code can be cost analyzed
 				if(astTree != null || funcAstTree != null) {
 					costDisplay.setContent(codeInTextArea.value);
-					//backEnd.updateCost(astTree, funcAstTree, sysAstTree);
+					backEnd.updateCost(astTree, funcAstTree, sysAstTree);
 				}
 				
 			}

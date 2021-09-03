@@ -314,7 +314,7 @@ class CodeRunner {
 			
 				//Check if var has any value
 				let varRef = astLocateVar(node.ref.content, context);
-				if(typeof varRef.value === UNDEFINED) {
+				if(varRef.value == null) {
 					varRef.value = this.getDefaultValue(varRef.type);
 				}
 				

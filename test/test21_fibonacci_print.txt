@@ -12,7 +12,6 @@ mentre loops <= 10
    printaEnter(fib(loops))
    loops = loops + 1
 fimentre
-
 /*
 tmpN declaració implícita (warning)
 */

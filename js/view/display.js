@@ -107,33 +107,50 @@ class Display {
 		html.appendChild(this.createSpan(src.substring(0, mark.start), null));
 		
 		//Append marked text (tooltip)
-		this.createMark(src, html, mark);
+		let lastEnd = this.createMark(src, html, mark, null);
 		
 		//Append unmarked text after tooltip
-		html.appendChild(this.createSpan(src.substring(mark.end + 1, src.length), null));
+		html.appendChild(this.createSpan(src.substring(lastEnd + 1, src.length), null));
 		
 	}
 	
-	createMark(src, html, mark) {
+	createMark(src, html, mark, coreMark) {
+		
 		//Check if has any sub-tooltip
 		if(mark.next != null) {
 			
 			//Check if exists tooltip before sub-tooltip
 			if(mark.start < mark.next.start) {
-				html.appendChild(this.createTooltip(src.substring(mark.start, mark.next.start), mark.color, mark.tip));
+				if(mark.end < mark.next.start) {
+					html.appendChild(this.createTooltip(src.substring(mark.start, mark.end + 1), mark.color, mark.tip));
+					if(mark.end + 1 < mark.next.start) {
+						if(coreMark == null) {
+							html.appendChild(this.createSpan(src.substring(mark.end + 1, mark.next.start), null));
+						} else {
+							html.appendChild(this.createTooltip(src.substring(mark.end + 1, mark.next.start), coreMark.color, coreMark.tip));
+						}
+					}
+				} else {
+					html.appendChild(this.createTooltip(src.substring(mark.start, mark.next.start), mark.color, mark.tip));
+				}
 			}
 			
 			//Create sub-tooltip
-			this.createMark(src, html, mark.next);
+			let lastEnd = this.createMark(src, html, mark.next, coreMark == null ? mark : coreMark);
 			
 			//Check if exists tooltip after sub-tooltip
-			if(mark.end > mark.next.end) {
-				html.appendChild(this.createTooltip(src.substring(mark.next.end + 1, mark.end), mark.color, mark.tip));
+			if(mark.end > lastEnd) {
+				html.appendChild(this.createTooltip(src.substring(lastEnd + 1, mark.end + 1), mark.color, mark.tip));
+			} else {
+				return lastEnd;
 			}
 			
 		} else {
 			html.appendChild(this.createTooltip(src.substring(mark.start, mark.end + 1), mark.color, mark.tip));
 		}
+		
+		return mark.end;
+		
 	}
 	
 	appendMark(mark, lineContent) {

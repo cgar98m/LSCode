@@ -1,0 +1,9 @@
+//Cost ko on complex assign
+i = 0
+mentre i < 10
+   i = i + 1 + 2
+fimentre
+/*
+i implícita (warning)
+i = i + 1 + 2 no permés (error costos)
+*/

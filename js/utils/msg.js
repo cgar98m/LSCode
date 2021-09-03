@@ -35,6 +35,14 @@ const ERROR_ZERO_DIV = "[Error] Division by 0 in line {0}, col {1}";
 const ERROR_STACK_OV = "[Error] Stack overflow - Check for endless loops/recurssion";
 const ERROR_UNDEFINED = "[Error] Undefined error";
 
+const ERROR_INVALID_FUNC = "[Error] Function \"{0}\" can not be analyzed in line {1}, col {2}";
+const ERROR_CONDITION_DEP = "[Error] Condition can not be analyzed in line {0}, col {1}";
+const ERROR_CONDITION_NOT_INT = "[Error] Condition relies on non integer comparison in line {0}, col {1}";
+const ERROR_COST_LOOP_MULTIVAR = "[Error] Condition relies on \"{0}\", but multi-var assignment is not supported on cost analysis in line {1}, col {2}";
+const ERROR_COST_SELF_UPDATE = "[Error] Condition relies on non self update var \"{0}\" in line {1}, col {2}";
+const ERROR_COST_COMPLEX_UPDATE = "[Error] Condition relies on complex self update var \"{0}\" in line {1}, col {2}";
+const ERROR_COST_UNKNOWN = "[Error] Unknown error font";
+
 //Warnings
 const WARN_UNDEFINED_TOKEN = "Undefined token \"{0}\" in line {1}, col {2} - Program may not work as expected";
 
@@ -55,12 +63,13 @@ const MSG_QUOTED_WORD = "\"{0}\"";
 const MSG_BIG_OH = "\u004F({0})";
 const MSG_BIG_OMEGA = "\u03A9({0})";
 const MSG_BIG_THETA = "\u03B8({0})";
-const MSG_COST_CONST = "1";
-const MSG_COST_LOG = "log({0})";
+const MSG_COST_CONST = "{0}";
+const MSG_COST_LOG = "log({0})_base({1})";
 const MSG_COST_EXP = "{0} ^ {1}";
 const MSG_COST_MULT = "{0} * {1}";
 const MSG_COST_MAX = "max({0}, {1})";
 const MSG_COST_MIN = "min({0}, {1})";
+const MSG_INCOMPLETE_COST = "[Info] Could not calculate cost";
 
 const MSG_CODE = "CODE";
 const MSG_FUNCS = "FUNCTIONS";

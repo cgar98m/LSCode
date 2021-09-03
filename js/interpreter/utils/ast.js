@@ -16,12 +16,12 @@ function astCopy(astSource, context, fromFunc) {
 	let node = {...astSource};
 	
 	//Check node type
-	node.children = [];
 	switch(node.type) {
 		
 		case AST_NODE.STRUCT:
 			
 			//Update context
+			node.children = [];
 			if(!fromFunc) {
 				node.context = astContextCopy(astSource.context, context);
 			} else {
@@ -38,6 +38,7 @@ function astCopy(astSource, context, fromFunc) {
 		case AST_NODE.ACTION:
 		
 			//Update context
+			node.children = [];
 			node.context = context;
 		
 			//Check semantica
@@ -69,6 +70,7 @@ function astCopy(astSource, context, fromFunc) {
 			node.context = astContextCopy(astSource.context, context);
 			
 			//Update children
+			node.children = [];
 			node.children.push(astParamCopy(astSource.children[0], node.context));
 			node.children.push(astReturnTypeCopy(astSource.children[1]));
 			node.children.push(astContentCopy(astSource.children[2], node.context, true));
@@ -211,6 +213,10 @@ function astExpCopy(astExp, context) {
 				node.children.push(astExpCopy(astExp.children[i], context));
 			}
 			
+			break;
+			
+		case AST_NODE.ID:
+			node.ref = astLocateVar(node.ref.content, context);
 			break;
 			
 	}

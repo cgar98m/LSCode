@@ -398,11 +398,11 @@
 		{
 			"production_id": "IF_BLOCK",
 			"rules": [
-				["KW_STRUCT_IF", "EXP_NOT", "IF_BLOCK_THEN", "CONTENT_BLOCK", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
+				["KW_STRUCT_IF", "EXP_OR", "IF_BLOCK_THEN", "CONTENT_BLOCK", "IF_BLOCK_ELSE", "KW_STRUCT_ENDIF"]
 			],
 			"semantica": {
 				"fork" : {
-					"condition": "EXP_NOT",
+					"condition": "EXP_OR",
 					"cases": [
 						"CONTENT_BLOCK",
 						"IF_BLOCK_ELSE"
@@ -431,11 +431,11 @@
 		{
 			"production_id": "WHILE_BLOCK",
 			"rules": [
-				["KW_STRUCT_WHILE", "EXP_NOT", "LOOP_BLOCK_DO", "CONTENT_BLOCK", "KW_STRUCT_ENDWHILE"]
+				["KW_STRUCT_WHILE", "EXP_OR", "LOOP_BLOCK_DO", "CONTENT_BLOCK", "KW_STRUCT_ENDWHILE"]
 			],
 			"semantica": {
 				"loop": {
-					"condition": "EXP_NOT",
+					"condition": "EXP_OR",
 					"code": "CONTENT_BLOCK"
 				}
 			}
@@ -482,6 +482,15 @@
 			}
 		},
 		{
+			"production_id": "FUNC_VARS_S",
+			"rules": [
+				["OP_SEPARATOR", "FUNC_VARS"],
+				["EPSILON"]
+			],
+			"semantica": {
+			}
+		},
+		{
 			"production_id": "FUNC_SINGLE_VAR",
 			"rules": [
 				["KW_ID", "OP_ASSIGN_TYPE", "TYPE"]
@@ -491,15 +500,6 @@
 					"varName": "KW_ID",
 					"type": "TYPE"
 				}
-			}
-		},
-		{
-			"production_id": "FUNC_VARS_S",
-			"rules": [
-				["OP_SEPARATOR", "FUNC_VARS"],
-				["EPSILON"]
-			],
-			"semantica": {
 			}
 		},
 		{
@@ -564,11 +564,11 @@
 		{
 			"production_id": "EXP_CONCAT",
 			"rules": [
-				["EXP_NOT", "EXP_CONCAT_S"]
+				["EXP_OR", "EXP_CONCAT_S"]
 			],
 			"semantica": {
 				"expSeparation": {
-					"expGroup": "EXP_NOT"
+					"expGroup": "EXP_OR"
 				}
 			}
 		},
@@ -579,66 +579,6 @@
 				["EPSILON"]
 			],
 			"semantica": {
-			}
-		},
-		{
-			"production_id": "EXP_NOT",
-			"rules": [
-				["OP_NOT", "EXP_OR"]
-			],
-			"semantica": {
-				"unaryExpression": {
-					"operator": "OP_NOT",
-					"exp": "EXP_OR",
-					"typeOptions": [
-						{
-							"opExists": true,
-							"exp": "bool",
-							"type": "bool"
-						},
-						{
-							"opExists": false,
-							"exp": "bool",
-							"type": "bool"
-						},
-						{
-							"opExists": false,
-							"exp": "int",
-							"type": "int"
-						},
-						{
-							"opExists": false,
-							"exp": "char",
-							"type": "char"
-						},
-						{
-							"opExists": false,
-							"exp": "string",
-							"type": "string"
-						},
-						{
-							"opExists": false,
-							"exp": "group",
-							"type": "group"
-						}
-					]
-				}
-			}
-		},
-		{
-			"production_id": "OP_NOT",
-			"rules": [
-				["OP_LOG_NOT"],
-				["EPSILON"]
-			],
-			"semantica": {
-				"operator": {
-					"operatorPairs": [
-						{
-							"OP_LOG_NOT": "not"
-						}
-					]
-				}
 			}
 		},
 		{
@@ -802,12 +742,12 @@
 						{
 							"mainExp": "char",
 							"subExp": "int",
-							"type": "char"
+							"type": "bool"
 						},
 						{
 							"mainExp": "int",
 							"subExp": "char",
-							"type": "char"
+							"type": "bool"
 						},
 						{
 							"mainExp": "string",
@@ -890,12 +830,12 @@
 						{
 							"mainExp": "char",
 							"subExp": "int",
-							"type": "char"
+							"type": "bool"
 						},
 						{
 							"mainExp": "int",
 							"subExp": "char",
-							"type": "char"
+							"type": "bool"
 						},
 						{
 							"mainExp": "bool",
@@ -1054,11 +994,11 @@
 		{
 			"production_id": "EXP_MULT",
 			"rules": [
-				["VALUE", "EXP_MULT_S"]
+				["EXP_NOT", "EXP_MULT_S"]
 			],
 			"semantica": {
 				"expression": {
-					"mainExp": "VALUE",
+					"mainExp": "EXP_NOT",
 					"subExp": "EXP_MULT_S",
 					"typeOptions": [
 						{
@@ -1149,6 +1089,66 @@
 			}
 		},
 		{
+			"production_id": "EXP_NOT",
+			"rules": [
+				["OP_NOT", "VALUE"]
+			],
+			"semantica": {
+				"unaryExpression": {
+					"operator": "OP_NOT",
+					"exp": "VALUE",
+					"typeOptions": [
+						{
+							"opExists": true,
+							"exp": "bool",
+							"type": "bool"
+						},
+						{
+							"opExists": false,
+							"exp": "bool",
+							"type": "bool"
+						},
+						{
+							"opExists": false,
+							"exp": "int",
+							"type": "int"
+						},
+						{
+							"opExists": false,
+							"exp": "char",
+							"type": "char"
+						},
+						{
+							"opExists": false,
+							"exp": "string",
+							"type": "string"
+						},
+						{
+							"opExists": false,
+							"exp": "group",
+							"type": "group"
+						}
+					]
+				}
+			}
+		},
+		{
+			"production_id": "OP_NOT",
+			"rules": [
+				["OP_LOG_NOT"],
+				["EPSILON"]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_LOG_NOT": "not"
+						}
+					]
+				}
+			}
+		},
+		{
 			"production_id": "VALUE",
 			"rules": [
 				["KW_ID"],
@@ -1159,7 +1159,7 @@
 				["CONST_HEX"],
 				["CONST_INT"],
 				["CONST_STRING"],
-				["SP_EXP_OPEN", "EXP_NOT", "SP_EXP_CLOSE"]
+				["SP_EXP_OPEN", "EXP_OR", "SP_EXP_CLOSE"]
 			],
 			"semantica": {
 				"value": {
@@ -1189,7 +1189,7 @@
 							"CONST_STRING": "string"
 						},
 						{
-							"EXP_NOT": "expression"
+							"EXP_OR": "expression"
 						}
 					]
 				}

@@ -1,0 +1,41 @@
+//Cost, but even more assigns
+a, b, c = hola(), 1, adeu(fals)
+
+func hola(): enter
+   a = 3
+   b = 3
+   c = 30
+   si a == 2
+      mentre a < b
+         mentre c < b
+            c = c + (1)
+         fimentre
+         a = a + 1
+      fimentre
+   sino
+      a = 10
+      mentre a <> c
+         a = a * 3
+      fimentre
+   fisi
+   retorna b
+fifunc
+
+func adeu(logMode: boolea): enter
+   i = 1
+   si ¬logMode llavors
+      mentre i < 10
+         printaEnter(i)
+         i = i * 5
+      fimentre
+   sino
+      mentre i < 20
+         printaEnter(i)
+         i = i * 2
+      fimentre
+   fisi
+   retorna i
+fifunc
+/*
+a, b, c, i implícites (warning)
+*/
