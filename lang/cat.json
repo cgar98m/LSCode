@@ -1091,12 +1091,12 @@
 		{
 			"production_id": "EXP_NOT",
 			"rules": [
-				["OP_NOT", "VALUE"]
+				["OP_NOT", "EXP_NEG"]
 			],
 			"semantica": {
 				"unaryExpression": {
 					"operator": "OP_NOT",
-					"exp": "VALUE",
+					"exp": "EXP_NEG",
 					"typeOptions": [
 						{
 							"opExists": true,
@@ -1143,6 +1143,71 @@
 					"operatorPairs": [
 						{
 							"OP_LOG_NOT": "not"
+						}
+					]
+				}
+			}
+		},
+		{
+			"production_id": "EXP_NEG",
+			"rules": [
+				["OP_NEG", "VALUE"]
+			],
+			"semantica": {
+				"unaryExpression": {
+					"operator": "OP_NEG",
+					"exp": "VALUE",
+					"typeOptions": [
+						{
+							"opExists": false,
+							"exp": "bool",
+							"type": "bool"
+						},
+						{
+							"opExists": true,
+							"exp": "int",
+							"type": "int"
+						},
+						{
+							"opExists": false,
+							"exp": "int",
+							"type": "int"
+						},
+						{
+							"opExists": true,
+							"exp": "char",
+							"type": "char"
+						},
+						{
+							"opExists": false,
+							"exp": "char",
+							"type": "char"
+						},
+						{
+							"opExists": false,
+							"exp": "string",
+							"type": "string"
+						},
+						{
+							"opExists": false,
+							"exp": "group",
+							"type": "group"
+						}
+					]
+				}
+			}
+		},
+		{
+			"production_id": "OP_NEG",
+			"rules": [
+				["OP_ARIT_MINUS"],
+				["EPSILON"]
+			],
+			"semantica": {
+				"operator": {
+					"operatorPairs": [
+						{
+							"OP_ARIT_MINUS": "neg"
 						}
 					]
 				}

@@ -50,6 +50,7 @@ const OPERATION = {
 	LOW_EQ: "lowerEqual",
 	GREAT: "greater",
 	GREAT_EQ: "greaterEqual",
+	NEG: "neg",
 	PLUS: "plus",
 	MINUS: "minus",
 	MULT: "mult",
@@ -67,6 +68,7 @@ const OP_COMPARISSON = {
 	lowerEqual: true,
 	greater: true,
 	greaterEqual: true,
+	neg: false,
 	plus: false,
 	minus: false,
 	mult: false,
@@ -84,11 +86,12 @@ const OP_LVL = {
 	lowerEqual: 4,
 	greater: 4,
 	greaterEqual: 4,
-	plus: 5,
-	minus: 5,
-	mult: 6,
-	div: 6,
-	mod: 6
+	neg: 5,
+	plus: 6,
+	minus: 6,
+	mult: 7,
+	div: 7,
+	mod: 7
 };
 
 const BOOL = {
@@ -1128,9 +1131,10 @@ class Semantica {
 		
 		//Get function data
 		let funcData = [];
+		let realRange = [];
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.FUNC_DEFINE].returnData) {
-				funcData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);	
+				funcData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context, realRange);	
 			}
 		}
 		
@@ -1163,6 +1167,9 @@ class Semantica {
 		//Append data
 		astNodeParent.children[3].children.push(...funcData);
 		
+		//Append real range
+		astNodeParent.children[3].realRange = realRange;
+		
 	}
 	
 	expConcatTypes(expConcat) {
@@ -1183,7 +1190,7 @@ class Semantica {
 	
 	}
 	
-	expConcatExtraction(parseNode, context) {
+	expConcatExtraction(parseNode, context, realRange) {
 		
 		//Check if is a production
 		let expConcat = [];
@@ -1196,9 +1203,24 @@ class Semantica {
 			let existsExpGroup = typeof semantica[SEMANTICA_KEYS.EXP_SEPARATION] !== UNDEFINED;
 			for(let i = 0; i < parseNode.children.length; i++) {
 				if(existsExpGroup && parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.EXP_SEPARATION].expGroup) {
+					
+					//Extract expression
 					expConcat.push(this.expExtraction(parseNode.children[i], context));
+					
+					//Get first and last terms
+					let firstTerm = this.terminalFirst(parseNode.children[i]);
+					let lastTerm = this.terminalLast(parseNode.children[i]);
+					
+					//Extract real range
+					realRange.push({
+						lineStart: firstTerm.info.line,
+						lineEnd: lastTerm.info.line,
+						offsetStart: firstTerm.info.offset,
+						offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
+					});
+					
 				} else {
-					expConcat.push(...this.expConcatExtraction(parseNode.children[i], context));
+					expConcat.push(...this.expConcatExtraction(parseNode.children[i], context, realRange));
 				}
 			}
 		
@@ -1562,7 +1584,8 @@ class Semantica {
 						}
 						
 						//Check function params
-						let paramsData = this.funcCallParamsCheck(foundNode, context);
+						let realRange = [];
+						let paramsData = this.funcCallParamsCheck(foundNode, context, realRange);
 						if(paramsData == null) {
 							return null;	//Error already registered
 						}
@@ -1579,6 +1602,7 @@ class Semantica {
 							ref: funcRef.funcName,
 							call: funcNodeName.info,
 							prio: false,
+							realRange: realRange,
 							children: paramsData
 						};
 						
@@ -1693,7 +1717,7 @@ class Semantica {
 		
 	}
 	
-	funcCallParamsCheck(parseNode, context) {
+	funcCallParamsCheck(parseNode, context, realRange) {
 		
 		//Get production semantica
 		let semantica = this.grammarMap[parseNode.production_id].semantica;
@@ -1705,7 +1729,7 @@ class Semantica {
 		let paramsNode = parseNode.children.find(item => item.production_id == semantica[SEMANTICA_KEYS.FUNC_CALL].params);
 		let paramsData = [];
 		if(typeof paramsNode !== UNDEFINED) {
-			paramsData = this.expConcatExtraction(paramsNode, context);
+			paramsData = this.expConcatExtraction(paramsNode, context, realRange);
 		}
 		
 		//Check valid params
@@ -1800,9 +1824,10 @@ class Semantica {
 		
 		//Get value data
 		let valueData = [];
+		let realRange = [];
 		for(let i = 0; i < parseNode.children.length; i++) {
 			if(parseNode.children[i].production_id == semantica[SEMANTICA_KEYS.VAR_ASSIGN].values) {
-				valueData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context);
+				valueData = this.expConcatExtraction(parseNode.children[i], astNodeParent.context, realRange);
 				firstTerm = this.terminalFirst(parseNode.children[i]);
 				lastTerm = this.terminalLast(parseNode.children[i]);
 			}
@@ -1853,6 +1878,7 @@ class Semantica {
 			lineEnd: lastTerm.info.line,
 			offsetStart: firstTerm.info.offset,
 			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1,
+			realRange: realRange,
 			children: []
 		};
 		astNodeParent.children.push(valueAssignNode);
@@ -1896,14 +1922,14 @@ class Semantica {
 			return;
 		}
 		
-		//Update condition data
-		conditionData[0].lineStart = firstTerm.info.line;
-		conditionData[0].lineEnd = lastTerm.info.line;
-		conditionData[0].offsetStart = firstTerm.info.offset;
-		conditionData[0].offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
-		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
+		astNodeParent.children[0].realRange = {
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
+		};
 		
 		//Continue analyzing content
 		for(let i = 0; i < parseNode.children.length; i++) {
@@ -1950,14 +1976,14 @@ class Semantica {
 			return;
 		}
 		
-		//Update condition data
-		conditionData[0].lineStart = firstTerm.info.line;
-		conditionData[0].lineEnd = lastTerm.info.line;
-		conditionData[0].offsetStart = firstTerm.info.offset;
-		conditionData[0].offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
-		
 		//Append data
 		astNodeParent.children[0].children.push(...conditionData);
+		astNodeParent.children[0].realRange = {
+			lineStart: firstTerm.info.line,
+			lineEnd: lastTerm.info.line,
+			offsetStart: firstTerm.info.offset,
+			offsetEnd: lastTerm.info.offset + lastTerm.info.content.length - 1
+		};
 		
 		//Continue analyzing content
 		for(let i = 0; i < parseNode.children.length; i++) {
@@ -1994,7 +2020,8 @@ class Semantica {
 		}
 		
 		//Get function params
-		let paramsData = this.funcCallParamsCheck(parseNode, astNodeParent.context);
+		let realRange = [];
+		let paramsData = this.funcCallParamsCheck(parseNode, astNodeParent.context, realRange);
 		
 		//Append params if valid
 		if(paramsData != null) {
@@ -2009,6 +2036,7 @@ class Semantica {
 			astNodeParent.lineEnd = lastTerm.info.line;
 			astNodeParent.offsetStart = firstTerm.info.offset;
 			astNodeParent.offsetEnd = lastTerm.info.offset + lastTerm.info.content.length - 1;
+			astNodeParent.realRange = realRange;
 			
 		}
 		

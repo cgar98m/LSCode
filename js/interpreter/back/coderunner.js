@@ -386,6 +386,9 @@ class CodeRunner {
 			case OPERATION.GREAT_EQ:
 				return [exps[0] >= exps[1]];
 				
+			case OPERATION.NEG:
+				return [-exps[0]];
+				
 			case OPERATION.PLUS:
 				return [exps[0] + exps[1]];
 				

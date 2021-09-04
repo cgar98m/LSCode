@@ -11,4 +11,5 @@ mentre cert
 fimentre
 /*
 c declaració implícita (warning)
+mentre a > b condició no simple (error)
 */

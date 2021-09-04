@@ -8,4 +8,5 @@ func fib(n: enter): enter
 fifunc
 /*
 tmpN declaració implícita (warning)
+funció recursiva (error costos)
 */

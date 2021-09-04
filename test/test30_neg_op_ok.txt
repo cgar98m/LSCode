@@ -1,0 +1,8 @@
+//Operacions negatives
+a = -2 + 5 - -3
+printaEnter(a)
+b = - 'b' + 'a' - -'x' + 1
+printaCaracter(b)
+/*
+a, b implícites (warning)
+*/

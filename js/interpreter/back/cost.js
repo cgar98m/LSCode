@@ -158,7 +158,7 @@ class Cost {
 				if(prevRange != null) {
 					this.displayLocalCost(node.cost, prevRange.lineStart, prevRange.lineEnd, prevRange.offsetStart, prevRange.offsetEnd, BG_COLOR_CLASSES[colorIdx]);
 					for(let i = 0; i < node.children.length; i++) {
-						this.displayExpCost(node.children[i], colorIdx + 1, null);
+						this.displayExpCost(node.children[i], (colorIdx + 1) % BG_COLOR_CLASSES.length, null);
 					}
 				}
 				break;
@@ -178,10 +178,10 @@ class Cost {
 		//Display expressions cost
 		for(let i = 0; i < node.children[1].children.length; i++) {
 			this.displayExpCost(node.children[1].children[i], (colorIdx + 1) % BG_COLOR_CLASSES.length, {
-				lineStart: node.children[1].lineStart,
-				lineEnd: node.children[1].lineEnd,
-				offsetStart: node.children[1].offsetStart,
-				offsetEnd: node.children[1].offsetEnd
+				lineStart: node.children[1].realRange[i].lineStart,
+				lineEnd: node.children[1].realRange[i].lineEnd,
+				offsetStart: node.children[1].realRange[i].offsetStart,
+				offsetEnd: node.children[1].realRange[i].offsetEnd
 			});
 		}
 		
@@ -194,12 +194,11 @@ class Cost {
 		
 		//Display condition cost
 		let cNode = node.children[0].children[0];
-		this.displayLocalCost(cNode.cost, cNode.lineStart, cNode.lineEnd, cNode.offsetStart, cNode.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 1) % BG_COLOR_CLASSES.length]);
-		this.displayExpCost(cNode, (colorIdx + 2) % BG_COLOR_CLASSES.length, {
-			lineStart: node.children[0].lineStart,
-			lineEnd: node.children[0].lineEnd,
-			offsetStart: node.children[0].offsetStart,
-			offsetEnd: node.children[0].offsetEnd
+		this.displayExpCost(cNode, (colorIdx + 1) % BG_COLOR_CLASSES.length, {
+			lineStart: node.children[0].realRange.lineStart,
+			lineEnd: node.children[0].realRange.lineEnd,
+			offsetStart: node.children[0].realRange.offsetStart,
+			offsetEnd: node.children[0].realRange.offsetEnd
 		});
 		
 		//Display subcode costs
@@ -217,8 +216,12 @@ class Cost {
 		//Display params cost
 		for(i = 0; i < node.children.length; i++) {
 			let exp = node.children[i];
-			this.displayLocalCost(exp.cost, exp.lineStart, exp.lineEnd, exp.offsetStart, exp.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 1) % BG_COLOR_CLASSES.length]);
-			this.displayExpCost(exp, (colorIdx + 2) % BG_COLOR_CLASSES.length, null);
+			this.displayExpCost(exp, (colorIdx + 2) % BG_COLOR_CLASSES.length, {
+				lineStart: node.realRange[i].lineStart,
+				lineEnd: node.realRange[i].lineEnd,
+				offsetStart: node.realRange[i].offsetStart,
+				offsetEnd: node.realRange[i].offsetEnd
+			});
 		}
 		
 	}
@@ -239,8 +242,12 @@ class Cost {
 			this.displayLocalCost(rNode.cost, rNode.lineStart, rNode.lineEnd, rNode.offsetStart, rNode.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 1) % BG_COLOR_CLASSES.length]);
 			for(let i = 0; i < rNode.children.length; i++) {
 				let exp = rNode.children[i];
-				this.displayLocalCost(exp.cost, exp.lineStart, exp.lineEnd, exp.offsetStart, exp.offsetEnd, BG_COLOR_CLASSES[(colorIdx + 2) % BG_COLOR_CLASSES.length]);
-				this.displayExpCost(exp, (colorIdx + 3) % BG_COLOR_CLASSES.length, null);
+				this.displayExpCost(exp, (colorIdx + 3) % BG_COLOR_CLASSES.length, {
+					lineStart: rNode.realRange[i].lineStart,
+					lineEnd: rNode.realRange[i].lineEnd,
+					offsetStart: rNode.realRange[i].offsetStart,
+					offsetEnd: rNode.realRange[i].offsetEnd
+				});
 			}
 		}
 		
