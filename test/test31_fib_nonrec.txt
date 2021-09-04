@@ -1,0 +1,28 @@
+//Fibonacci no recursiu
+i = 0
+mentre i <= 10
+   printaEnter(fib(i))
+   i = i + 1
+fimentre
+
+func fib(n: enter): enter
+   fib, f1, f2 = 0, 1, 0
+   si n > 1
+      i: enter
+      i = 2
+      mentre i <= n
+         fib = f1 + f2
+         f2 = f1
+         f1 = fib
+         i = i + 1
+      fimentre
+   sino
+      fib = n
+   fisi
+   retorna fib
+fifunc
+/*
+fib, f1, f2 implícits (warning)
+i main implícit (warning)
+i func redefinit (warning)
+*/
