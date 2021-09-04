@@ -551,8 +551,6 @@ class Cost {
 	
 	funcCallCost(node) {
 		
-		//TODO
-		
 		//Analyze params cost
 		let paramsCost = [];
 		for(let i = 0; i < node.children.length; i++) {
