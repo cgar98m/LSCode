@@ -96,6 +96,7 @@ const LINE_BREAK = "\n";
 const BLANKSPACE_HTML = "&nbsp";
 const BACK_SLASH = "\\";
 const INFINITE = "\u221e";
+const BIG_N = "\u2115";
 const CLASS = ".{0}";
 const EMPTY = "";
 

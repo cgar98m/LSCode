@@ -910,7 +910,8 @@ class Cost {
 	getComparisonDependency(exp) {
 		if(exp.type == AST_NODE.VALUE) {
 			return {
-				content: exp.value.content,
+				//content: exp.value.content,
+				content: BIG_N,
 				update: false
 			};
 		} else if(exp.type == AST_NODE.ID) {
