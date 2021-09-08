@@ -80,22 +80,22 @@
 			<div class="row flex-grow-1 h-50">
 				<div class="col-6 h-100">
 					<div class="col h-100 overflow-auto border border-secondary">
-						<textarea id="codeTextArea" class="d-flex h-75 overflow-auto border-0" placeholder="Code here"></textarea>
-						<textarea id="codeConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
+						<textarea id="codeTextArea" class="d-flex h-75 overflow-auto border-0" placeholder="Code here" spellcheck="false"></textarea>
+						<textarea id="codeConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" spellcheck="false" readonly></textarea>
 					</div>
 				</div>
 				<div class="col-6 h-100">
 					<div class="col h-100 overflow-auto border border-secondary">
 						<div id="executionWindow" class="d-flex flex-column h-100 m-0">
 							<div id="executionContainer" class="d-block h-75 overflow-auto m-0 py-1"></div>
-							<textarea id="executionConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
+							<textarea id="executionConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" spellcheck="false" readonly></textarea>
 						</div>
 						<div id="costWindow" class="d-none flex-column h-100 m-0">
 							<div id="costCodeContainer" class="d-block h-75 overflow-auto m-0 py-1"></div>
-							<textarea id="costConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" readonly></textarea>
+							<textarea id="costConsoleTextArea" class="d-flex h-25 overflow-auto sticky-bottom" spellcheck="false" readonly></textarea>
 						</div>
 						<div id="tokensWindow" class="d-none flex-column h-100 m-0">
-							<textarea id="tokensConsoleTextArea" class="border-0" readonly></textarea>
+							<textarea id="tokensConsoleTextArea" class="border-0" spellcheck="false" readonly></textarea>
 						</div>
 						<div id="predictionWindow" class="d-none h-100 py-1">
 							<ul id="predictionRootList" class="treeNodeRoot treeNode"></ul>

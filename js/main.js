@@ -163,6 +163,9 @@ function linkDOM() {
 	astExpandBtn = document.getElementById(AST_EXPAND_BTN_ID);
 	astCollapseBtn = document.getElementById(AST_COLLAPSE_BTN_ID);
 
+	//Disable spell check on text areas
+	//$(ID_SELECTOR + TEXTAREA_ITEM).attr(SPELLCHECK_ATTR, FALSE_VALUE);
+
 }
 
 function linkWindows() {
